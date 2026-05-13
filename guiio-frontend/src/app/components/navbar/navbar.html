@@ -1,0 +1,87 @@
+<header class="navbar fixed top-0 left-0 right-0 z-50">
+  <!-- Promo bar -->
+  <div class="promo-bar text-center text-xs py-2 px-4 tracking-wide">
+    Compra 2 uniformes y obtén <strong>20% de descuento</strong> en el segundo
+    &nbsp;·&nbsp;
+    Envío gratis en pedidos mayores a $500.000 COP
+  </div>
+
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+
+      <!-- Logo -->
+      <a routerLink="/" class="logo flex items-center gap-3">
+        <div class="logo-mark">G</div>
+        <div class="flex flex-col leading-none">
+          <span class="logo-text">GUIIO</span>
+          <span class="logo-sub">UNIFORMES</span>
+        </div>
+      </a>
+
+      <!-- Desktop nav -->
+      <ul class="hidden md:flex items-center gap-1">
+        <li>
+          <a routerLink="/" routerLinkActive="nav-active" [routerLinkActiveOptions]="{exact:true}" class="nav-link">
+            Inicio
+          </a>
+        </li>
+        <li>
+          <a routerLink="/catalogo" routerLinkActive="nav-active" class="nav-link">
+            Catálogo
+          </a>
+        </li>
+        <li>
+          <a routerLink="/catalogo/mujer" routerLinkActive="nav-active" class="nav-link">
+            Mujer
+          </a>
+        </li>
+        <li>
+          <a routerLink="/catalogo/hombre" routerLinkActive="nav-active" class="nav-link">
+            Hombre
+          </a>
+        </li>
+        <li>
+          <a routerLink="/contacto" routerLinkActive="nav-active" class="nav-link">
+            Contacto
+          </a>
+        </li>
+      </ul>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-2">
+        <!-- Cart -->
+        <button (click)="cart.toggleCart()" class="cart-btn relative flex items-center gap-2 px-4 py-2 rounded-full">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+          </svg>
+          <span class="text-sm hidden sm:inline">Carrito</span>
+          @if (cart.totalItems() > 0) {
+            <span class="cart-badge">{{ cart.totalItems() }}</span>
+          }
+        </button>
+
+        <!-- Hamburger -->
+        <button (click)="toggleMenu()" class="hamburger md:hidden flex flex-col justify-center items-center w-10 h-10 gap-1.5">
+          <span class="bar" [class.bar-open-1]="menuOpen()"></span>
+          <span class="bar bar-mid" [class.bar-open-2]="menuOpen()"></span>
+          <span class="bar" [class.bar-open-3]="menuOpen()"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div class="mobile-menu md:hidden" [class.mobile-menu-open]="menuOpen()">
+      <ul class="flex flex-col py-4 gap-1">
+        <li><a routerLink="/" (click)="toggleMenu()" class="mobile-link">Inicio</a></li>
+        <li><a routerLink="/catalogo" (click)="toggleMenu()" class="mobile-link">Catálogo</a></li>
+        <li><a routerLink="/catalogo/mujer" (click)="toggleMenu()" class="mobile-link">Mujer</a></li>
+        <li><a routerLink="/catalogo/hombre" (click)="toggleMenu()" class="mobile-link">Hombre</a></li>
+        <li><a routerLink="/contacto" (click)="toggleMenu()" class="mobile-link">Contacto</a></li>
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<!-- Spacer -->
+<div class="h-[96px]"></div>

@@ -1,0 +1,96 @@
+<!-- Backdrop -->
+@if (cart.isOpen()) {
+  <div class="fixed inset-0 bg-black/40 z-40" (click)="cart.toggleCart()"></div>
+}
+
+<!-- Sidebar -->
+<div class="fixed top-0 right-0 h-full w-full sm:w-96 bg-white z-50 shadow-2xl flex flex-col transition-transform duration-300"
+     [class.translate-x-0]="cart.isOpen()"
+     [class.translate-x-full]="!cart.isOpen()">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <h2 class="text-lg font-semibold text-gray-900">Mi carrito ({{ cart.totalItems() }})</h2>
+    <button (click)="cart.toggleCart()" class="p-2 text-gray-500 hover:text-gray-900">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Items -->
+  <div class="flex-1 overflow-y-auto px-6 py-4">
+    @if (cart.cartItems().length === 0) {
+      <div class="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
+        <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+        </svg>
+        <p class="text-sm">Tu carrito está vacío</p>
+        <button (click)="cart.toggleCart()" routerLink="/catalogo"
+          class="text-sm text-gray-900 underline">Ver productos</button>
+      </div>
+    } @else {
+      <ul class="flex flex-col gap-4">
+        @for (item of cart.cartItems(); track $index) {
+          <li class="flex gap-4">
+            <div class="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+              <img [src]="item.product.images[0]" [alt]="item.product.name"
+                   class="w-full h-full object-cover" onerror="this.src='/assets/placeholder.jpg'">
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 truncate">{{ item.product.name }}</p>
+              <p class="text-xs text-gray-500 mt-0.5">{{ item.selectedColor.name }}</p>
+              <p class="text-xs text-gray-400">Blusa {{ item.selectedTopSize }} · Pantalón {{ item.selectedBottomSize }}</p>
+              <div class="flex items-center justify-between mt-2">
+                <div class="flex items-center border border-gray-200 rounded">
+                  <button (click)="cart.updateQuantity($index, item.quantity - 1)"
+                    class="px-2 py-1 text-gray-600 hover:text-gray-900 text-sm">-</button>
+                  <span class="px-2 text-sm">{{ item.quantity }}</span>
+                  <button (click)="cart.updateQuantity($index, item.quantity + 1)"
+                    class="px-2 py-1 text-gray-600 hover:text-gray-900 text-sm">+</button>
+                </div>
+                <span class="text-sm font-medium">
+                  {{ item.product.price * item.quantity | currency:'COP':'symbol-narrow':'1.0-0' }}
+                </span>
+              </div>
+            </div>
+            <button (click)="cart.removeItem($index)" class="text-gray-400 hover:text-red-500 self-start p-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  <!-- Footer -->
+  @if (cart.cartItems().length > 0) {
+    <div class="px-6 py-4 border-t border-gray-100 space-y-2">
+      @if (cart.hasDiscount()) {
+        <div class="flex justify-between text-sm text-green-600">
+          <span>Descuento 20%</span>
+          <span>- {{ cart.discount() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+      }
+      <div class="flex justify-between text-sm text-gray-600">
+        <span>Envío</span>
+        @if (cart.shipping() === 0) {
+          <span class="text-green-600 font-medium">Gratis</span>
+        } @else {
+          <span>{{ cart.shipping() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+        }
+      </div>
+      <div class="flex justify-between font-semibold text-gray-900 pt-1 border-t border-gray-100">
+        <span>Total</span>
+        <span>{{ cart.total() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+      </div>
+      <a routerLink="/carrito" (click)="cart.toggleCart()"
+        class="block w-full bg-gray-900 text-white text-center py-3 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
+        Ir al carrito
+      </a>
+    </div>
+  }
+</div>

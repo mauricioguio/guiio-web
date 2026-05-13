@@ -1,0 +1,135 @@
+<!-- Hero -->
+<section class="relative bg-gray-900 text-white min-h-[85vh] flex items-center">
+  <div class="absolute inset-0 bg-gradient-to-r from-gray-900/90 to-gray-900/40"></div>
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <div class="max-w-xl">
+      <p class="text-sm uppercase tracking-widest text-gray-300 mb-4">Uniformes médicos premium</p>
+      <h1 class="text-5xl sm:text-6xl font-bold leading-tight mb-6">
+        Así como tú cuidas de ellos, nosotros cuidamos de ti
+      </h1>
+      <p class="text-lg text-gray-300 mb-8">
+        Más de 18 años confeccionando uniformes de alta calidad para profesionales de la salud.
+      </p>
+      <div class="flex flex-wrap gap-4">
+        <a routerLink="/catalogo/mujer"
+           class="bg-white text-gray-900 px-8 py-3 rounded-full text-sm font-semibold hover:bg-gray-100 transition-colors">
+          Colección Mujer
+        </a>
+        <a routerLink="/catalogo/hombre"
+           class="border border-white text-white px-8 py-3 rounded-full text-sm font-semibold hover:bg-white/10 transition-colors">
+          Colección Hombre
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Promo banner -->
+<section class="bg-gray-50 py-6">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-wrap justify-center gap-8 text-sm text-gray-600">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"/>
+        </svg>
+        <span>20% OFF en el 2do uniforme</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+        </svg>
+        <span>Envío gratis en pedidos +$500.000 COP</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+        <span>18+ años de experiencia</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured products -->
+<section class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="flex items-end justify-between mb-10">
+    <div>
+      <p class="text-sm uppercase tracking-widest text-gray-400 mb-2">Selección</p>
+      <h2 class="text-3xl font-bold text-gray-900">Destacados</h2>
+    </div>
+    <a routerLink="/catalogo" class="text-sm text-gray-600 hover:text-gray-900 underline">
+      Ver todos
+    </a>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    @for (product of featured(); track product.id) {
+      <app-product-card [product]="product" />
+    }
+  </div>
+</section>
+
+<!-- Gender categories -->
+<section class="py-12 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Mujer -->
+      <a routerLink="/catalogo/mujer"
+         class="group relative h-80 rounded-2xl overflow-hidden bg-gray-200 flex items-end p-8">
+        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-gray-900/10 group-hover:from-gray-900/80 transition-all"></div>
+        <div class="relative text-white">
+          <p class="text-xs uppercase tracking-widest mb-1 text-gray-300">Colección</p>
+          <h3 class="text-2xl font-bold mb-1">Mujer</h3>
+          <p class="text-sm text-gray-300">Diseño, comodidad y estilo</p>
+        </div>
+      </a>
+
+      <!-- Hombre -->
+      <a routerLink="/catalogo/hombre"
+         class="group relative h-80 rounded-2xl overflow-hidden bg-gray-200 flex items-end p-8">
+        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-gray-900/10 group-hover:from-gray-900/80 transition-all"></div>
+        <div class="relative text-white">
+          <p class="text-xs uppercase tracking-widest mb-1 text-gray-300">Colección</p>
+          <h3 class="text-2xl font-bold mb-1">Hombre</h3>
+          <p class="text-sm text-gray-300">Comodidad, estilo y funcionalidad</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Collections -->
+<section class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="text-center mb-12">
+    <p class="text-sm uppercase tracking-widest text-gray-400 mb-2">Nuestras líneas</p>
+    <h2 class="text-3xl font-bold text-gray-900">Colecciones</h2>
+  </div>
+  <div class="flex flex-wrap justify-center gap-3">
+    @for (col of collections(); track col) {
+      <a [routerLink]="['/catalogo']" [queryParams]="{coleccion: col}"
+         class="px-6 py-3 border border-gray-200 rounded-full text-sm text-gray-700 hover:border-gray-900 hover:text-gray-900 transition-colors">
+        {{ col }}
+      </a>
+    }
+  </div>
+</section>
+
+<!-- About -->
+<section class="bg-gray-900 text-white py-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl">
+      <p class="text-sm uppercase tracking-widest text-gray-400 mb-4">Quiénes somos</p>
+      <h2 class="text-3xl font-bold mb-6">+18 años vistiendo a los mejores profesionales</h2>
+      <p class="text-gray-300 leading-relaxed mb-6">
+        En Guiio Uniformes creemos que quienes cuidan a otros merecen sentirse cómodos y seguros.
+        Confeccionamos cada uniforme con atención al detalle, materiales de alta calidad y
+        un compromiso genuino con la sostenibilidad.
+      </p>
+      <a routerLink="/contacto"
+         class="inline-block border border-white text-white px-8 py-3 rounded-full text-sm font-medium hover:bg-white hover:text-gray-900 transition-colors">
+        Contáctanos
+      </a>
+    </div>
+  </div>
+</section>

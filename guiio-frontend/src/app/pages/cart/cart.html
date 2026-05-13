@@ -1,0 +1,215 @@
+<!-- Header -->
+<section class="bg-gray-900 text-white py-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <p class="text-sm uppercase tracking-widest text-gray-400 mb-3">Mi pedido</p>
+    <h1 class="text-4xl font-bold">Carrito de compras</h1>
+  </div>
+</section>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+  @if (cart.cartItems().length === 0) {
+    <!-- Carrito vacío -->
+    <div class="flex flex-col items-center justify-center py-24 text-center">
+      <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+        <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+        </svg>
+      </div>
+      <h2 class="text-xl font-semibold text-gray-900 mb-2">Tu carrito está vacío</h2>
+      <p class="text-gray-500 text-sm mb-8">Agrega productos para continuar con tu compra.</p>
+      <a routerLink="/catalogo"
+         class="bg-gray-900 text-white px-8 py-3 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors">
+        Ver productos
+      </a>
+    </div>
+
+  } @else {
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+      <!-- Lista de productos -->
+      <div class="lg:col-span-2">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-lg font-semibold text-gray-900">
+            {{ cart.totalItems() }} {{ cart.totalItems() === 1 ? 'producto' : 'productos' }}
+          </h2>
+          <button (click)="cart.clearCart()"
+            class="text-sm text-gray-400 hover:text-red-500 transition-colors">
+            Vaciar carrito
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          @for (item of cart.cartItems(); track $index) {
+            <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 flex gap-4 sm:gap-6">
+
+              <!-- Imagen -->
+              <a [routerLink]="['/producto', item.product.id]"
+                 class="w-24 h-28 sm:w-28 sm:h-36 bg-gray-100 rounded-xl overflow-hidden shrink-0">
+                <img [src]="item.product.images[0]" [alt]="item.product.name"
+                     class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+              </a>
+
+              <!-- Info -->
+              <div class="flex-1 min-w-0">
+                <div class="flex justify-between gap-2">
+                  <div>
+                    <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">{{ item.product.collection }}</p>
+                    <a [routerLink]="['/producto', item.product.id]"
+                       class="text-base font-semibold text-gray-900 hover:underline leading-tight">
+                      {{ item.product.name }}
+                    </a>
+                  </div>
+                  <button (click)="cart.removeItem($index)"
+                    class="text-gray-300 hover:text-red-500 transition-colors shrink-0 p-1 self-start">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Detalles seleccionados -->
+                <div class="flex flex-wrap gap-2 mt-3">
+                  <span class="inline-flex items-center gap-1.5 text-xs bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 rounded-full">
+                    <span class="w-3 h-3 rounded-full border border-gray-200"
+                          [style.background-color]="item.selectedColor.hex"></span>
+                    {{ item.selectedColor.name }}
+                  </span>
+                  <span class="text-xs bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 rounded-full">
+                    Blusa {{ item.selectedTopSize }}
+                  </span>
+                  <span class="text-xs bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 rounded-full">
+                    Pantalón {{ item.selectedBottomSize }}
+                  </span>
+                </div>
+
+                <!-- Precio y cantidad -->
+                <div class="flex items-center justify-between mt-4">
+                  <!-- Cantidad -->
+                  <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                    <button (click)="cart.updateQuantity($index, item.quantity - 1)"
+                      class="w-9 h-9 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors text-lg">
+                      −
+                    </button>
+                    <span class="w-9 h-9 flex items-center justify-center text-sm font-medium border-x border-gray-200">
+                      {{ item.quantity }}
+                    </span>
+                    <button (click)="cart.updateQuantity($index, item.quantity + 1)"
+                      class="w-9 h-9 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors text-lg">
+                      +
+                    </button>
+                  </div>
+
+                  <!-- Precio -->
+                  <div class="text-right">
+                    @if (item.quantity > 1) {
+                      <p class="text-xs text-gray-400">
+                        {{ item.product.price | currency:'COP':'symbol-narrow':'1.0-0' }} c/u
+                      </p>
+                    }
+                    <p class="text-base font-semibold text-gray-900">
+                      {{ item.product.price * item.quantity | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Continuar comprando -->
+        <div class="mt-6">
+          <a routerLink="/catalogo"
+             class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Seguir comprando
+          </a>
+        </div>
+      </div>
+
+      <!-- Resumen del pedido -->
+      <div class="lg:col-span-1">
+        <div class="bg-gray-50 rounded-2xl p-6 sticky top-28">
+          <h2 class="text-lg font-semibold text-gray-900 mb-6">Resumen del pedido</h2>
+
+          <div class="space-y-3 mb-6">
+            <div class="flex justify-between text-sm text-gray-600">
+              <span>Subtotal ({{ cart.totalItems() }} productos)</span>
+              <span>{{ cart.subtotal() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+            </div>
+
+            <div class="flex justify-between text-sm text-gray-600">
+              <span>Envío</span>
+              @if (cart.shipping() === 0) {
+                <span class="text-green-600 font-medium">Gratis</span>
+              } @else {
+                <span>{{ cart.shipping() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+              }
+            </div>
+
+            @if (cart.hasDiscount()) {
+              <div class="flex justify-between text-sm text-green-600 bg-green-50 rounded-lg px-3 py-2">
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm4 6a1 1 0 10-2 0v1H6a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2H9V8z" clip-rule="evenodd"/>
+                  </svg>
+                  20% OFF 2do uniforme
+                </span>
+                <span>− {{ cart.discount() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+              </div>
+            }
+
+            @if (cart.shipping() > 0) {
+              <div class="text-xs text-gray-500 bg-gray-100 rounded-lg px-3 py-2">
+                Te faltan
+                <span class="font-medium text-gray-700">
+                  {{ 500000 - cart.subtotal() | currency:'COP':'symbol-narrow':'1.0-0' }}
+                </span>
+                para envío gratis
+              </div>
+            }
+          </div>
+
+          <div class="border-t border-gray-200 pt-4 mb-6">
+            <div class="flex justify-between font-bold text-gray-900 text-lg">
+              <span>Total</span>
+              <span>{{ cart.total() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+            </div>
+          </div>
+
+          @if (paymentError()) {
+            <div class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3 text-center">
+              Error al conectar con el servidor de pagos. Intenta de nuevo.
+            </div>
+          }
+          <button (click)="checkout()" [disabled]="loadingPayment()"
+            class="w-full bg-gray-900 text-white py-4 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors mb-3 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+            @if (loadingPayment()) {
+              <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+              Procesando...
+            } @else {
+              Proceder al pago
+            }
+          </button>
+
+          <!-- Métodos de pago -->
+          <div class="text-center">
+            <p class="text-xs text-gray-400 mb-2">Pago seguro con</p>
+            <div class="flex items-center justify-center gap-2 text-xs text-gray-500">
+              <span class="bg-white border border-gray-200 px-2 py-1 rounded">MercadoPago</span>
+              <span class="bg-white border border-gray-200 px-2 py-1 rounded">PSE</span>
+              <span class="bg-white border border-gray-200 px-2 py-1 rounded">Nequi</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  }
+</div>

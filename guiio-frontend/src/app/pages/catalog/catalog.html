@@ -1,0 +1,56 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <!-- Header -->
+  <div class="mb-8">
+    <p class="text-sm uppercase tracking-widest text-gray-400 mb-1">Tienda</p>
+    <h1 class="text-3xl font-bold text-gray-900">
+      @if (activeGender() === 'mujer') { Colección Mujer }
+      @else if (activeGender() === 'hombre') { Colección Hombre }
+      @else { Todos los productos }
+    </h1>
+    <p class="text-sm text-gray-500 mt-1">{{ filteredProducts().length }} productos</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="flex flex-wrap gap-3 mb-8">
+    <!-- Gender filter -->
+    <div class="flex rounded-full border border-gray-200 overflow-hidden text-sm">
+      <button (click)="setGender('todos')"
+        class="px-4 py-2 transition-colors"
+        [class.bg-gray-900]="activeGender() === 'todos'"
+        [class.text-white]="activeGender() === 'todos'"
+        [class.text-gray-600]="activeGender() !== 'todos'">Todos</button>
+      <button (click)="setGender('mujer')"
+        class="px-4 py-2 transition-colors"
+        [class.bg-gray-900]="activeGender() === 'mujer'"
+        [class.text-white]="activeGender() === 'mujer'"
+        [class.text-gray-600]="activeGender() !== 'mujer'">Mujer</button>
+      <button (click)="setGender('hombre')"
+        class="px-4 py-2 transition-colors"
+        [class.bg-gray-900]="activeGender() === 'hombre'"
+        [class.text-white]="activeGender() === 'hombre'"
+        [class.text-gray-600]="activeGender() !== 'hombre'">Hombre</button>
+    </div>
+
+    <!-- Collection filter -->
+    <select (change)="setCollection($any($event.target).value)"
+      class="border border-gray-200 rounded-full px-4 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:border-gray-900">
+      <option value="todas">Todas las colecciones</option>
+      @for (col of collections(); track col) {
+        <option [value]="col">{{ col }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Grid -->
+  @if (filteredProducts().length > 0) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      @for (product of filteredProducts(); track product.id) {
+        <app-product-card [product]="product" />
+      }
+    </div>
+  } @else {
+    <div class="text-center py-20 text-gray-400">
+      <p class="text-lg">No hay productos en esta categoría.</p>
+    </div>
+  }
+</div>
