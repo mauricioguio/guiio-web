@@ -1,10 +1,6 @@
-@if (!isAdmin()) {
-  <app-navbar />
-}
+<app-navbar />
 <main>
   <router-outlet />
 </main>
-@if (!isAdmin()) {
-  <app-footer />
-  <app-cart-sidebar />
-}
+<app-footer />
+<app-cart-sidebar />

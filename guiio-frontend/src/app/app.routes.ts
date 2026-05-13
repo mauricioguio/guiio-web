@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./pages/home/home').then(m => m.Home) },
@@ -12,8 +11,5 @@ export const routes: Routes = [
   { path: 'pago/exitoso', loadComponent: () => import('./pages/payment-success/payment-success').then(m => m.PaymentSuccess) },
   { path: 'pago/fallido', loadComponent: () => import('./pages/payment-failure/payment-failure').then(m => m.PaymentFailure) },
   { path: 'pago/pendiente', loadComponent: () => import('./pages/payment-pending/payment-pending').then(m => m.PaymentPending) },
-  { path: 'admin/login', loadComponent: () => import('./admin/login/login').then(m => m.AdminLogin) },
-  { path: 'admin/dashboard', loadComponent: () => import('./admin/dashboard/dashboard').then(m => m.AdminDashboard), canActivate: [authGuard] },
-  { path: 'admin', redirectTo: 'admin/dashboard', pathMatch: 'full' },
   { path: '**', redirectTo: '' },
 ];
