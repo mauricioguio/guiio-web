@@ -8,7 +8,11 @@ export class PaymentService {
   private readonly cart = inject(CartService);
   private readonly apiUrl = 'https://guiio-backend.onrender.com/api';
 
-  createPreference() {
+  createPreference(customer: {
+    name: string; email: string; phone: string;
+    address: string; reference?: string | null;
+    city: string; notes?: string | null;
+  }) {
     const items = this.cart.cartItems().map(item => ({
       id: item.product.id,
       name: item.product.name,
@@ -20,10 +24,9 @@ export class PaymentService {
       color: item.selectedColor.name,
     }));
 
-    return this.http.post<{ checkoutUrl: string }>(`${this.apiUrl}/payments/checkout`, {
-      items,
-      shipping: this.cart.shipping(),
-      discount: this.cart.discount(),
-    });
+    return this.http.post<{ checkoutUrl: string; reference: string; total: number }>(
+      `${this.apiUrl}/payments/checkout`,
+      { items, shipping: this.cart.shipping(), discount: this.cart.discount(), customer },
+    );
   }
 }

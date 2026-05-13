@@ -1,10 +1,10 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, effect } from '@angular/core';
 import { CartItem } from '../models/cart-item';
 import { Product, ProductColor } from '../models/product';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
-  private readonly items = signal<CartItem[]>([]);
+  private readonly items = signal<CartItem[]>(this.loadFromStorage());
   readonly isOpen = signal(false);
 
   readonly cartItems = this.items.asReadonly();
@@ -28,6 +28,21 @@ export class CartService {
   readonly shipping = computed(() => this.subtotal() >= 500000 ? 0 : 10000);
 
   readonly total = computed(() => this.subtotal() - this.discount() + this.shipping());
+
+  constructor() {
+    effect(() => {
+      localStorage.setItem('guiio-cart', JSON.stringify(this.items()));
+    });
+  }
+
+  private loadFromStorage(): CartItem[] {
+    try {
+      const saved = localStorage.getItem('guiio-cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  }
 
   addItem(product: Product, color: ProductColor, topSize: string, bottomSize: string) {
     this.items.update(items => {

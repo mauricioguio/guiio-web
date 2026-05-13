@@ -9,9 +9,19 @@ export class CartItemDto {
   color: string;
 }
 
+export class CustomerDto {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  reference?: string;
+  city: string;
+  notes?: string;
+}
+
 export class CreatePreferenceDto {
   items: CartItemDto[];
   shipping: number;
   discount: number;
-  buyerEmail?: string;
+  customer: CustomerDto;
 }

@@ -1,0 +1,195 @@
+<section class="bg-gray-900 text-white py-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <p class="text-sm uppercase tracking-widest text-gray-400 mb-3">Paso 2 de 2</p>
+    <h1 class="text-4xl font-bold">Datos de envío</h1>
+  </div>
+</section>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+    <!-- Formulario -->
+    <div class="lg:col-span-2">
+      <a routerLink="/carrito"
+         class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-8">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        Volver al carrito
+      </a>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-6">
+
+        <div class="bg-white border border-gray-100 rounded-2xl p-6 space-y-5">
+          <h2 class="text-base font-semibold text-gray-900">Información de contacto</h2>
+
+          <!-- Nombre -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo *</label>
+            <input formControlName="name" type="text" placeholder="Ingresa aquí tu nombre completo"
+              class="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-colors
+                     focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+              [class.border-red-400]="isInvalid('name')"
+              [class.border-gray-200]="!isInvalid('name')">
+            @if (isInvalid('name')) {
+              <p class="text-xs text-red-500 mt-1">Ingresa tu nombre completo</p>
+            }
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico *</label>
+            <input formControlName="email" type="email" placeholder="Ingresa aquí tu correo electrónico"
+              class="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-colors
+                     focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+              [class.border-red-400]="isInvalid('email')"
+              [class.border-gray-200]="!isInvalid('email')">
+            @if (isInvalid('email')) {
+              <p class="text-xs text-red-500 mt-1">Ingresa un correo válido</p>
+            }
+          </div>
+
+          <!-- Teléfono -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono / WhatsApp *</label>
+            <input formControlName="phone" type="tel" placeholder="Ingresa aquí tu número de teléfono"
+              class="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-colors
+                     focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+              [class.border-red-400]="isInvalid('phone')"
+              [class.border-gray-200]="!isInvalid('phone')">
+            @if (isInvalid('phone')) {
+              <p class="text-xs text-red-500 mt-1">Ingresa un número de 10 dígitos</p>
+            }
+          </div>
+        </div>
+
+        <div class="bg-white border border-gray-100 rounded-2xl p-6 space-y-5">
+          <h2 class="text-base font-semibold text-gray-900">Dirección de envío</h2>
+
+          <!-- Dirección -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Dirección *</label>
+            <input formControlName="address" type="text" placeholder="Ingresa aquí tu dirección completa"
+              class="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-colors
+                     focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+              [class.border-red-400]="isInvalid('address')"
+              [class.border-gray-200]="!isInvalid('address')">
+            @if (isInvalid('address')) {
+              <p class="text-xs text-red-500 mt-1">Ingresa tu dirección</p>
+            }
+          </div>
+
+          <!-- Barrio / Referencia -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Barrio / Punto de referencia <span class="text-gray-400 font-normal">(opcional)</span>
+            </label>
+            <input formControlName="reference" type="text"
+              placeholder="Ej: Barrio Santa Fe, cerca al parque, edificio azul..."
+              class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none transition-colors
+                     focus:border-gray-900 focus:ring-1 focus:ring-gray-900">
+            <p class="text-xs text-gray-400 mt-1">Ayúdanos a encontrar tu ubicación más fácilmente</p>
+          </div>
+
+          <!-- Ciudad -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Ciudad *</label>
+            <input formControlName="city" type="text" placeholder="Ingresa aquí tu ciudad"
+              class="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-colors
+                     focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+              [class.border-red-400]="isInvalid('city')"
+              [class.border-gray-200]="!isInvalid('city')">
+            @if (isInvalid('city')) {
+              <p class="text-xs text-red-500 mt-1">Ingresa tu ciudad</p>
+            }
+          </div>
+
+          <!-- Notas -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Notas del pedido <span class="text-gray-400 font-normal">(opcional)</span>
+            </label>
+            <textarea formControlName="notes" rows="3"
+              placeholder="Ingresa aquí instrucciones especiales para la entrega (opcional)"
+              class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none transition-colors
+                     focus:border-gray-900 focus:ring-1 focus:ring-gray-900 resize-none"></textarea>
+          </div>
+        </div>
+
+        @if (error()) {
+          <div class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-center">
+            Error al conectar con el servidor de pagos. Intenta de nuevo.
+          </div>
+        }
+
+        <button type="submit" [disabled]="loading()"
+          class="w-full bg-gray-900 text-white py-4 rounded-xl text-sm font-semibold
+                 hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed
+                 flex items-center justify-center gap-2">
+          @if (loading()) {
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            Procesando...
+          } @else {
+            Ir a pagar →
+          }
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Resumen -->
+    <div class="lg:col-span-1">
+      <div class="bg-gray-50 rounded-2xl p-6 sticky top-28">
+        <h2 class="text-base font-semibold text-gray-900 mb-4">Resumen del pedido</h2>
+
+        <div class="space-y-3 mb-4">
+          @for (item of cart.cartItems(); track $index) {
+            <div class="flex gap-3">
+              <img [src]="item.product.images[0]" [alt]="item.product.name"
+                   class="w-14 h-16 object-cover rounded-lg bg-gray-100 shrink-0">
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-900 truncate">{{ item.product.name }}</p>
+                <p class="text-xs text-gray-500">
+                  {{ item.selectedColor.name }} · Blusa {{ item.selectedTopSize }} · Pantalón {{ item.selectedBottomSize }}
+                </p>
+                <p class="text-xs text-gray-500">x{{ item.quantity }}</p>
+              </div>
+              <p class="text-sm font-medium text-gray-900 shrink-0">
+                {{ item.product.price * item.quantity | currency:'COP':'symbol-narrow':'1.0-0' }}
+              </p>
+            </div>
+          }
+        </div>
+
+        <div class="border-t border-gray-200 pt-4 space-y-2">
+          <div class="flex justify-between text-sm text-gray-600">
+            <span>Subtotal</span>
+            <span>{{ cart.subtotal() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+          </div>
+          <div class="flex justify-between text-sm text-gray-600">
+            <span>Envío</span>
+            @if (cart.shipping() === 0) {
+              <span class="text-green-600 font-medium">Gratis</span>
+            } @else {
+              <span>{{ cart.shipping() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+            }
+          </div>
+          @if (cart.hasDiscount()) {
+            <div class="flex justify-between text-sm text-green-600">
+              <span>Descuento 20%</span>
+              <span>− {{ cart.discount() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+            </div>
+          }
+          <div class="flex justify-between font-bold text-gray-900 text-base pt-2 border-t border-gray-200">
+            <span>Total</span>
+            <span>{{ cart.total() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

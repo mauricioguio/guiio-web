@@ -6,14 +6,16 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      const allowed = process.env.FRONTEND_URL ?? 'http://localhost:4200';
-      if (!origin || origin === allowed || /^http:\/\/localhost:\d+$/.test(origin)) {
+      const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:4200';
+      const adminUrl = process.env.ADMIN_URL ?? 'http://localhost:4201';
+      const allowed = [frontendUrl, adminUrl];
+      if (!origin || allowed.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
       }
     },
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'PATCH'],
   });
 
   app.setGlobalPrefix('api');

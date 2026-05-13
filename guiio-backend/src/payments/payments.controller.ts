@@ -11,4 +11,10 @@ export class PaymentsController {
   createCheckout(@Body() dto: CreatePreferenceDto) {
     return this.paymentsService.createCheckout(dto);
   }
+
+  @Post('webhook')
+  @HttpCode(200)
+  webhook(@Body() payload: any) {
+    return this.paymentsService.handleWebhook(payload);
+  }
 }

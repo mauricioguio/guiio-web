@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  price       Float
+  collection  String
+  gender      String
+  featured    Boolean  @default(false)
+  inStock     Boolean  @default(true)
+  tags        String[]
+  images      String[]
+  topSizes    String[]
+  bottomSizes String[]
+  colors      Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems OrderItem[]
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String
+  createdAt DateTime @default(now())
+
+  orders Order[]
+}
+
+model Order {
+  id         String      @id @default(cuid())
+  reference  String      @unique
+  status     OrderStatus @default(PENDING)
+  total      Float
+  shipping   Float
+  discount   Float       @default(0)
+  address    String
+  city       String
+  notes      String?
+  wompiTxId  String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  customerId String
+  customer   Customer    @relation(fields: [customerId], references: [id])
+  items      OrderItem[]
+}
+
+model OrderItem {
+  id         String  @id @default(cuid())
+  quantity   Int
+  price      Float
+  topSize    String
+  bottomSize String
+  color      String
+
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}

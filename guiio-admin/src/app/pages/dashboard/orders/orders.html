@@ -1,0 +1,206 @@
+<div class="p-8">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-white text-xl font-semibold">Pedidos online</h2>
+    <button (click)="load()" class="text-gray-400 hover:text-white text-sm transition-colors flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+      Actualizar
+    </button>
+  </div>
+
+  <!-- Resumen rápido -->
+  <div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4">
+      <p class="text-yellow-400 text-xs">Pendientes de pago</p>
+      <p class="text-yellow-300 text-2xl font-bold mt-1">{{ counts().PENDING }}</p>
+    </div>
+    <div class="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4">
+      <p class="text-blue-400 text-xs">Pagados (por enviar)</p>
+      <p class="text-blue-300 text-2xl font-bold mt-1">{{ counts().PAID }}</p>
+    </div>
+    <div class="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-4">
+      <p class="text-purple-400 text-xs">En camino</p>
+      <p class="text-purple-300 text-2xl font-bold mt-1">{{ counts().SHIPPED }}</p>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="flex gap-2 mb-4 flex-wrap">
+    @for (f of FILTERS; track f.value) {
+      <button
+        (click)="setFilter(f.value)"
+        class="px-3 py-1.5 rounded-xl text-xs font-medium transition-colors"
+        [class]="activeFilter() === f.value
+          ? 'bg-white text-gray-900'
+          : 'bg-gray-900 border border-gray-800 text-gray-400 hover:text-white'"
+      >
+        {{ f.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Estado de carga -->
+  @if (loading()) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-400 text-sm">Cargando pedidos...</p>
+    </div>
+  } @else if (error()) {
+    <div class="bg-red-500/10 border border-red-500/20 rounded-2xl p-8 text-center">
+      <p class="text-red-400 text-sm">No se pudieron cargar los pedidos.</p>
+      <p class="text-gray-500 text-xs mt-1">Verifica que el backend esté activo y la base de datos conectada.</p>
+      <button (click)="load()" class="mt-4 text-sm text-gray-400 hover:text-white transition-colors">Reintentar</button>
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-500 text-sm">No hay pedidos en esta categoría.</p>
+    </div>
+  } @else {
+    <!-- Lista de pedidos -->
+    <div class="space-y-3">
+      @for (order of filtered(); track order.id) {
+        <div
+          (click)="openDetail(order)"
+          class="bg-gray-900 border border-gray-800 rounded-2xl px-5 py-4 flex items-center justify-between cursor-pointer hover:border-gray-700 transition-colors"
+        >
+          <div class="flex items-center gap-4">
+            <div>
+              <p class="text-white text-sm font-medium">{{ order.customer.name }}</p>
+              <p class="text-gray-500 text-xs mt-0.5">{{ order.reference }}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-6">
+            <div class="text-right hidden md:block">
+              <p class="text-gray-400 text-xs">{{ order.items.length }} producto{{ order.items.length !== 1 ? 's' : '' }}</p>
+              <p class="text-gray-500 text-xs">{{ order.city }}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-white font-semibold text-sm">{{ formatPrice(order.total) }}</p>
+              <p class="text-gray-500 text-xs">{{ order.createdAt | date:'d MMM yyyy' }}</p>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-full border" [class]="statusClass(order.status)">
+              {{ STATUS_LABELS[order.status] }}
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Panel de detalle -->
+@if (selectedOrder()) {
+  <div class="fixed inset-0 bg-black/60 z-50 flex justify-end" (click)="closeDetail()">
+    <div class="bg-gray-950 border-l border-gray-800 w-full max-w-lg h-full overflow-y-auto" (click)="$event.stopPropagation()">
+      <div class="p-6 border-b border-gray-800 flex items-center justify-between">
+        <div>
+          <h3 class="text-white font-semibold">Pedido</h3>
+          <p class="text-gray-500 text-xs mt-0.5">{{ selectedOrder()!.reference }}</p>
+        </div>
+        <button (click)="closeDetail()" class="text-gray-500 hover:text-white transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-6">
+
+        <!-- Estado y acciones -->
+        <div>
+          <div class="flex items-center gap-3 mb-3">
+            <span class="text-xs px-2.5 py-1 rounded-full border" [class]="statusClass(selectedOrder()!.status)">
+              {{ STATUS_LABELS[selectedOrder()!.status] }}
+            </span>
+            <span class="text-gray-500 text-xs">{{ selectedOrder()!.createdAt | date:'d MMM yyyy, h:mm a' }}</span>
+          </div>
+
+          @if (STATUS_NEXT[selectedOrder()!.status].length > 0) {
+            <div class="flex gap-2 flex-wrap">
+              @for (next of STATUS_NEXT[selectedOrder()!.status]; track next) {
+                <button
+                  (click)="changeStatus(selectedOrder()!, next)"
+                  [disabled]="updatingId() === selectedOrder()!.id"
+                  class="text-xs px-3 py-1.5 rounded-xl border transition-colors disabled:opacity-40"
+                  [class]="next === 'CANCELLED'
+                    ? 'border-red-500/30 text-red-400 hover:bg-red-500/10'
+                    : 'border-gray-700 text-gray-300 hover:bg-gray-800'"
+                >
+                  {{ updatingId() === selectedOrder()!.id ? 'Actualizando...' : 'Marcar como ' + STATUS_LABELS[next] }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Cliente -->
+        <div>
+          <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Cliente</p>
+          <div class="bg-gray-900 rounded-xl p-4 space-y-1">
+            <p class="text-white text-sm font-medium">{{ selectedOrder()!.customer.name }}</p>
+            <p class="text-gray-400 text-sm">{{ selectedOrder()!.customer.email }}</p>
+            <p class="text-gray-400 text-sm">{{ selectedOrder()!.customer.phone }}</p>
+          </div>
+        </div>
+
+        <!-- Dirección -->
+        <div>
+          <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Envío</p>
+          <div class="bg-gray-900 rounded-xl p-4 space-y-1">
+            <p class="text-white text-sm">{{ selectedOrder()!.address }}</p>
+            <p class="text-gray-400 text-sm">{{ selectedOrder()!.city }}</p>
+            @if (selectedOrder()!.notes) {
+              <p class="text-gray-500 text-xs mt-2">Nota: {{ selectedOrder()!.notes }}</p>
+            }
+          </div>
+        </div>
+
+        <!-- Productos -->
+        <div>
+          <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Productos</p>
+          <div class="space-y-2">
+            @for (item of selectedOrder()!.items; track item.id) {
+              <div class="bg-gray-900 rounded-xl p-4 flex items-center gap-3">
+                @if (item.product.images[0]) {
+                  <img [src]="item.product.images[0]" class="w-12 h-12 rounded-lg object-cover bg-gray-800" />
+                }
+                <div class="flex-1">
+                  <p class="text-white text-sm">{{ item.product.name }}</p>
+                  <p class="text-gray-500 text-xs">{{ item.topSize }} / {{ item.bottomSize }} · {{ item.color }} · x{{ item.quantity }}</p>
+                </div>
+                <p class="text-white text-sm font-medium">{{ formatPrice(item.price * item.quantity) }}</p>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Totales -->
+        <div class="bg-gray-900 rounded-xl p-4 space-y-2">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-400">Subtotal</span>
+            <span class="text-white">{{ formatPrice(selectedOrder()!.total - selectedOrder()!.shipping + selectedOrder()!.discount) }}</span>
+          </div>
+          @if (selectedOrder()!.discount > 0) {
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-400">Descuento</span>
+              <span class="text-green-400">-{{ formatPrice(selectedOrder()!.discount) }}</span>
+            </div>
+          }
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-400">Envío</span>
+            <span class="text-white">{{ formatPrice(selectedOrder()!.shipping) }}</span>
+          </div>
+          <div class="flex justify-between text-sm font-semibold border-t border-gray-800 pt-2 mt-2">
+            <span class="text-white">Total</span>
+            <span class="text-white">{{ formatPrice(selectedOrder()!.total) }}</span>
+          </div>
+        </div>
+
+        @if (selectedOrder()!.wompiTxId) {
+          <p class="text-gray-600 text-xs">ID Wompi: {{ selectedOrder()!.wompiTxId }}</p>
+        }
+      </div>
+    </div>
+  </div>
+}

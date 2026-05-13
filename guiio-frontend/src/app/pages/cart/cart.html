@@ -180,23 +180,10 @@
             </div>
           </div>
 
-          @if (paymentError()) {
-            <div class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3 text-center">
-              Error al conectar con el servidor de pagos. Intenta de nuevo.
-            </div>
-          }
-          <button (click)="checkout()" [disabled]="loadingPayment()"
-            class="w-full bg-gray-900 text-white py-4 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors mb-3 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-            @if (loadingPayment()) {
-              <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-              </svg>
-              Procesando...
-            } @else {
-              Proceder al pago
-            }
-          </button>
+          <a routerLink="/checkout"
+            class="w-full bg-gray-900 text-white py-4 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors mb-3 flex items-center justify-center gap-2">
+            Proceder al pago
+          </a>
 
           <!-- Métodos de pago -->
           <div class="text-center">
