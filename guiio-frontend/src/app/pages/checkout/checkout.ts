@@ -39,7 +39,16 @@ export class Checkout {
     this.loading.set(true);
     this.error.set(false);
 
-    const customer = this.form.value;
+    const v = this.form.getRawValue();
+    const customer = {
+      name: v.name!,
+      email: v.email!,
+      phone: v.phone!,
+      address: v.address!,
+      reference: v.reference,
+      city: v.city!,
+      notes: v.notes,
+    };
 
     this.paymentService.createPreference(customer).subscribe({
       next: ({ checkoutUrl }) => {
