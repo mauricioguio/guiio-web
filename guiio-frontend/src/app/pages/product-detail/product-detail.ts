@@ -27,35 +27,55 @@ export class ProductDetail {
   protected readonly selectedImageIndex = signal(0);
   protected readonly added = signal(false);
 
-  selectImage(index: number) {
-    this.selectedImageIndex.set(index);
-  }
+  selectImage(index: number) { this.selectedImageIndex.set(index); }
+  selectColor(color: ProductColor) { this.selectedColor.set(color); }
+  selectTopSize(size: string) { this.selectedTopSize.set(size); }
+  selectBottomSize(size: string) { this.selectedBottomSize.set(size); }
 
-  selectColor(color: ProductColor) {
-    this.selectedColor.set(color);
-  }
-
-  selectTopSize(size: string) {
-    this.selectedTopSize.set(size);
-  }
-
-  selectBottomSize(size: string) {
-    this.selectedBottomSize.set(size);
+  get canAddToCart(): boolean {
+    const p = this.product();
+    if (!p?.inStock) return false;
+    switch (p.type) {
+      case 'conjunto': return !!this.selectedTopSize() && !!this.selectedBottomSize();
+      case 'top':      return !!this.selectedTopSize();
+      case 'bottom':   return !!this.selectedBottomSize();
+      case 'otro':     return p.topSizes.length === 0 || !!this.selectedTopSize();
+    }
   }
 
   addToCart() {
     const product = this.product();
     const color = this.selectedColor() ?? product?.colors[0];
-    const topSize = this.selectedTopSize();
-    const bottomSize = this.selectedBottomSize();
-    if (!product || !color || !topSize || !bottomSize) return;
+    if (!product || !color || !this.canAddToCart) return;
+
+    const topSize = this.selectedTopSize() ?? '';
+    const bottomSize = this.selectedBottomSize() ?? '';
 
     this.cartService.addItem(product, color, topSize, bottomSize);
     this.added.set(true);
     setTimeout(() => this.added.set(false), 2000);
   }
 
-  get canAddToCart() {
-    return this.product()?.inStock && this.selectedTopSize() !== null && this.selectedBottomSize() !== null;
+  get buttonLabel(): string {
+    const p = this.product();
+    if (!p) return '';
+    if (!p.inStock) return 'Agotado';
+    if (this.added()) return '✓ Agregado al carrito';
+    switch (p.type) {
+      case 'conjunto':
+        if (!this.selectedTopSize()) return 'Selecciona primero la talla de la blusa';
+        if (!this.selectedBottomSize()) return 'Selecciona la talla del pantalón';
+        break;
+      case 'top':
+        if (!this.selectedTopSize()) return 'Selecciona la talla';
+        break;
+      case 'bottom':
+        if (!this.selectedBottomSize()) return 'Selecciona la talla';
+        break;
+      case 'otro':
+        if (p.topSizes.length > 0 && !this.selectedTopSize()) return 'Selecciona la talla';
+        break;
+    }
+    return 'Agregar al carrito';
   }
 }

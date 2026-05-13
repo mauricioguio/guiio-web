@@ -1,3 +1,5 @@
+export type ProductType = 'conjunto' | 'top' | 'bottom' | 'otro';
+
 export interface Product {
   id: string;
   name: string;
@@ -6,6 +8,7 @@ export interface Product {
   description: string;
   images: string[];
   colors: ProductColor[];
+  type: ProductType;
   topSizes: string[];
   bottomSizes: string[];
   gender: 'mujer' | 'hombre' | 'unisex';

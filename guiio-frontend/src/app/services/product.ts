@@ -35,6 +35,7 @@ const MOCK_PRODUCTS: Product[] = [
     id: 'luciana-negro',
     name: 'Scrub Luciana Negro',
     collection: 'Luciana',
+    type: 'conjunto',
     price: 190000,
     description: 'Scrub femenino con acabado anti-fluidos, diseño elegante y funcional ideal para profesionales de la salud.',
     images: [
@@ -59,6 +60,7 @@ const MOCK_PRODUCTS: Product[] = [
     id: 'isabella-azul-turquesa',
     name: 'Scrub Isabella Azul Turquesa',
     collection: 'Isabella',
+    type: 'conjunto',
     price: 185000,
     description: 'Scrub femenino que combina elegancia y comodidad, con cortes favorecedores y tela suave de alta calidad.',
     images: [
@@ -82,7 +84,8 @@ const MOCK_PRODUCTS: Product[] = [
   {
     id: 'nicolas-blanco',
     name: 'Scrub Nicolás Blanco',
-    collection: 'Santiago',
+    collection: 'Nicolás',
+    type: 'conjunto',
     price: 170000,
     description: 'Scrub masculino con cuello estructurado tipo camisa, diseño clásico y elegante para el profesional moderno.',
     images: [
@@ -107,6 +110,7 @@ const MOCK_PRODUCTS: Product[] = [
     id: 'matheo-azul',
     name: 'Scrub Matheo Azul',
     collection: 'Matheo',
+    type: 'conjunto',
     price: 175000,
     description: 'Scrub masculino con material anti-fluidos y diseño stretch para máxima libertad de movimiento.',
     images: [
@@ -131,6 +135,7 @@ const MOCK_PRODUCTS: Product[] = [
     id: 'antonella-verde',
     name: 'Scrub Antonella Verde',
     collection: 'Antonella',
+    type: 'conjunto',
     price: 188000,
     description: 'Sofisticación y practicidad en un solo scrub. Cuello tipo camisa con acabados premium.',
     images: [
@@ -152,33 +157,10 @@ const MOCK_PRODUCTS: Product[] = [
     tags: ['sofisticado', 'premium'],
   },
   {
-    id: 'sofia-rosa',
-    name: 'Scrub Sofía Rosa',
-    collection: 'Sofía',
-    price: 180000,
-    description: 'Diseño limpio y versátil para múltiples entornos profesionales. Comodidad todo el día.',
-    images: [
-      '/assets/img/products/santiago/azul-cielo-1.png',
-      '/assets/img/products/santiago/Berengena-1-1.png',
-      '/assets/img/products/santiago/verde-petroleo-4.png',
-      '/assets/img/products/nicolas/hoja-seca-1.png',
-    ],
-    colors: [
-      { name: 'Rosa', hex: '#f472b6' },
-      { name: 'Blanco', hex: '#ffffff' },
-      { name: 'Gris Perla', hex: '#e5e7eb' },
-    ],
-    topSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-    bottomSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-    gender: 'mujer',
-    featured: false,
-    inStock: true,
-    tags: ['versátil', 'cómodo'],
-  },
-  {
     id: 'valentina-lila',
     name: 'Scrub Valentina Lila',
     collection: 'Valentina',
+    type: 'conjunto',
     price: 182000,
     description: 'Estilo clásico y moderno en perfecta armonía. Un scrub atemporal para la profesional de hoy.',
     images: [
@@ -198,5 +180,50 @@ const MOCK_PRODUCTS: Product[] = [
     featured: false,
     inStock: true,
     tags: ['clásico', 'atemporal'],
+  },
+  {
+    id: 'luciana-blusa',
+    name: 'Blusa Luciana',
+    collection: 'Luciana',
+    type: 'top',
+    price: 105000,
+    description: 'Blusa de scrub femenina con acabado anti-fluidos. Disponible por separado para quienes ya tienen el pantalón.',
+    images: [
+      '/assets/img/products/santiago/verde-petroleo-4.png',
+      '/assets/img/products/santiago/azul-cielo-1.png',
+    ],
+    colors: [
+      { name: 'Negro', hex: '#1a1a1a' },
+      { name: 'Azul Marino', hex: '#1e3a5f' },
+      { name: 'Gris', hex: '#6b7280' },
+    ],
+    topSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    bottomSizes: [],
+    gender: 'mujer',
+    featured: false,
+    inStock: true,
+    tags: ['anti-fluidos', 'pieza separada'],
+  },
+  {
+    id: 'luciana-pantalon',
+    name: 'Pantalón Luciana',
+    collection: 'Luciana',
+    type: 'bottom',
+    price: 90000,
+    description: 'Pantalón de scrub femenino con cintura elástica y bolsillos funcionales. Combina con cualquier blusa.',
+    images: [
+      '/assets/img/products/santiago/verde-militar-1.png',
+      '/assets/img/products/santiago/Berengena-1-1.png',
+    ],
+    colors: [
+      { name: 'Negro', hex: '#1a1a1a' },
+      { name: 'Azul Marino', hex: '#1e3a5f' },
+    ],
+    topSizes: [],
+    bottomSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    gender: 'mujer',
+    featured: false,
+    inStock: true,
+    tags: ['cómodo', 'pieza separada'],
   },
 ];

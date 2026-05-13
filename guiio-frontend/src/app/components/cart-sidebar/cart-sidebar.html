@@ -41,7 +41,15 @@
             <div class="flex-1 min-w-0">
               <p class="text-sm font-medium text-gray-900 truncate">{{ item.product.name }}</p>
               <p class="text-xs text-gray-500 mt-0.5">{{ item.selectedColor.name }}</p>
-              <p class="text-xs text-gray-400">Blusa {{ item.selectedTopSize }} · Pantalón {{ item.selectedBottomSize }}</p>
+              @if (item.product.type === 'conjunto') {
+                <p class="text-xs text-gray-400">Blusa {{ item.selectedTopSize }} · Pantalón {{ item.selectedBottomSize }}</p>
+              } @else if (item.product.type === 'top') {
+                <p class="text-xs text-gray-400">Talla {{ item.selectedTopSize }}</p>
+              } @else if (item.product.type === 'bottom') {
+                <p class="text-xs text-gray-400">Talla {{ item.selectedBottomSize }}</p>
+              } @else if (item.selectedTopSize) {
+                <p class="text-xs text-gray-400">Talla {{ item.selectedTopSize }}</p>
+              }
               <div class="flex items-center justify-between mt-2">
                 <div class="flex items-center border border-gray-200 rounded">
                   <button (click)="cart.updateQuantity($index, item.quantity - 1)"

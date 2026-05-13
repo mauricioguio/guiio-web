@@ -55,25 +55,42 @@
           </div>
 
           <div class="space-y-1">
+            <label class="text-xs text-gray-400">Tipo de producto</label>
+            <select [ngModel]="formData().type" (ngModelChange)="patchForm({type: $event, topSize: '', bottomSize: ''})"
+              class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-500">
+              <option value="conjunto">Conjunto (blusa + pantalón)</option>
+              <option value="top">Solo blusa</option>
+              <option value="bottom">Solo pantalón</option>
+              <option value="otro">Otro producto</option>
+            </select>
+          </div>
+
+          <div class="space-y-1">
             <label class="text-xs text-gray-400">Color</label>
             <input [ngModel]="formData().color" (ngModelChange)="patchForm({color: $event})"
               type="text" placeholder="ej: Azul rey"
               class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-500" />
           </div>
 
-          <div class="space-y-1">
-            <label class="text-xs text-gray-400">Talla top (camisa)</label>
-            <input [ngModel]="formData().topSize" (ngModelChange)="patchForm({topSize: $event})"
-              type="text" placeholder="ej: S, M, L, XL"
-              class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-500" />
-          </div>
+          @if (formData().type === 'conjunto' || formData().type === 'top' || formData().type === 'otro') {
+            <div class="space-y-1">
+              <label class="text-xs text-gray-400">
+                {{ formData().type === 'otro' ? 'Talla (opcional)' : formData().type === 'top' ? 'Talla blusa' : 'Talla blusa' }}
+              </label>
+              <input [ngModel]="formData().topSize" (ngModelChange)="patchForm({topSize: $event})"
+                type="text" placeholder="ej: S, M, L, XL"
+                class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-500" />
+            </div>
+          }
 
-          <div class="space-y-1">
-            <label class="text-xs text-gray-400">Talla bottom (pantalón)</label>
-            <input [ngModel]="formData().bottomSize" (ngModelChange)="patchForm({bottomSize: $event})"
-              type="text" placeholder="ej: 28, 30, 32"
-              class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-500" />
-          </div>
+          @if (formData().type === 'conjunto' || formData().type === 'bottom') {
+            <div class="space-y-1">
+              <label class="text-xs text-gray-400">Talla pantalón</label>
+              <input [ngModel]="formData().bottomSize" (ngModelChange)="patchForm({bottomSize: $event})"
+                type="text" placeholder="ej: 28, 30, 32"
+                class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-500" />
+            </div>
+          }
 
           <div class="space-y-1">
             <label class="text-xs text-gray-400">Precio (COP)</label>
@@ -103,7 +120,7 @@
             Cancelar
           </button>
           <button type="button" (click)="saveForm()"
-            [disabled]="!formData().name || !formData().color || !formData().topSize"
+            [disabled]="!canSaveForm()"
             class="bg-white text-gray-900 text-sm font-semibold px-5 py-2 rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
             {{ editingId() ? 'Guardar cambios' : 'Agregar' }}
           </button>
@@ -129,6 +146,7 @@
         <thead>
           <tr class="border-b border-gray-800">
             <th class="text-left text-gray-400 font-medium px-5 py-3">Producto</th>
+            <th class="text-left text-gray-400 font-medium px-5 py-3">Tipo</th>
             <th class="text-left text-gray-400 font-medium px-5 py-3">Colección</th>
             <th class="text-left text-gray-400 font-medium px-5 py-3">Color</th>
             <th class="text-left text-gray-400 font-medium px-5 py-3">Talla</th>
@@ -142,9 +160,28 @@
           @for (product of filtered(); track product.id) {
             <tr class="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
               <td class="px-5 py-3 text-white">{{ product.name }}</td>
+              <td class="px-5 py-3">
+                @if (product.type === 'conjunto') {
+                  <span class="bg-blue-500/15 text-blue-400 text-xs px-2 py-1 rounded-full border border-blue-500/20">Conjunto</span>
+                } @else if (product.type === 'top') {
+                  <span class="bg-purple-500/15 text-purple-400 text-xs px-2 py-1 rounded-full border border-purple-500/20">Blusa</span>
+                } @else if (product.type === 'bottom') {
+                  <span class="bg-orange-500/15 text-orange-400 text-xs px-2 py-1 rounded-full border border-orange-500/20">Pantalón</span>
+                } @else {
+                  <span class="bg-gray-500/15 text-gray-400 text-xs px-2 py-1 rounded-full border border-gray-500/20">Otro</span>
+                }
+              </td>
               <td class="px-5 py-3 text-gray-300">{{ product.collection }}</td>
               <td class="px-5 py-3 text-gray-300">{{ product.color }}</td>
-              <td class="px-5 py-3 text-gray-300">{{ product.topSize }} / {{ product.bottomSize }}</td>
+              <td class="px-5 py-3 text-gray-300">
+                @if (product.type === 'conjunto') {
+                  {{ product.topSize }} / {{ product.bottomSize }}
+                } @else if (product.type === 'top' || product.type === 'otro') {
+                  {{ product.topSize || '—' }}
+                } @else if (product.type === 'bottom') {
+                  {{ product.bottomSize || '—' }}
+                }
+              </td>
               <td class="px-5 py-3 text-gray-300">{{ formatPrice(product.price) }}</td>
               <td class="px-5 py-3 text-white font-medium">{{ product.stock }}</td>
               <td class="px-5 py-3">

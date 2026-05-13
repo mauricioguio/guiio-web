@@ -1,10 +1,13 @@
 import { Component, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
+export type ProductType = 'conjunto' | 'top' | 'bottom' | 'otro';
+
 export interface InventoryProduct {
   id: string;
   name: string;
   collection: string;
+  type: ProductType;
   color: string;
   topSize: string;
   bottomSize: string;
@@ -16,15 +19,15 @@ export interface InventoryProduct {
 const STORAGE_KEY = 'guiio-inventory';
 
 const INITIAL: InventoryProduct[] = [
-  { id: '1', name: 'Conjunto Scrub Clásico', collection: 'Clásica', color: 'Azul rey', topSize: 'S', bottomSize: '28', stock: 5, price: 89000, lowStockThreshold: 3 },
-  { id: '2', name: 'Conjunto Scrub Clásico', collection: 'Clásica', color: 'Azul rey', topSize: 'M', bottomSize: '30', stock: 8, price: 89000, lowStockThreshold: 3 },
-  { id: '3', name: 'Conjunto Scrub Clásico', collection: 'Clásica', color: 'Verde quirófano', topSize: 'M', bottomSize: '30', stock: 2, price: 89000, lowStockThreshold: 3 },
-  { id: '4', name: 'Conjunto Scrub Premium', collection: 'Premium', color: 'Negro', topSize: 'L', bottomSize: '32', stock: 0, price: 119000, lowStockThreshold: 2 },
-  { id: '5', name: 'Conjunto Scrub Premium', collection: 'Premium', color: 'Gris', topSize: 'XL', bottomSize: '34', stock: 4, price: 119000, lowStockThreshold: 2 },
+  { id: '1', name: 'Conjunto Scrub Clásico', collection: 'Clásica', type: 'conjunto', color: 'Azul rey', topSize: 'S', bottomSize: '28', stock: 5, price: 89000, lowStockThreshold: 3 },
+  { id: '2', name: 'Conjunto Scrub Clásico', collection: 'Clásica', type: 'conjunto', color: 'Azul rey', topSize: 'M', bottomSize: '30', stock: 8, price: 89000, lowStockThreshold: 3 },
+  { id: '3', name: 'Conjunto Scrub Clásico', collection: 'Clásica', type: 'conjunto', color: 'Verde quirófano', topSize: 'M', bottomSize: '30', stock: 2, price: 89000, lowStockThreshold: 3 },
+  { id: '4', name: 'Blusa Scrub Premium', collection: 'Premium', type: 'top', color: 'Negro', topSize: 'L', bottomSize: '', stock: 0, price: 65000, lowStockThreshold: 2 },
+  { id: '5', name: 'Pantalón Scrub Premium', collection: 'Premium', type: 'bottom', color: 'Gris', topSize: '', bottomSize: 'XL', stock: 4, price: 54000, lowStockThreshold: 2 },
 ];
 
 const EMPTY_FORM = (): Omit<InventoryProduct, 'id'> => ({
-  name: '', collection: '', color: '',
+  name: '', collection: '', type: 'conjunto', color: '',
   topSize: '', bottomSize: '',
   stock: 0, price: 0, lowStockThreshold: 2,
 });
@@ -94,9 +97,20 @@ export class Inventory {
     this.editingId.set(null);
   }
 
+  canSaveForm(): boolean {
+    const d = this.formData();
+    if (!d.name || !d.color) return false;
+    switch (d.type) {
+      case 'conjunto': return !!d.topSize && !!d.bottomSize;
+      case 'top':      return !!d.topSize;
+      case 'bottom':   return !!d.bottomSize;
+      case 'otro':     return true;
+    }
+  }
+
   saveForm() {
     const data = this.formData();
-    if (!data.name || !data.color || !data.topSize) return;
+    if (!this.canSaveForm()) return;
     const id = this.editingId();
     if (id) {
       this.save(this.products().map(p => p.id === id ? { id, ...data } : p));
