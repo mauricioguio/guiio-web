@@ -127,7 +127,7 @@
         </div>
 
         <!-- Productos en esta colección -->
-        @if (editingId()) {
+        @if (draft().name) {
           <div>
             <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3">
               Productos en esta colección
@@ -139,7 +139,7 @@
                 @for (p of collectionProducts(); track p.id) {
                   <div class="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-3 py-2">
                     <div class="flex items-center gap-2 min-w-0">
-                      @if (p.images[0]) {
+                      @if (p.images?.[0]) {
                         <img [src]="p.images[0]" class="w-8 h-8 rounded-lg object-cover bg-gray-800 shrink-0" />
                       }
                       <p class="text-white text-xs truncate">{{ p.name }}</p>
