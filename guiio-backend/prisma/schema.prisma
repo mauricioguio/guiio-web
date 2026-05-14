@@ -25,6 +25,17 @@ model Product {
   updatedAt   DateTime    @updatedAt
 }
 
+model Collection {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  image       String?
+  featured    Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model Customer {
   id        String   @id @default(cuid())
   name      String

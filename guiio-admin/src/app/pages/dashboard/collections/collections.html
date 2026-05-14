@@ -1,0 +1,168 @@
+<div class="p-8">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-white text-xl font-semibold">Colecciones</h2>
+    <button (click)="openCreate()" class="bg-white text-gray-900 text-sm font-medium px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors">
+      + Nueva colección
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-400 text-sm">Cargando colecciones...</p>
+    </div>
+  } @else if (collections().length === 0) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-500 text-sm">No hay colecciones aún. Crea la primera.</p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (col of collections(); track col.id) {
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+          @if (col.image) {
+            <img [src]="col.image" class="w-full h-36 object-cover bg-gray-800" />
+          } @else {
+            <div class="w-full h-36 bg-gray-800 flex items-center justify-center">
+              <span class="text-gray-600 text-xs">Sin imagen</span>
+            </div>
+          }
+          <div class="p-4">
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <p class="text-white font-medium text-sm">{{ col.name }}</p>
+              @if (col.featured) {
+                <span class="text-xs text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded-full shrink-0">Destacada</span>
+              }
+            </div>
+            @if (col.description) {
+              <p class="text-gray-500 text-xs mb-3 line-clamp-2">{{ col.description }}</p>
+            }
+            <div class="flex gap-2 mt-3">
+              <button (click)="openEdit(col)" class="flex-1 text-xs text-gray-300 bg-gray-800 hover:bg-gray-700 rounded-xl py-1.5 transition-colors">
+                Editar
+              </button>
+              <button (click)="confirmDelete(col.id)" class="text-xs text-red-400 bg-red-500/10 hover:bg-red-500/20 px-3 rounded-xl py-1.5 transition-colors">
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Confirmación eliminar -->
+@if (deletingId()) {
+  <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" (click)="cancelDelete()">
+    <div class="bg-gray-950 border border-gray-800 rounded-2xl p-6 w-80" (click)="$event.stopPropagation()">
+      <p class="text-white font-medium mb-2">¿Eliminar colección?</p>
+      <p class="text-gray-400 text-sm mb-4">Los productos de esta colección no se eliminarán.</p>
+      <div class="flex gap-3">
+        <button (click)="cancelDelete()" class="flex-1 text-sm text-gray-300 bg-gray-900 border border-gray-800 rounded-xl py-2 hover:bg-gray-800 transition-colors">Cancelar</button>
+        <button (click)="doDelete(deletingId()!)" class="flex-1 text-sm text-white bg-red-600 rounded-xl py-2 hover:bg-red-700 transition-colors">Eliminar</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Panel formulario -->
+@if (showForm()) {
+  <div class="fixed inset-0 bg-black/60 z-50 flex justify-end" (click)="closeForm()">
+    <div class="bg-gray-950 border-l border-gray-800 w-full max-w-md h-full overflow-y-auto" (click)="$event.stopPropagation()">
+
+      <div class="p-6 border-b border-gray-800 flex items-center justify-between sticky top-0 bg-gray-950 z-10">
+        <h3 class="text-white font-semibold">{{ editingId() ? 'Editar colección' : 'Nueva colección' }}</h3>
+        <button (click)="closeForm()" class="text-gray-500 hover:text-white transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-5">
+
+        <!-- Imagen -->
+        <div>
+          <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3">Imagen de portada</p>
+          <div class="flex items-center gap-3">
+            @if (draft().image) {
+              <img [src]="draft().image" class="w-16 h-16 rounded-xl object-cover bg-gray-800 shrink-0" />
+            } @else {
+              <div class="w-16 h-16 rounded-xl bg-gray-800 shrink-0 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </div>
+            }
+            <label class="flex-1 cursor-pointer">
+              <div class="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-xl px-4 py-2.5 text-sm transition-colors text-center"
+                [class]="uploading() ? 'text-gray-500' : 'text-gray-400'">
+                {{ uploading() ? 'Subiendo...' : (draft().image ? 'Cambiar imagen' : 'Seleccionar imagen') }}
+              </div>
+              <input type="file" accept="image/*" class="hidden" [disabled]="uploading()" (change)="uploadImage($event)" />
+            </label>
+          </div>
+        </div>
+
+        <!-- Nombre -->
+        <div>
+          <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Nombre</p>
+          <input
+            type="text" placeholder="Ej: Valentina, Luciana, Hombre..."
+            [value]="draft().name"
+            (input)="patch({ name: $any($event.target).value })"
+            class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+          />
+        </div>
+
+        <!-- Descripción -->
+        <div>
+          <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Descripción</p>
+          <textarea
+            placeholder="Descripción corta de la colección..."
+            rows="3"
+            [value]="draft().description"
+            (input)="patch({ description: $any($event.target).value })"
+            class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600 resize-none"
+          ></textarea>
+        </div>
+
+        <!-- Orden y opciones -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Orden</p>
+            <input
+              type="number" placeholder="0"
+              [value]="draft().order"
+              (input)="patch({ order: +$any($event.target).value || 0 })"
+              class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+            />
+            <p class="text-gray-600 text-xs mt-1">Menor número = primero</p>
+          </div>
+          <div>
+            <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Destacada</p>
+            <label class="flex items-center gap-2.5 cursor-pointer mt-2" (click)="patch({ featured: !draft().featured })">
+              <div class="w-10 h-6 rounded-full relative transition-colors" [class]="draft().featured ? 'bg-yellow-500' : 'bg-gray-700'">
+                <div class="absolute top-1 w-4 h-4 bg-white rounded-full transition-all" [class]="draft().featured ? 'left-5' : 'left-1'"></div>
+              </div>
+              <span class="text-sm text-gray-300">{{ draft().featured ? 'Sí' : 'No' }}</span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="p-6 border-t border-gray-800 flex gap-3 sticky bottom-0 bg-gray-950">
+        <button (click)="closeForm()" class="flex-1 text-sm text-gray-300 bg-gray-900 border border-gray-800 rounded-xl py-2.5 hover:bg-gray-800 transition-colors">
+          Cancelar
+        </button>
+        <button
+          (click)="save()"
+          [disabled]="!draft().name || saving()"
+          class="flex-1 text-sm font-medium bg-white text-gray-900 rounded-xl py-2.5 hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {{ saving() ? 'Guardando...' : (editingId() ? 'Guardar cambios' : 'Crear colección') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

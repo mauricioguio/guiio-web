@@ -109,12 +109,16 @@
             class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
           />
           <div class="grid grid-cols-2 gap-3">
-            <input
-              type="text" placeholder="Colección"
+            <select
               [value]="draft().collection"
-              (input)="patchDraft({ collection: $any($event.target).value })"
-              class="bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
-            />
+              (change)="patchDraft({ collection: $any($event.target).value })"
+              class="bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gray-600"
+            >
+              <option value="" disabled>Colección</option>
+              @for (col of collections(); track col.id) {
+                <option [value]="col.name">{{ col.name }}</option>
+              }
+            </select>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">$</span>
               <input

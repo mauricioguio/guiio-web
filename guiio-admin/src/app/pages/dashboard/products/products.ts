@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { ProductsApiService, Product, ProductPayload } from '../../../services/products-api';
+import { CollectionsApiService, Collection } from '../../../services/collections-api';
 import { CloudinaryService } from '../../../services/cloudinary';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
@@ -34,6 +35,7 @@ const emptyDraft = (): Draft => ({
 })
 export class Products {
   private readonly api = inject(ProductsApiService);
+  private readonly collectionsApi = inject(CollectionsApiService);
   private readonly cloudinary = inject(CloudinaryService);
 
   protected readonly SIZES = SIZES;
@@ -47,6 +49,7 @@ export class Products {
   protected draft = signal<Draft>(emptyDraft());
   protected uploadingIndex = signal<number | null>(null);
   protected priceInput = signal('');
+  protected collections = signal<Collection[]>([]);
 
   protected filtered = computed(() => {
     const q = this.search().toLowerCase();
@@ -57,7 +60,12 @@ export class Products {
       : this.products();
   });
 
-  constructor() { this.load(); }
+  constructor() {
+    this.load();
+    this.collectionsApi.getAll().subscribe({
+      next: list => this.collections.set(list),
+    });
+  }
 
   load() {
     this.loading.set(true);

@@ -38,6 +38,11 @@ export const routes: Routes = [
         canActivate: [adminGuard],
       },
       {
+        path: 'collections',
+        loadComponent: () => import('./pages/dashboard/collections/collections').then(m => m.Collections),
+        canActivate: [adminGuard],
+      },
+      {
         path: 'clients',
         loadComponent: () => import('./pages/dashboard/clients/clients').then(m => m.Clients),
         canActivate: [adminGuard],
