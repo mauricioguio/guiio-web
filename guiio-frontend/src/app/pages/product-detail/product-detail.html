@@ -19,13 +19,13 @@
               [class.border-gray-900]="selectedImageIndex() === $index"
               [class.border-transparent]="selectedImageIndex() !== $index">
               <img [src]="img" [alt]="p.name + ' foto ' + ($index + 1)"
-                   class="w-full h-full object-cover hover:opacity-80 transition-opacity">
+                   class="w-full h-full object-contain hover:opacity-80 transition-opacity">
             </button>
           }
         </div>
         <div class="flex-1 aspect-[3/4] bg-gray-100 rounded-2xl overflow-hidden">
           <img [src]="p.images[selectedImageIndex()]" [alt]="p.name"
-               class="w-full h-full object-cover transition-opacity duration-200"
+               class="w-full h-full object-contain transition-opacity duration-200"
                onerror="this.src='/assets/placeholder.jpg'">
         </div>
       </div>
