@@ -1,9 +1,19 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Product } from '../models/product';
+
+const API_URL = 'https://guiio-backend.onrender.com/api';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
+  private readonly http = inject(HttpClient);
   private readonly products = signal<Product[]>(MOCK_PRODUCTS);
+
+  constructor() {
+    this.http.get<Product[]>(`${API_URL}/products`).subscribe({
+      next: list => { if (list.length) this.products.set(list); },
+    });
+  }
 
   getAll() {
     return this.products.asReadonly();
