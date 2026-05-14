@@ -147,6 +147,17 @@ export class Products {
     this.draft.update(d => ({ ...d, ...patch }));
   }
 
+  // Para conjuntos: blusa y pantalón comparten las mismas tallas disponibles.
+  // El cliente elige tallas distintas solo al momento del pedido.
+  toggleConjuntoSize(size: string) {
+    this.draft.update(d => {
+      const sizes = d.topSizes.includes(size)
+        ? d.topSizes.filter(s => s !== size)
+        : [...d.topSizes, size];
+      return { ...d, topSizes: sizes, bottomSizes: sizes };
+    });
+  }
+
   toggleTopSize(size: string) {
     this.draft.update(d => ({
       ...d,

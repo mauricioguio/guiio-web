@@ -164,7 +164,26 @@
         </div>
 
         <!-- Tallas -->
-        @if (draft().type === 'conjunto' || draft().type === 'top') {
+        @if (draft().type === 'conjunto') {
+          <div>
+            <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Tallas disponibles</p>
+            <p class="text-gray-600 text-xs mb-3">El cliente podrá elegir talla diferente para blusa y pantalón al hacer el pedido.</p>
+            <div class="flex gap-2 flex-wrap">
+              @for (size of SIZES; track size) {
+                <button
+                  type="button"
+                  (click)="toggleConjuntoSize(size)"
+                  class="w-12 h-9 rounded-xl text-sm font-medium border transition-colors"
+                  [class]="draft().topSizes.includes(size)
+                    ? 'bg-white text-gray-900 border-white'
+                    : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-600'"
+                >{{ size }}</button>
+              }
+            </div>
+          </div>
+        }
+
+        @if (draft().type === 'top') {
           <div>
             <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3">Tallas (blusa)</p>
             <div class="flex gap-2 flex-wrap">
@@ -182,7 +201,7 @@
           </div>
         }
 
-        @if (draft().type === 'conjunto' || draft().type === 'bottom') {
+        @if (draft().type === 'bottom') {
           <div>
             <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3">Tallas (pantalón)</p>
             <div class="flex gap-2 flex-wrap">
