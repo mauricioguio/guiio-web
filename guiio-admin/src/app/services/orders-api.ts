@@ -8,10 +8,10 @@ export interface OrderItem {
   id: string;
   quantity: number;
   price: number;
+  productName: string;
   topSize: string;
   bottomSize: string;
   color: string;
-  product: { name: string; images: string[] };
 }
 
 export interface Order {

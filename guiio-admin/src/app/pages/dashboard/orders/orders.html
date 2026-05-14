@@ -162,11 +162,8 @@
           <div class="space-y-2">
             @for (item of selectedOrder()!.items; track item.id) {
               <div class="bg-gray-900 rounded-xl p-4 flex items-center gap-3">
-                @if (item.product.images[0]) {
-                  <img [src]="item.product.images[0]" class="w-12 h-12 rounded-lg object-cover bg-gray-800" />
-                }
                 <div class="flex-1">
-                  <p class="text-white text-sm">{{ item.product.name }}</p>
+                  <p class="text-white text-sm">{{ item.productName }}</p>
                   <p class="text-gray-500 text-xs">{{ item.topSize }} / {{ item.bottomSize }} · {{ item.color }} · x{{ item.quantity }}</p>
                 </div>
                 <p class="text-white text-sm font-medium">{{ formatPrice(item.price * item.quantity) }}</p>
