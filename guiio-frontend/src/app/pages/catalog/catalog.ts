@@ -23,7 +23,9 @@ export class Catalog {
   protected readonly collections = this.productService.getCollections();
 
   protected readonly selectedGender = signal<'mujer' | 'hombre' | 'todos'>('todos');
-  protected readonly selectedCollection = signal<string>('todas');
+  protected readonly selectedCollection = signal<string>(
+    this.route.snapshot.queryParams['coleccion'] ?? 'todas'
+  );
 
   protected readonly filteredProducts = computed(() => {
     const gender = this.routeGender() ?? this.selectedGender();

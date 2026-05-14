@@ -38,6 +38,18 @@ export class ProductService {
   getCollections() {
     return computed(() => [...new Set(this.products().map(p => p.collection))]);
   }
+
+  getCollectionSpotlights() {
+    return computed(() => {
+      const seen = new Map<string, { name: string; description: string; image: string }>();
+      for (const p of this.products()) {
+        if (!seen.has(p.collection) && p.images?.length) {
+          seen.set(p.collection, { name: p.collection, description: p.description, image: p.images[0] });
+        }
+      }
+      return [...seen.values()];
+    });
+  }
 }
 
 const MOCK_PRODUCTS: Product[] = [

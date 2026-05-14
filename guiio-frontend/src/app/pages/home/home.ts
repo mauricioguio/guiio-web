@@ -12,5 +12,5 @@ import { ProductCard } from '../../components/product-card/product-card';
 export class Home {
   private readonly productService = inject(ProductService);
   protected readonly featured = this.productService.getFeatured();
-  protected readonly collections = this.productService.getCollections();
+  protected readonly collectionSpotlights = this.productService.getCollectionSpotlights();
 }
