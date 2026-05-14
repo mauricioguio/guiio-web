@@ -36,6 +36,27 @@ model Collection {
   updatedAt   DateTime @updatedAt
 }
 
+model Sede {
+  id        String      @id @default(cuid())
+  name      String      @unique
+  active    Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  inventory Inventory[]
+}
+
+model Inventory {
+  id        String   @id @default(cuid())
+  sedeId    String
+  productId String
+  size      String
+  quantity  Int      @default(0)
+  updatedAt DateTime @updatedAt
+  sede      Sede     @relation(fields: [sedeId], references: [id], onDelete: Cascade)
+
+  @@unique([sedeId, productId, size])
+}
+
 model Customer {
   id        String   @id @default(cuid())
   name      String
