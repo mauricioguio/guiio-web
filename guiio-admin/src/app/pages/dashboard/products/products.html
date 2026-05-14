@@ -232,7 +232,14 @@
         <div>
           <div class="flex items-center justify-between mb-3">
             <p class="text-gray-400 text-xs font-medium uppercase tracking-wider">Imágenes</p>
-            <button type="button" (click)="addImage()" class="text-xs text-gray-400 hover:text-white transition-colors">+ Agregar</button>
+            <label class="cursor-pointer">
+              <span class="text-xs text-gray-400 hover:text-white transition-colors">
+                {{ uploadingIndex() === -1 ? 'Subiendo...' : '+ Subir varias' }}
+              </span>
+              <input type="file" accept="image/*" multiple class="hidden"
+                [disabled]="uploadingIndex() !== null"
+                (change)="uploadMultiple($event)" />
+            </label>
           </div>
           <div class="space-y-2">
             @for (img of draft().images; track $index) {

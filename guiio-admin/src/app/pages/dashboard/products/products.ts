@@ -234,6 +234,29 @@ export class Products {
     });
   }
 
+  uploadMultiple(event: Event) {
+    const files = Array.from((event.target as HTMLInputElement).files ?? []);
+    if (!files.length) return;
+    this.uploadingIndex.set(-1);
+    let completed = 0;
+    files.forEach(file => {
+      this.cloudinary.upload(file).subscribe({
+        next: url => {
+          this.draft.update(d => {
+            const images = d.images.filter(i => i);
+            return { ...d, images: [...images, url] };
+          });
+          completed++;
+          if (completed === files.length) this.uploadingIndex.set(null);
+        },
+        error: () => {
+          completed++;
+          if (completed === files.length) this.uploadingIndex.set(null);
+        },
+      });
+    });
+  }
+
   canSave(): boolean {
     const d = this.draft();
     return !!(d.name && d.collection && d.price > 0);
