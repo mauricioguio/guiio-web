@@ -3,7 +3,11 @@ import { ProductsApiService, Product, ProductPayload } from '../../../services/p
 import { CollectionsApiService, Collection } from '../../../services/collections-api';
 import { CloudinaryService } from '../../../services/cloudinary';
 
-const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+function defaultSizes(gender: string): string[] {
+  return gender === 'hombre' ? ['XS', 'S', 'M', 'L', 'XL', 'XXL'] : ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
+}
 
 interface Draft {
   name: string;
@@ -20,14 +24,17 @@ interface Draft {
   images: string[];
 }
 
-const emptyDraft = (): Draft => ({
-  name: '', collection: '', price: 0, description: '',
-  type: 'conjunto', gender: 'mujer',
-  featured: false, inStock: true,
-  tagInput: '',
-  topSizes: [], bottomSizes: [],
-  images: [''],
-});
+const emptyDraft = (): Draft => {
+  const sizes = defaultSizes('mujer');
+  return {
+    name: '', collection: '', price: 0, description: '',
+    type: 'conjunto', gender: 'mujer',
+    featured: false, inStock: true,
+    tagInput: '',
+    topSizes: sizes, bottomSizes: sizes,
+    images: [''],
+  };
+};
 
 @Component({
   selector: 'app-products',
@@ -175,6 +182,21 @@ export class Products {
 
   patchDraft(patch: Partial<Draft>) {
     this.draft.update(d => ({ ...d, ...patch }));
+  }
+
+  onTypeChange(type: string) {
+    this.draft.update(d => {
+      const sizes = type === 'conjunto' ? defaultSizes(d.gender) : [];
+      return { ...d, type, topSizes: sizes, bottomSizes: sizes };
+    });
+  }
+
+  onGenderChange(gender: string) {
+    this.draft.update(d => {
+      if (d.type !== 'conjunto') return { ...d, gender };
+      const sizes = defaultSizes(gender);
+      return { ...d, gender, topSizes: sizes, bottomSizes: sizes };
+    });
   }
 
   // Para conjuntos: blusa y pantalón comparten las mismas tallas disponibles.

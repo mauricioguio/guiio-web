@@ -148,7 +148,7 @@
               <label class="text-gray-500 text-xs block mb-1.5">Tipo</label>
               <select
                 [value]="draft().type"
-                (change)="patchDraft({ type: $any($event.target).value })"
+                (change)="onTypeChange($any($event.target).value)"
                 class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gray-600"
               >
                 <option value="conjunto">Conjunto</option>
@@ -161,7 +161,7 @@
               <label class="text-gray-500 text-xs block mb-1.5">Género</label>
               <select
                 [value]="draft().gender"
-                (change)="patchDraft({ gender: $any($event.target).value })"
+                (change)="onGenderChange($any($event.target).value)"
                 class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gray-600"
               >
                 <option value="mujer">Mujer</option>
