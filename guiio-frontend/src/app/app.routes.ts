@@ -11,5 +11,6 @@ export const routes: Routes = [
   { path: 'pago/exitoso', loadComponent: () => import('./pages/payment-success/payment-success').then(m => m.PaymentSuccess) },
   { path: 'pago/fallido', loadComponent: () => import('./pages/payment-failure/payment-failure').then(m => m.PaymentFailure) },
   { path: 'pago/pendiente', loadComponent: () => import('./pages/payment-pending/payment-pending').then(m => m.PaymentPending) },
+  { path: 'coleccion/:name', loadComponent: () => import('./pages/collection/collection').then(m => m.Collection) },
   { path: '**', redirectTo: '' },
 ];

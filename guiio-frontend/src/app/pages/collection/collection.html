@@ -1,0 +1,42 @@
+@if (spotlight()) {
+  <!-- Hero de colección -->
+  <section class="flex flex-col md:flex-row items-stretch min-h-[560px] border-b border-gray-100">
+    <!-- Imagen -->
+    <div class="w-full md:w-1/2 bg-gray-50 flex items-center justify-center overflow-hidden">
+      <img [src]="spotlight()!.image" [alt]="spotlight()!.name"
+           class="w-full h-72 md:h-full object-contain" />
+    </div>
+    <!-- Texto -->
+    <div class="w-full md:w-1/2 flex items-center px-8 md:px-16 lg:px-24 py-14">
+      <div>
+        <p class="text-xs uppercase tracking-widest text-gray-400 mb-3">Colección</p>
+        <h1 class="text-5xl md:text-6xl font-bold text-gray-900 mb-6">{{ spotlight()!.name }}</h1>
+        <p class="text-gray-500 leading-relaxed mb-8 max-w-sm text-sm">{{ spotlight()!.description }}</p>
+        <a routerLink="/catalogo"
+           class="inline-block text-sm text-gray-500 hover:text-gray-900 underline transition-colors">
+          ← Ver todo el catálogo
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grid de productos -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="flex items-end justify-between mb-10">
+      <div>
+        <p class="text-sm uppercase tracking-widest text-gray-400 mb-1">{{ products().length }} productos</p>
+        <h2 class="text-2xl font-bold text-gray-900">{{ spotlight()!.name }}</h2>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      @for (product of products(); track product.id) {
+        <app-product-card [product]="product" />
+      }
+    </div>
+  </section>
+} @else {
+  <div class="max-w-7xl mx-auto px-4 py-32 text-center">
+    <p class="text-gray-400 text-lg mb-6">Colección no encontrada.</p>
+    <a routerLink="/catalogo" class="text-sm text-gray-900 underline">Ver catálogo</a>
+  </div>
+}
