@@ -11,7 +11,7 @@ export class ProductService {
 
   constructor() {
     this.http.get<Product[]>(`${API_URL}/products`).subscribe({
-      next: list => { if (list.length) this.products.set(list); },
+      next: list => { this.products.set(list); },
     });
   }
 

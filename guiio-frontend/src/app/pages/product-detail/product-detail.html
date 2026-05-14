@@ -40,22 +40,24 @@
         <p class="text-gray-600 leading-relaxed mb-8">{{ p.description }}</p>
 
         <!-- Color selector -->
-        <div class="mb-6">
-          <p class="text-sm font-medium text-gray-900 mb-3">
-            Color: <span class="text-gray-500 font-normal">{{ (selectedColor() ?? p.colors[0]).name }}</span>
-          </p>
-          <div class="flex gap-3">
-            @for (color of p.colors; track color.name) {
-              <button (click)="selectColor(color)"
-                class="w-8 h-8 rounded-full border-2 transition-all"
-                [style.background-color]="color.hex"
-                [class.border-gray-900]="(selectedColor() ?? p.colors[0]).name === color.name"
-                [class.border-gray-200]="(selectedColor() ?? p.colors[0]).name !== color.name"
-                [title]="color.name">
-              </button>
-            }
+        @if (p.colors.length > 0) {
+          <div class="mb-6">
+            <p class="text-sm font-medium text-gray-900 mb-3">
+              Color: <span class="text-gray-500 font-normal">{{ (selectedColor() ?? p.colors[0]).name }}</span>
+            </p>
+            <div class="flex gap-3">
+              @for (color of p.colors; track color.name) {
+                <button (click)="selectColor(color)"
+                  class="w-8 h-8 rounded-full border-2 transition-all"
+                  [style.background-color]="color.hex"
+                  [class.border-gray-900]="(selectedColor() ?? p.colors[0]).name === color.name"
+                  [class.border-gray-200]="(selectedColor() ?? p.colors[0]).name !== color.name"
+                  [title]="color.name">
+                </button>
+              }
+            </div>
           </div>
-        </div>
+        }
 
         <!-- CONJUNTO: talla blusa + talla pantalón -->
         @if (p.type === 'conjunto') {

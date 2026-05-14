@@ -45,9 +45,9 @@ export class ProductDetail {
 
   addToCart() {
     const product = this.product();
-    const color = this.selectedColor() ?? product?.colors[0];
-    if (!product || !color || !this.canAddToCart) return;
+    if (!product || !this.canAddToCart) return;
 
+    const color = this.selectedColor() ?? product.colors[0] ?? { name: '', hex: '' };
     const topSize = this.selectedTopSize() ?? '';
     const bottomSize = this.selectedBottomSize() ?? '';
 

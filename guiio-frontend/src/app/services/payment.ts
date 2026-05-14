@@ -21,7 +21,7 @@ export class PaymentService {
       image: item.product.images[0],
       topSize: item.selectedTopSize,
       bottomSize: item.selectedBottomSize,
-      color: item.selectedColor.name,
+      color: item.selectedColor?.name ?? '',
     }));
 
     return this.http.post<{ checkoutUrl: string; reference: string; total: number }>(
