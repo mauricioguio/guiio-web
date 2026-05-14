@@ -15,14 +15,14 @@
         ? 'bg-white text-gray-900 border-white'
         : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-600'"
     >Todas</button>
-    @for (col of collections(); track col.id) {
+    @for (colName of productCollections(); track colName) {
       <button
-        (click)="selectedCollection.set(col.name.toLowerCase())"
+        (click)="selectedCollection.set(colName)"
         class="text-sm px-4 py-1.5 rounded-xl border transition-colors"
-        [class]="selectedCollection() === col.name.toLowerCase()
+        [class]="selectedCollection() === colName
           ? 'bg-white text-gray-900 border-white'
           : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-600'"
-      >{{ col.name }}</button>
+      >{{ colName }}</button>
     }
   </div>
 

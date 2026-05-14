@@ -59,11 +59,23 @@ export class Products {
   protected priceInput = signal('');
   protected collections = signal<Collection[]>([]);
 
+  protected productCollections = computed(() => {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const p of this.products()) {
+      if (!seen.has(p.collection)) {
+        seen.add(p.collection);
+        result.push(p.collection);
+      }
+    }
+    return result.sort();
+  });
+
   protected filtered = computed(() => {
     const q = this.search().toLowerCase();
     const col = this.selectedCollection();
     return this.products().filter(p => {
-      if (col !== 'all' && p.collection.toLowerCase() !== col) return false;
+      if (col !== 'all' && p.collection !== col) return false;
       if (q && !p.name.toLowerCase().includes(q)) return false;
       return true;
     });
