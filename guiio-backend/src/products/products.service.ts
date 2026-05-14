@@ -5,9 +5,17 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
-    const list = await this.prisma.product.findMany({ orderBy: { createdAt: 'desc' } });
+  async findAll(onlyActive = true) {
+    const list = await this.prisma.product.findMany({
+      where: onlyActive ? ({ active: true } as any) : undefined,
+      orderBy: { createdAt: 'desc' },
+    });
     return list.map(p => ({ ...p, type: p.type.toLowerCase() }));
+  }
+
+  async patchActive(id: string, active: boolean) {
+    const p = await this.prisma.product.update({ where: { id }, data: { active } });
+    return { ...p, type: p.type.toLowerCase() };
   }
 
   async findOne(id: string) {

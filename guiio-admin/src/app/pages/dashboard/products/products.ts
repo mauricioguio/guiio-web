@@ -170,6 +170,14 @@ export class Products {
     });
   }
 
+  toggleActive(product: Product) {
+    this.api.patchActive(product.id, !product.active).subscribe({
+      next: updated => {
+        this.products.update(list => list.map(p => p.id === updated.id ? updated : p));
+      },
+    });
+  }
+
   confirmDelete(id: string) { this.deletingId.set(id); }
   cancelDelete() { this.deletingId.set(null); }
 

@@ -19,6 +19,7 @@ export interface Product {
   gender: string;
   featured: boolean;
   inStock: boolean;
+  active: boolean;
   tags: string[];
   images: string[];
   topSizes: string[];
@@ -36,7 +37,7 @@ export class ProductsApiService {
   private readonly headers = new HttpHeaders({ 'X-Admin-Key': ADMIN_KEY });
 
   getAll() {
-    return this.http.get<Product[]>(`${API_URL}/products`);
+    return this.http.get<Product[]>(`${API_URL}/products`, { headers: this.headers });
   }
 
   create(data: ProductPayload) {
@@ -45,6 +46,10 @@ export class ProductsApiService {
 
   update(id: string, data: ProductPayload) {
     return this.http.patch<Product>(`${API_URL}/products/${id}`, data, { headers: this.headers });
+  }
+
+  patchActive(id: string, active: boolean) {
+    return this.http.patch<Product>(`${API_URL}/products/${id}/active`, { active }, { headers: this.headers });
   }
 
   remove(id: string) {

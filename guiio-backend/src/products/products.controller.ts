@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Patch, Delete, Param, Body, HttpCode,
-  CanActivate, ExecutionContext, Injectable, UseGuards,
+  CanActivate, ExecutionContext, Injectable, UseGuards, Req,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ProductsService } from './products.service';
@@ -23,8 +23,9 @@ export class ProductsController {
   ) {}
 
   @Get()
-  findAll() {
-    return this.productsService.findAll();
+  findAll(@Req() req: any) {
+    const isAdmin = req.headers['x-admin-key'] === this.config.get<string>('ADMIN_API_KEY');
+    return this.productsService.findAll(!isAdmin);
   }
 
   @Get(':id')
@@ -37,6 +38,12 @@ export class ProductsController {
   @UseGuards(AdminKeyGuard)
   create(@Body() data: any) {
     return this.productsService.create(data);
+  }
+
+  @Patch(':id/active')
+  @UseGuards(AdminKeyGuard)
+  patchActive(@Param('id') id: string, @Body('active') active: boolean) {
+    return this.productsService.patchActive(id, active);
   }
 
   @Patch(':id')
