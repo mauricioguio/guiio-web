@@ -11,7 +11,7 @@ export class OrdersService {
       include: {
         customer: true,
         items: {
-          include: { product: { select: { name: true, images: true } } },
+          // product relation removed — productName stored directly on item
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -24,7 +24,7 @@ export class OrdersService {
       include: {
         customer: true,
         items: {
-          include: { product: { select: { name: true, images: true } } },
+          // product relation removed — productName stored directly on item
         },
       },
     });

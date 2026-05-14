@@ -23,8 +23,6 @@ model Product {
   colors      Json
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-
-  orderItems OrderItem[]
 }
 
 model Customer {
@@ -57,17 +55,16 @@ model Order {
 }
 
 model OrderItem {
-  id         String @id @default(cuid())
-  quantity   Int
-  price      Float
-  topSize    String
-  bottomSize String
-  color      String
+  id          String @id @default(cuid())
+  quantity    Int
+  price       Float
+  productName String
+  topSize     String
+  bottomSize  String
+  color       String
 
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id])
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id])
 }
 
 enum ProductType {

@@ -71,10 +71,10 @@ export class PaymentsService {
             create: dto.items.map(item => ({
               quantity: item.quantity,
               price: item.price,
+              productName: item.name,
               topSize: item.topSize,
               bottomSize: item.bottomSize,
               color: item.color,
-              productId: item.id,
             })),
           },
         },
