@@ -46,6 +46,12 @@ export class ProductsController {
     return this.productsService.patchActive(id, active);
   }
 
+  @Patch(':id/collection')
+  @UseGuards(AdminKeyGuard)
+  patchCollection(@Param('id') id: string, @Body('collection') collection: string) {
+    return this.productsService.patchCollection(id, collection);
+  }
+
   @Patch(':id')
   @UseGuards(AdminKeyGuard)
   update(@Param('id') id: string, @Body() data: any) {

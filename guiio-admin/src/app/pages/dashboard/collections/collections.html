@@ -126,6 +126,72 @@
           ></textarea>
         </div>
 
+        <!-- Productos en esta colección -->
+        @if (editingId()) {
+          <div>
+            <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3">
+              Productos en esta colección
+              <span class="text-gray-600 normal-case ml-1">({{ collectionProducts().length }})</span>
+            </p>
+
+            @if (collectionProducts().length > 0) {
+              <div class="space-y-1.5 mb-4 max-h-40 overflow-y-auto">
+                @for (p of collectionProducts(); track p.id) {
+                  <div class="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-3 py-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                      @if (p.images[0]) {
+                        <img [src]="p.images[0]" class="w-8 h-8 rounded-lg object-cover bg-gray-800 shrink-0" />
+                      }
+                      <p class="text-white text-xs truncate">{{ p.name }}</p>
+                    </div>
+                    <button
+                      (click)="removeFromCollection(p)"
+                      [disabled]="assigningId() === p.id"
+                      class="text-gray-600 hover:text-red-400 text-xs ml-2 shrink-0 transition-colors disabled:opacity-40">
+                      {{ assigningId() === p.id ? '...' : 'Quitar' }}
+                    </button>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="text-gray-600 text-xs mb-4">Ningún producto asignado aún.</p>
+            }
+
+            <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Agregar productos</p>
+            <input
+              type="text"
+              placeholder="Buscar por nombre o colección..."
+              [value]="productSearch()"
+              (input)="productSearch.set($any($event.target).value)"
+              class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600 mb-2"
+            />
+            <div class="space-y-1.5 max-h-48 overflow-y-auto">
+              @for (p of otherProducts(); track p.id) {
+                <div class="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-3 py-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    @if (p.images[0]) {
+                      <img [src]="p.images[0]" class="w-8 h-8 rounded-lg object-cover bg-gray-800 shrink-0" />
+                    }
+                    <div class="min-w-0">
+                      <p class="text-white text-xs truncate">{{ p.name }}</p>
+                      <p class="text-gray-500 text-xs">{{ p.collection || 'Sin colección' }}</p>
+                    </div>
+                  </div>
+                  <button
+                    (click)="assignProduct(p)"
+                    [disabled]="assigningId() === p.id"
+                    class="text-green-400 bg-green-500/10 hover:bg-green-500/20 text-xs px-2 py-1 rounded-lg ml-2 shrink-0 transition-colors disabled:opacity-40">
+                    {{ assigningId() === p.id ? '...' : '+ Agregar' }}
+                  </button>
+                </div>
+              }
+              @if (otherProducts().length === 0) {
+                <p class="text-gray-600 text-xs py-2">No hay más productos disponibles.</p>
+              }
+            </div>
+          </div>
+        }
+
         <!-- Orden y opciones -->
         <div class="grid grid-cols-2 gap-4">
           <div>

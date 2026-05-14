@@ -52,6 +52,10 @@ export class ProductsApiService {
     return this.http.patch<Product>(`${API_URL}/products/${id}/active`, { active }, { headers: this.headers });
   }
 
+  patchCollection(id: string, collection: string) {
+    return this.http.patch<Product>(`${API_URL}/products/${id}/collection`, { collection }, { headers: this.headers });
+  }
+
   remove(id: string) {
     return this.http.delete(`${API_URL}/products/${id}`, { headers: this.headers });
   }

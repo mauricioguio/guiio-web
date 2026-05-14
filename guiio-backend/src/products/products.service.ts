@@ -18,6 +18,11 @@ export class ProductsService {
     return { ...p, type: p.type.toLowerCase() };
   }
 
+  async patchCollection(id: string, collection: string) {
+    const p = await this.prisma.product.update({ where: { id }, data: { collection } });
+    return { ...p, type: p.type.toLowerCase() };
+  }
+
   async findOne(id: string) {
     const p = await this.prisma.product.findUnique({ where: { id } });
     return p ? { ...p, type: p.type.toLowerCase() } : null;

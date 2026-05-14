@@ -1,5 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CollectionsApiService, Collection, CollectionPayload } from '../../../services/collections-api';
+import { ProductsApiService, Product } from '../../../services/products-api';
 import { CloudinaryService } from '../../../services/cloudinary';
 
 interface Draft {
@@ -20,9 +21,11 @@ const emptyDraft = (): Draft => ({
 })
 export class Collections {
   private readonly api = inject(CollectionsApiService);
+  private readonly productsApi = inject(ProductsApiService);
   private readonly cloudinary = inject(CloudinaryService);
 
   protected collections = signal<Collection[]>([]);
+  protected allProducts = signal<Product[]>([]);
   protected loading = signal(true);
   protected saving = signal(false);
   protected uploading = signal(false);
@@ -30,6 +33,23 @@ export class Collections {
   protected editingId = signal<string | null>(null);
   protected deletingId = signal<string | null>(null);
   protected draft = signal<Draft>(emptyDraft());
+  protected productSearch = signal('');
+  protected assigningId = signal<string | null>(null);
+
+  protected collectionProducts = computed(() => {
+    const name = this.draft().name;
+    return this.allProducts().filter(p => p.collection === name);
+  });
+
+  protected otherProducts = computed(() => {
+    const name = this.draft().name;
+    const q = this.productSearch().toLowerCase();
+    return this.allProducts().filter(p => {
+      if (p.collection === name) return false;
+      if (q && !p.name.toLowerCase().includes(q) && !p.collection.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  });
 
   constructor() { this.load(); }
 
@@ -38,6 +58,33 @@ export class Collections {
     this.api.getAll().subscribe({
       next: list => { this.collections.set(list); this.loading.set(false); },
       error: () => this.loading.set(false),
+    });
+    this.productsApi.getAll().subscribe({
+      next: list => this.allProducts.set(list),
+    });
+  }
+
+  assignProduct(product: Product) {
+    const collection = this.draft().name;
+    if (!collection) return;
+    this.assigningId.set(product.id);
+    this.productsApi.patchCollection(product.id, collection).subscribe({
+      next: updated => {
+        this.allProducts.update(list => list.map(p => p.id === updated.id ? updated : p));
+        this.assigningId.set(null);
+      },
+      error: () => this.assigningId.set(null),
+    });
+  }
+
+  removeFromCollection(product: Product) {
+    this.assigningId.set(product.id);
+    this.productsApi.patchCollection(product.id, '').subscribe({
+      next: updated => {
+        this.allProducts.update(list => list.map(p => p.id === updated.id ? updated : p));
+        this.assigningId.set(null);
+      },
+      error: () => this.assigningId.set(null),
     });
   }
 
