@@ -29,7 +29,7 @@ export interface Product {
   updatedAt: string;
 }
 
-export type ProductPayload = Omit<Product, 'id' | 'createdAt' | 'updatedAt'>;
+export type ProductPayload = Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'active'>;
 
 @Injectable({ providedIn: 'root' })
 export class ProductsApiService {
