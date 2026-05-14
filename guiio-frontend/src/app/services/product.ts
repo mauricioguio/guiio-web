@@ -43,8 +43,14 @@ export class ProductService {
     return computed(() => {
       const seen = new Map<string, { name: string; description: string; image: string }>();
       for (const p of this.products()) {
-        if (!seen.has(p.collection) && p.images?.length) {
-          seen.set(p.collection, { name: p.collection, description: p.description, image: p.images[0] });
+        if (!seen.has(p.collection)) {
+          seen.set(p.collection, {
+            name: p.collection,
+            description: p.description,
+            image: p.images?.[0] ?? '',
+          });
+        } else if (!seen.get(p.collection)!.image && p.images?.[0]) {
+          seen.set(p.collection, { ...seen.get(p.collection)!, image: p.images[0] });
         }
       }
       return [...seen.values()];
