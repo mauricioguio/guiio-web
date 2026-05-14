@@ -50,6 +50,7 @@ export class Products {
   protected loading = signal(true);
   protected saving = signal(false);
   protected search = signal('');
+  protected selectedCollection = signal('all');
   protected showForm = signal(false);
   protected editingId = signal<string | null>(null);
   protected deletingId = signal<string | null>(null);
@@ -60,11 +61,12 @@ export class Products {
 
   protected filtered = computed(() => {
     const q = this.search().toLowerCase();
-    return q
-      ? this.products().filter(p =>
-          p.name.toLowerCase().includes(q) || p.collection.toLowerCase().includes(q)
-        )
-      : this.products();
+    const col = this.selectedCollection();
+    return this.products().filter(p => {
+      if (col !== 'all' && p.collection.toLowerCase() !== col) return false;
+      if (q && !p.name.toLowerCase().includes(q)) return false;
+      return true;
+    });
   });
 
   constructor() {
