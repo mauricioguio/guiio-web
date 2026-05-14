@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { ProductsApiService, Product, ProductPayload } from '../../../services/products-api';
+import { CloudinaryService } from '../../../services/cloudinary';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
@@ -35,6 +36,7 @@ const emptyDraft = (): Draft => ({
 })
 export class Products {
   private readonly api = inject(ProductsApiService);
+  private readonly cloudinary = inject(CloudinaryService);
 
   protected readonly SIZES = SIZES;
   protected products = signal<Product[]>([]);
@@ -45,6 +47,7 @@ export class Products {
   protected editingId = signal<string | null>(null);
   protected deletingId = signal<string | null>(null);
   protected draft = signal<Draft>(emptyDraft());
+  protected uploadingIndex = signal<number | null>(null);
 
   protected filtered = computed(() => {
     const q = this.search().toLowerCase();
@@ -210,6 +213,19 @@ export class Products {
     this.draft.update(d => {
       const images = d.images.map((img, idx) => idx === i ? url : img);
       return { ...d, images };
+    });
+  }
+
+  uploadImage(i: number, event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.uploadingIndex.set(i);
+    this.cloudinary.upload(file).subscribe({
+      next: url => {
+        this.setImage(i, url);
+        this.uploadingIndex.set(null);
+      },
+      error: () => this.uploadingIndex.set(null),
     });
   }
 
