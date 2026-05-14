@@ -111,6 +111,9 @@ export class Products {
   openEdit(p: Product) {
     this.editingId.set(p.id);
     this.priceInput.set(this.formatCOP(p.price));
+    const sizes = p.type === 'conjunto' && p.topSizes.length === 0
+      ? defaultSizes(p.gender)
+      : [...p.topSizes];
     this.draft.set({
       name: p.name,
       collection: p.collection,
@@ -121,8 +124,8 @@ export class Products {
       featured: p.featured,
       inStock: p.inStock,
       tagInput: p.tags.join(', '),
-      topSizes: [...p.topSizes],
-      bottomSizes: [...p.bottomSizes],
+      topSizes: sizes,
+      bottomSizes: p.type === 'conjunto' && p.bottomSizes.length === 0 ? sizes : [...p.bottomSizes],
       images: p.images.length ? [...p.images] : [''],
     });
     this.showForm.set(true);
