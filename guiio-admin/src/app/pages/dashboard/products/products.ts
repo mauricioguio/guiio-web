@@ -16,7 +16,6 @@ interface Draft {
   tagInput: string;
   topSizes: string[];
   bottomSizes: string[];
-  colors: { name: string; hex: string }[];
   images: string[];
 }
 
@@ -26,7 +25,6 @@ const emptyDraft = (): Draft => ({
   featured: false, inStock: true,
   tagInput: '',
   topSizes: [], bottomSizes: [],
-  colors: [{ name: '', hex: '#000000' }],
   images: [''],
 });
 
@@ -48,6 +46,7 @@ export class Products {
   protected deletingId = signal<string | null>(null);
   protected draft = signal<Draft>(emptyDraft());
   protected uploadingIndex = signal<number | null>(null);
+  protected priceInput = signal('');
 
   protected filtered = computed(() => {
     const q = this.search().toLowerCase();
@@ -68,14 +67,35 @@ export class Products {
     });
   }
 
+  private formatCOP(value: number) {
+    return value > 0 ? new Intl.NumberFormat('es-CO').format(value) : '';
+  }
+
+  onPriceInput(raw: string) {
+    const digits = raw.replace(/\D/g, '');
+    this.priceInput.set(raw);
+    this.patchDraft({ price: +digits || 0 });
+  }
+
+  onPriceFocus() {
+    const p = this.draft().price;
+    this.priceInput.set(p > 0 ? p.toString() : '');
+  }
+
+  onPriceBlur() {
+    this.priceInput.set(this.formatCOP(this.draft().price));
+  }
+
   openCreate() {
     this.editingId.set(null);
     this.draft.set(emptyDraft());
+    this.priceInput.set('');
     this.showForm.set(true);
   }
 
   openEdit(p: Product) {
     this.editingId.set(p.id);
+    this.priceInput.set(this.formatCOP(p.price));
     this.draft.set({
       name: p.name,
       collection: p.collection,
@@ -88,7 +108,6 @@ export class Products {
       tagInput: p.tags.join(', '),
       topSizes: [...p.topSizes],
       bottomSizes: [...p.bottomSizes],
-      colors: p.colors.length ? p.colors.map(c => ({ ...c })) : [{ name: '', hex: '#000000' }],
       images: p.images.length ? [...p.images] : [''],
     });
     this.showForm.set(true);
@@ -113,7 +132,7 @@ export class Products {
       tags: d.tagInput.split(',').map(t => t.trim()).filter(Boolean),
       topSizes: d.topSizes,
       bottomSizes: d.bottomSizes,
-      colors: d.colors.filter(c => c.name),
+      colors: [],
       images: d.images.filter(i => i),
     };
     this.saving.set(true);
@@ -177,28 +196,6 @@ export class Products {
         ? d.bottomSizes.filter(s => s !== size)
         : [...d.bottomSizes, size],
     }));
-  }
-
-  addColor() {
-    this.draft.update(d => ({ ...d, colors: [...d.colors, { name: '', hex: '#000000' }] }));
-  }
-
-  removeColor(i: number) {
-    this.draft.update(d => ({ ...d, colors: d.colors.filter((_, idx) => idx !== i) }));
-  }
-
-  setColorName(i: number, name: string) {
-    this.draft.update(d => {
-      const colors = d.colors.map((c, idx) => idx === i ? { ...c, name } : c);
-      return { ...d, colors };
-    });
-  }
-
-  setColorHex(i: number, hex: string) {
-    this.draft.update(d => {
-      const colors = d.colors.map((c, idx) => idx === i ? { ...c, hex } : c);
-      return { ...d, colors };
-    });
   }
 
   addImage() {
