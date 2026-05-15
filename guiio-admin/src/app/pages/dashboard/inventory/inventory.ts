@@ -3,17 +3,17 @@ import { SedesApiService, Sede } from '../../../services/sedes-api';
 import { InventoryApiService, InventoryItem } from '../../../services/inventory-api';
 import { ProductsApiService, Product } from '../../../services/products-api';
 
-interface InventoryRow {
-  productId: string;
-  productName: string;
-  size: string;
-  quantities: Record<string, number>;
-  total: number;
-}
-
 function productSizes(p: Product): string[] {
   if (p.type === 'bottom') return p.bottomSizes.length ? p.bottomSizes : ['Único'];
   return p.topSizes.length ? p.topSizes : ['Único'];
+}
+
+type StockStatus = 'ok' | 'low' | 'out';
+
+interface ProductCard {
+  product: Product;
+  total: number;
+  status: StockStatus;
 }
 
 @Component({
@@ -31,104 +31,146 @@ export class Inventory {
   protected loading = signal(true);
 
   protected search = signal('');
-  protected selectedView = signal<string>('all');
+  protected selectedCollection = signal('all');
   protected showSedesPanel = signal(false);
   protected sedeNameInput = signal('');
   protected editingSedeId = signal<string | null>(null);
   protected deletingSedeId = signal<string | null>(null);
   protected savingSede = signal(false);
 
-  protected editingCell = signal<{ productId: string; size: string; sedeId: string } | null>(null);
-  protected editValue = signal('');
-  protected savingCell = signal(false);
+  protected expandedProductId = signal<string | null>(null);
+  protected draftQuantities = signal<Record<string, Record<string, number>>>({});
+  protected savingDraft = signal(false);
 
-  protected visibleSedes = computed(() => {
-    const v = this.selectedView();
-    return v === 'all' ? this.sedes() : this.sedes().filter(s => s.id === v);
+  protected productCollections = computed(() => {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const p of this.products()) {
+      if (p.collection && !seen.has(p.collection)) {
+        seen.add(p.collection);
+        result.push(p.collection);
+      }
+    }
+    return result.sort();
   });
 
-  protected rows = computed((): InventoryRow[] => {
+  protected filteredProducts = computed(() => {
+    const col = this.selectedCollection();
     const q = this.search().toLowerCase();
-    const result: InventoryRow[] = [];
-    for (const p of this.products()) {
-      if (q && !p.name.toLowerCase().includes(q)) continue;
-      for (const size of productSizes(p)) {
-        const quantities: Record<string, number> = {};
+    return this.products().filter(p => {
+      if (col !== 'all' && p.collection !== col) return false;
+      if (q && !p.name.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  });
+
+  protected productCards = computed((): ProductCard[] => {
+    return this.filteredProducts().map(p => {
+      const sizes = productSizes(p);
+      let total = 0;
+      for (const size of sizes) {
         for (const sede of this.sedes()) {
           const item = this.inventoryItems().find(
             i => i.productId === p.id && i.size === size && i.sedeId === sede.id,
           );
-          quantities[sede.id] = item?.quantity ?? 0;
+          total += item?.quantity ?? 0;
         }
-        const total = Object.values(quantities).reduce((a, b) => a + b, 0);
-        result.push({ productId: p.id, productName: p.name, size, quantities, total });
       }
-    }
-    return result;
+      const status: StockStatus = total === 0 ? 'out' : total <= 10 ? 'low' : 'ok';
+      return { product: p, total, status };
+    });
   });
 
   protected totalUnits = computed(() =>
-    this.rows().reduce((sum, r) => sum + r.total, 0),
+    this.productCards().reduce((sum, c) => sum + c.total, 0),
   );
 
-  constructor() {
-    this.loadAll();
-  }
+  protected expandedProduct = computed(() => {
+    const id = this.expandedProductId();
+    return id ? (this.products().find(p => p.id === id) ?? null) : null;
+  });
+
+  protected expandedSizes = computed(() => {
+    const p = this.expandedProduct();
+    return p ? productSizes(p) : [];
+  });
+
+  constructor() { this.loadAll(); }
 
   private loadAll() {
     this.loading.set(true);
     let pending = 3;
     const done = () => { if (--pending === 0) this.loading.set(false); };
-
     this.sedesApi.getAll().subscribe({ next: list => { this.sedes.set(list); done(); }, error: done });
     this.productsApi.getAll().subscribe({ next: list => { this.products.set(list); done(); }, error: done });
     this.inventoryApi.getAll().subscribe({ next: list => { this.inventoryItems.set(list); done(); }, error: done });
   }
 
-  // ── Cell editing ──
-
-  startEdit(productId: string, size: string, sedeId: string) {
-    const row = this.rows().find(r => r.productId === productId && r.size === size);
-    this.editValue.set((row?.quantities[sedeId] ?? 0).toString());
-    this.editingCell.set({ productId, size, sedeId });
-  }
-
-  saveCell(productId: string, size: string, sedeId: string) {
-    const quantity = Math.max(0, parseInt(this.editValue(), 10) || 0);
-    const row = this.rows().find(r => r.productId === productId && r.size === size);
-    if (quantity === (row?.quantities[sedeId] ?? 0)) {
-      this.editingCell.set(null);
-      return;
+  openProduct(product: Product) {
+    this.expandedProductId.set(product.id);
+    const draft: Record<string, Record<string, number>> = {};
+    for (const size of productSizes(product)) {
+      draft[size] = {};
+      for (const sede of this.sedes()) {
+        const item = this.inventoryItems().find(
+          i => i.productId === product.id && i.size === size && i.sedeId === sede.id,
+        );
+        draft[size][sede.id] = item?.quantity ?? 0;
+      }
     }
-    this.savingCell.set(true);
-    this.inventoryApi.upsert(sedeId, productId, size, quantity).subscribe({
-      next: item => {
-        this.inventoryItems.update(items => {
-          const idx = items.findIndex(
-            i => i.productId === productId && i.size === size && i.sedeId === sedeId,
-          );
-          return idx >= 0
-            ? items.map((it, i) => (i === idx ? item : it))
-            : [...items, item];
-        });
-        this.savingCell.set(false);
-        this.editingCell.set(null);
-      },
-      error: () => this.savingCell.set(false),
-    });
+    this.draftQuantities.set(draft);
   }
 
-  isEditing(productId: string, size: string, sedeId: string): boolean {
-    const c = this.editingCell();
-    return !!c && c.productId === productId && c.size === size && c.sedeId === sedeId;
+  closeProduct() { this.expandedProductId.set(null); }
+
+  setDraftQty(size: string, sedeId: string, value: number) {
+    this.draftQuantities.update(d => ({
+      ...d,
+      [size]: { ...d[size], [sedeId]: Math.max(0, isNaN(value) ? 0 : value) },
+    }));
+  }
+
+  saveDraft() {
+    const productId = this.expandedProductId();
+    if (!productId) return;
+    const draft = this.draftQuantities();
+    const entries: { size: string; sedeId: string; qty: number }[] = [];
+    for (const [size, sedeMap] of Object.entries(draft)) {
+      for (const [sedeId, qty] of Object.entries(sedeMap)) {
+        entries.push({ size, sedeId, qty });
+      }
+    }
+    if (entries.length === 0) { this.closeProduct(); return; }
+    this.savingDraft.set(true);
+    let remaining = entries.length;
+    const saved: InventoryItem[] = [];
+    for (const { size, sedeId, qty } of entries) {
+      this.inventoryApi.upsert(sedeId, productId, size, qty).subscribe({
+        next: item => {
+          saved.push(item);
+          if (--remaining === 0) {
+            this.inventoryItems.update(items => {
+              let list = [...items];
+              for (const newItem of saved) {
+                const idx = list.findIndex(
+                  i => i.productId === newItem.productId && i.size === newItem.size && i.sedeId === newItem.sedeId,
+                );
+                list = idx >= 0 ? list.map((it, i) => i === idx ? newItem : it) : [...list, newItem];
+              }
+              return list;
+            });
+            this.savingDraft.set(false);
+            this.closeProduct();
+          }
+        },
+        error: () => { if (--remaining === 0) this.savingDraft.set(false); },
+      });
+    }
   }
 
   // ── Sedes CRUD ──
 
-  openAddSede() {
-    this.editingSedeId.set(null);
-    this.sedeNameInput.set('');
-  }
+  openAddSede() { this.editingSedeId.set(null); this.sedeNameInput.set(''); }
 
   openEditSede(sede: Sede) {
     this.editingSedeId.set(sede.id);
@@ -140,9 +182,7 @@ export class Inventory {
     if (!name) return;
     this.savingSede.set(true);
     const id = this.editingSedeId();
-    const req = id
-      ? this.sedesApi.update(id, { name })
-      : this.sedesApi.create(name);
+    const req = id ? this.sedesApi.update(id, { name }) : this.sedesApi.create(name);
     req.subscribe({
       next: sede => {
         if (id) {
@@ -167,7 +207,6 @@ export class Inventory {
         this.sedes.update(list => list.filter(s => s.id !== id));
         this.inventoryItems.update(items => items.filter(i => i.sedeId !== id));
         this.deletingSedeId.set(null);
-        if (this.selectedView() === id) this.selectedView.set('all');
       },
     });
   }
