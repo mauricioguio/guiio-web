@@ -35,7 +35,7 @@ export class SedesController {
 
   @Patch(':id')
   @UseGuards(AdminKeyGuard)
-  update(@Param('id') id: string, @Body() body: { name?: string; active?: boolean }) {
+  update(@Param('id') id: string, @Body() body: { name?: string; active?: boolean; pin?: string | null }) {
     return this.sedesService.update(id, body);
   }
 

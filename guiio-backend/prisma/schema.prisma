@@ -53,10 +53,53 @@ model CollectionProduct {
 model Sede {
   id        String      @id @default(cuid())
   name      String      @unique
+  pin       String?
   active    Boolean     @default(true)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
   inventory Inventory[]
+  sales     Sale[]
+}
+
+model Sale {
+  id           String     @id @default(cuid())
+  sedeId       String
+  type         SaleType   @default(STOCK)
+  status       SaleStatus @default(COMPLETED)
+  total        Float
+  customerName String?
+  notes        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  sede  Sede       @relation(fields: [sedeId], references: [id])
+  items SaleItem[]
+}
+
+model SaleItem {
+  id          String @id @default(cuid())
+  saleId      String
+  productId   String
+  productName String
+  size        String
+  quantity    Int
+  price       Float
+
+  sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
+}
+
+enum SaleType {
+  STOCK
+  FABRICAR
+}
+
+enum SaleStatus {
+  COMPLETED
+  PENDING
+  PRODUCING
+  READY
+  DELIVERED
+  CANCELLED
 }
 
 model Inventory {

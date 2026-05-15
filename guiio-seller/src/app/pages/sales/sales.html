@@ -1,0 +1,76 @@
+<div class="min-h-screen bg-gray-950">
+
+  <!-- Navbar -->
+  <div class="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+    <div>
+      <p class="text-white font-semibold text-sm">Mis ventas</p>
+      <p class="text-gray-500 text-xs">{{ auth.currentSede()?.sedeName }}</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <a routerLink="/pos" class="text-gray-400 hover:text-white text-sm transition-colors">POS</a>
+      <button (click)="logout()" class="text-gray-600 hover:text-red-400 text-xs transition-colors">Salir</button>
+    </div>
+  </div>
+
+  <div class="p-4">
+
+    @if (loading()) {
+      <div class="py-20 text-center">
+        <p class="text-gray-500 text-sm">Cargando ventas...</p>
+      </div>
+    } @else if (sales().length === 0) {
+      <div class="py-20 text-center">
+        <p class="text-gray-600 text-sm">No hay ventas registradas</p>
+      </div>
+    } @else {
+      <div class="space-y-3 pb-8">
+        @for (sale of sales(); track sale.id) {
+          <div
+            class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden cursor-pointer hover:border-gray-700 transition-colors"
+            (click)="selectedSale.set(selectedSale()?.id === sale.id ? null : sale)"
+          >
+            <div class="p-4">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-white font-semibold text-sm">{{ formatPrice(sale.total) }}</span>
+                  @if (sale.type === 'FABRICAR') {
+                    <span class="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-0.5 rounded-full">A fabricar</span>
+                  }
+                </div>
+                <span class="text-xs border px-2 py-0.5 rounded-full {{ statusClass(sale.status) }}">
+                  {{ statusLabel(sale.status) }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between">
+                <div>
+                  @if (sale.customerName) {
+                    <p class="text-gray-400 text-xs">{{ sale.customerName }}</p>
+                  }
+                  <p class="text-gray-600 text-xs">{{ formatDate(sale.createdAt) }}</p>
+                </div>
+                <p class="text-gray-600 text-xs">{{ sale.items.length }} producto{{ sale.items.length !== 1 ? 's' : '' }}</p>
+              </div>
+            </div>
+
+            @if (selectedSale()?.id === sale.id) {
+              <div class="border-t border-gray-800 p-4 space-y-2">
+                @for (item of sale.items; track item.productId + item.size) {
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-gray-300 text-xs font-medium">{{ item.productName }}</p>
+                      <p class="text-gray-600 text-xs">Talla {{ item.size }} × {{ item.quantity }}</p>
+                    </div>
+                    <p class="text-gray-400 text-xs">{{ formatPrice(item.price * item.quantity) }}</p>
+                  </div>
+                }
+                @if (sale.notes) {
+                  <p class="text-gray-600 text-xs pt-2 border-t border-gray-800 mt-2">{{ sale.notes }}</p>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

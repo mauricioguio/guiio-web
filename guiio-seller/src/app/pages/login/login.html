@@ -1,0 +1,78 @@
+<div class="min-h-screen bg-gray-950 flex items-center justify-center p-6">
+  <div class="w-full max-w-sm">
+
+    <div class="text-center mb-10">
+      <h1 class="text-white text-2xl font-bold">Guiio</h1>
+      <p class="text-gray-500 text-sm mt-1">Panel del vendedor</p>
+    </div>
+
+    @if (!selectedSede()) {
+      <!-- Selección de sede -->
+      <div>
+        <p class="text-gray-400 text-sm text-center mb-4">Selecciona tu sede</p>
+        <div class="space-y-2">
+          @for (sede of sedes(); track sede.id) {
+            <button
+              (click)="selectSede(sede)"
+              class="w-full bg-gray-900 border border-gray-800 hover:border-gray-600 text-white text-sm font-medium rounded-2xl py-4 transition-colors"
+            >
+              {{ sede.name }}
+            </button>
+          }
+          @if (sedes().length === 0) {
+            <p class="text-gray-600 text-sm text-center py-8">Cargando sedes...</p>
+          }
+        </div>
+      </div>
+    } @else {
+      <!-- Teclado PIN -->
+      <div>
+        <button (click)="selectedSede.set(null)" class="text-gray-500 text-sm mb-6 hover:text-white transition-colors">
+          ← {{ selectedSede()!.name }}
+        </button>
+
+        <p class="text-gray-400 text-sm text-center mb-6">Ingresa tu PIN</p>
+
+        <!-- Dots -->
+        <div class="flex justify-center gap-3 mb-8">
+          @for (i of [0,1,2,3,4,5]; track i) {
+            <div class="w-3 h-3 rounded-full transition-colors"
+                 [class]="i < pin().length ? 'bg-white' : 'bg-gray-700'"></div>
+          }
+        </div>
+
+        @if (error()) {
+          <p class="text-red-400 text-sm text-center mb-4">{{ error() }}</p>
+        }
+
+        <!-- Numpad -->
+        <div class="grid grid-cols-3 gap-3 mb-4">
+          @for (d of ['1','2','3','4','5','6','7','8','9','','0','⌫']; track d) {
+            @if (d === '') {
+              <div></div>
+            } @else if (d === '⌫') {
+              <button
+                (click)="deleteDigit()"
+                class="bg-gray-900 border border-gray-800 text-gray-400 text-xl rounded-2xl py-4 hover:border-gray-600 hover:text-white transition-colors"
+              >⌫</button>
+            } @else {
+              <button
+                (click)="addDigit(d)"
+                class="bg-gray-900 border border-gray-800 text-white text-xl font-medium rounded-2xl py-4 hover:border-gray-600 transition-colors active:bg-gray-800"
+              >{{ d }}</button>
+            }
+          }
+        </div>
+
+        <button
+          (click)="confirm()"
+          [disabled]="pin().length === 0 || loading()"
+          class="w-full bg-white text-gray-900 font-semibold rounded-2xl py-4 hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {{ loading() ? 'Verificando...' : 'Entrar' }}
+        </button>
+      </div>
+    }
+
+  </div>
+</div>

@@ -1,0 +1,265 @@
+<div class="min-h-screen bg-gray-950">
+
+  <!-- Navbar -->
+  <div class="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+    <div>
+      <p class="text-white font-semibold text-sm">Guiio</p>
+      <p class="text-gray-500 text-xs">{{ auth.currentSede()?.sedeName }}</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <a routerLink="/ventas" class="text-gray-400 hover:text-white text-sm transition-colors">Mis ventas</a>
+      <button (click)="logout()" class="text-gray-600 hover:text-red-400 text-xs transition-colors">Salir</button>
+    </div>
+  </div>
+
+  <div class="p-4">
+
+    @if (loading()) {
+      <div class="py-20 text-center">
+        <p class="text-gray-500 text-sm">Cargando productos...</p>
+      </div>
+    } @else {
+
+      <!-- Tipo de venta -->
+      <div class="flex gap-2 mb-4">
+        <button
+          (click)="saleType.set('STOCK')"
+          class="flex-1 py-2.5 text-sm font-medium rounded-xl border transition-colors"
+          [class]="saleType() === 'STOCK'
+            ? 'bg-white text-gray-900 border-white'
+            : 'bg-gray-900 text-gray-400 border-gray-800'"
+        >Desde stock</button>
+        <button
+          (click)="saleType.set('FABRICAR')"
+          class="flex-1 py-2.5 text-sm font-medium rounded-xl border transition-colors"
+          [class]="saleType() === 'FABRICAR'
+            ? 'bg-yellow-400 text-gray-900 border-yellow-400'
+            : 'bg-gray-900 text-gray-400 border-gray-800'"
+        >A fabricar</button>
+      </div>
+
+      <!-- Filtro colección -->
+      <div class="flex gap-2 mb-3 overflow-x-auto pb-1 scrollbar-hide">
+        <button
+          (click)="selectedCollection.set('all')"
+          class="shrink-0 text-xs px-3 py-1.5 rounded-xl border transition-colors"
+          [class]="selectedCollection() === 'all'
+            ? 'bg-white text-gray-900 border-white'
+            : 'bg-gray-900 text-gray-400 border-gray-800'"
+        >Todas</button>
+        @for (col of collections(); track col) {
+          <button
+            (click)="selectedCollection.set(col)"
+            class="shrink-0 text-xs px-3 py-1.5 rounded-xl border transition-colors"
+            [class]="selectedCollection() === col
+              ? 'bg-white text-gray-900 border-white'
+              : 'bg-gray-900 text-gray-400 border-gray-800'"
+          >{{ col }}</button>
+        }
+      </div>
+
+      <!-- Búsqueda -->
+      <div class="mb-4">
+        <input
+          type="text"
+          placeholder="Buscar producto..."
+          [value]="search()"
+          (input)="search.set($any($event.target).value)"
+          class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+        />
+      </div>
+
+      <!-- Grid productos -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 pb-24">
+        @for (p of filtered(); track p.id) {
+          <div
+            class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden cursor-pointer hover:border-gray-600 transition-colors active:scale-95"
+            (click)="openProduct(p)"
+          >
+            @if (p.images?.[0]) {
+              <img [src]="p.images[0]" class="w-full h-32 object-cover bg-gray-800" />
+            } @else {
+              <div class="w-full h-32 bg-gray-800 flex items-center justify-center">
+                <svg class="w-7 h-7 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14"/>
+                </svg>
+              </div>
+            }
+            <div class="p-3">
+              <p class="text-white text-xs font-medium leading-tight mb-1 line-clamp-2">{{ p.name }}</p>
+              <p class="text-gray-400 text-xs font-semibold">{{ formatPrice(p.price) }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Botón carrito flotante -->
+  @if (cartCount() > 0 && !showCart()) {
+    <button
+      (click)="showCart.set(true)"
+      class="fixed bottom-6 right-6 bg-white text-gray-900 rounded-2xl px-5 py-3.5 flex items-center gap-3 shadow-2xl font-semibold text-sm"
+    >
+      <span class="bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+        {{ cartCount() }}
+      </span>
+      Ver carrito · {{ formatPrice(cartTotal()) }}
+    </button>
+  }
+</div>
+
+<!-- Modal selección talla -->
+@if (selectedProduct()) {
+  <div class="fixed inset-0 bg-black/70 z-50 flex items-end sm:items-center justify-center p-4"
+       (click)="selectedProduct.set(null)">
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-sm" (click)="$event.stopPropagation()">
+
+      <div class="p-5 border-b border-gray-800 flex items-center gap-3">
+        @if (selectedProduct()!.images?.[0]) {
+          <img [src]="selectedProduct()!.images[0]" class="w-12 h-12 rounded-xl object-cover shrink-0" />
+        }
+        <div>
+          <p class="text-white font-medium text-sm">{{ selectedProduct()!.name }}</p>
+          <p class="text-gray-400 text-xs">{{ formatPrice(selectedProduct()!.price) }}</p>
+        </div>
+      </div>
+
+      <div class="p-5">
+        <p class="text-gray-400 text-xs uppercase tracking-wider mb-3">Selecciona talla</p>
+        <div class="flex flex-wrap gap-2 mb-5">
+          @for (size of sizesFor(selectedProduct()!); track size) {
+            @let stock = stockFor(selectedProduct()!.id, size);
+            <button
+              (click)="selectedSize.set(size)"
+              [disabled]="saleType() === 'STOCK' && stock === 0"
+              class="px-4 py-2 rounded-xl text-sm border transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              [class]="selectedSize() === size
+                ? 'bg-white text-gray-900 border-white font-medium'
+                : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-gray-500'"
+            >
+              {{ size }}
+              @if (saleType() === 'STOCK' && stock < 999) {
+                <span class="text-xs ml-1 opacity-60">({{ stock }})</span>
+              }
+            </button>
+          }
+        </div>
+        <button
+          (click)="addToCart()"
+          [disabled]="!selectedSize()"
+          class="w-full bg-white text-gray-900 font-semibold rounded-xl py-3 text-sm hover:bg-gray-100 transition-colors disabled:opacity-40"
+        >
+          Agregar al carrito
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Panel carrito -->
+@if (showCart()) {
+  <div class="fixed inset-0 bg-black/70 z-50 flex items-end sm:justify-end" (click)="showCart.set(false)">
+    <div class="bg-gray-950 border-t sm:border-t-0 sm:border-l border-gray-800 w-full sm:max-w-sm h-[90vh] sm:h-full flex flex-col"
+         (click)="$event.stopPropagation()">
+
+      <div class="p-5 border-b border-gray-800 flex items-center justify-between shrink-0">
+        <h3 class="text-white font-semibold">Carrito</h3>
+        <button (click)="showCart.set(false)" class="text-gray-500 hover:text-white transition-colors">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-5 space-y-3">
+
+        @for (item of cart(); track item.product.id + item.size; let idx = $index) {
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 flex items-center gap-3">
+            @if (item.product.images?.[0]) {
+              <img [src]="item.product.images[0]" class="w-12 h-12 rounded-lg object-cover shrink-0" />
+            }
+            <div class="flex-1 min-w-0">
+              <p class="text-white text-xs font-medium truncate">{{ item.product.name }}</p>
+              <p class="text-gray-500 text-xs">Talla {{ item.size }}</p>
+              <p class="text-gray-400 text-xs mt-0.5">{{ formatPrice(item.product.price) }}</p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button (click)="updateQty(idx, item.quantity - 1)"
+                class="w-7 h-7 rounded-lg bg-gray-800 text-white text-sm flex items-center justify-center hover:bg-gray-700 transition-colors">−</button>
+              <span class="text-white text-sm w-5 text-center">{{ item.quantity }}</span>
+              <button (click)="updateQty(idx, item.quantity + 1)"
+                class="w-7 h-7 rounded-lg bg-gray-800 text-white text-sm flex items-center justify-center hover:bg-gray-700 transition-colors">+</button>
+            </div>
+          </div>
+        }
+
+        @if (cart().length === 0) {
+          <p class="text-gray-600 text-sm text-center py-8">Carrito vacío</p>
+        }
+
+        <!-- Info adicional -->
+        <div class="pt-2 space-y-3">
+          <div>
+            <p class="text-gray-400 text-xs uppercase tracking-wider mb-1.5">Cliente (opcional)</p>
+            <input
+              type="text"
+              placeholder="Nombre del cliente"
+              [value]="customerName()"
+              (input)="customerName.set($any($event.target).value)"
+              class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-gray-600"
+            />
+          </div>
+          <div>
+            <p class="text-gray-400 text-xs uppercase tracking-wider mb-1.5">Notas</p>
+            <textarea
+              rows="2"
+              placeholder="Observaciones..."
+              [value]="notes()"
+              (input)="notes.set($any($event.target).value)"
+              class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-gray-600 resize-none"
+            ></textarea>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="p-5 border-t border-gray-800 shrink-0">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-gray-400 text-sm">Total</span>
+          <span class="text-white font-bold text-lg">{{ formatPrice(cartTotal()) }}</span>
+        </div>
+        @if (saleType() === 'FABRICAR') {
+          <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-3 py-2 mb-3">
+            <p class="text-yellow-400 text-xs">Pedido a fabricar — se enviará a producción</p>
+          </div>
+        }
+        <button
+          (click)="confirmSale()"
+          [disabled]="cart().length === 0 || saving()"
+          class="w-full font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          [class]="saleType() === 'FABRICAR'
+            ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'
+            : 'bg-white text-gray-900 hover:bg-gray-100'"
+        >
+          {{ saving() ? 'Registrando...' : (saleType() === 'FABRICAR' ? 'Enviar a fabricar' : 'Confirmar venta') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Toast éxito -->
+@if (savedSale()) {
+  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+    <div class="bg-green-500 text-white text-sm font-medium px-5 py-3 rounded-2xl flex items-center gap-3 shadow-2xl">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+      </svg>
+      Venta registrada
+      <button (click)="dismissSuccess()" class="ml-2 opacity-70 hover:opacity-100">✕</button>
+    </div>
+  </div>
+}

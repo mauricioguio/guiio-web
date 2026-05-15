@@ -13,7 +13,7 @@ export class SedesService {
     return this.prisma.sede.create({ data });
   }
 
-  update(id: string, data: { name?: string; active?: boolean }) {
+  update(id: string, data: { name?: string; active?: boolean; pin?: string | null }) {
     return this.prisma.sede.update({ where: { id }, data });
   }
 
