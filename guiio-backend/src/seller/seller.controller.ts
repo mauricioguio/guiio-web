@@ -3,15 +3,6 @@ import {
   CanActivate, ExecutionContext, Injectable, UseGuards, UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-
-@Injectable()
-class AdminKeyGuard implements CanActivate {
-  constructor(private readonly config: ConfigService) {}
-  canActivate(ctx: ExecutionContext): boolean {
-    const req = ctx.switchToHttp().getRequest();
-    return req.headers['x-admin-key'] === this.config.get<string>('ADMIN_API_KEY');
-  }
-}
 import { SellerService } from './seller.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -27,6 +18,15 @@ class SellerGuard implements CanActivate {
     if (!sede || !sede.pin || sede.pin !== pin) throw new UnauthorizedException('PIN incorrecto');
     req.sedeId = sedeId;
     return true;
+  }
+}
+
+@Injectable()
+class AdminKeyGuard implements CanActivate {
+  constructor(private readonly config: ConfigService) {}
+  canActivate(ctx: ExecutionContext): boolean {
+    const req = ctx.switchToHttp().getRequest();
+    return req.headers['x-admin-key'] === this.config.get<string>('ADMIN_API_KEY');
   }
 }
 
