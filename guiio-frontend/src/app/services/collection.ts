@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Product } from '../models/product';
 
 const API_URL = 'https://guiio-backend.onrender.com/api';
 
@@ -25,5 +26,9 @@ export class CollectionService {
 
   getAll() {
     return this.collections.asReadonly();
+  }
+
+  getProductsByName(name: string) {
+    return this.http.get<Product[]>(`${API_URL}/collections/name/${encodeURIComponent(name)}/products`);
   }
 }

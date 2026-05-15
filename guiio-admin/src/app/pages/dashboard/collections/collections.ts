@@ -26,6 +26,7 @@ export class Collections {
 
   protected collections = signal<Collection[]>([]);
   protected allProducts = signal<Product[]>([]);
+  protected collectionProducts = signal<Product[]>([]);
   protected loading = signal(true);
   protected saving = signal(false);
   protected uploading = signal(false);
@@ -36,17 +37,12 @@ export class Collections {
   protected productSearch = signal('');
   protected assigningId = signal<string | null>(null);
 
-  protected collectionProducts = computed(() => {
-    const name = this.draft().name;
-    return this.allProducts().filter(p => p.collection === name);
-  });
-
   protected otherProducts = computed(() => {
-    const name = this.draft().name;
+    const inCollection = new Set(this.collectionProducts().map(p => p.id));
     const q = this.productSearch().toLowerCase();
     return this.allProducts().filter(p => {
-      if (p.collection === name) return false;
-      if (q && !p.name.toLowerCase().includes(q) && !p.collection.toLowerCase().includes(q)) return false;
+      if (inCollection.has(p.id)) return false;
+      if (q && !p.name.toLowerCase().includes(q)) return false;
       return true;
     });
   });
@@ -64,13 +60,19 @@ export class Collections {
     });
   }
 
+  private loadCollectionProducts(id: string) {
+    this.api.getProducts(id).subscribe({
+      next: list => this.collectionProducts.set(list),
+    });
+  }
+
   assignProduct(product: Product) {
-    const collection = this.draft().name;
-    if (!collection) return;
+    const id = this.editingId();
+    if (!id) return;
     this.assigningId.set(product.id);
-    this.productsApi.patchCollection(product.id, collection).subscribe({
-      next: updated => {
-        this.allProducts.update(list => list.map(p => p.id === updated.id ? updated : p));
+    this.api.addProduct(id, product.id).subscribe({
+      next: () => {
+        this.collectionProducts.update(list => [...list, product]);
         this.assigningId.set(null);
       },
       error: () => this.assigningId.set(null),
@@ -78,10 +80,12 @@ export class Collections {
   }
 
   removeFromCollection(product: Product) {
+    const id = this.editingId();
+    if (!id) return;
     this.assigningId.set(product.id);
-    this.productsApi.patchCollection(product.id, '').subscribe({
-      next: updated => {
-        this.allProducts.update(list => list.map(p => p.id === updated.id ? updated : p));
+    this.api.removeProduct(id, product.id).subscribe({
+      next: () => {
+        this.collectionProducts.update(list => list.filter(p => p.id !== product.id));
         this.assigningId.set(null);
       },
       error: () => this.assigningId.set(null),
@@ -91,6 +95,7 @@ export class Collections {
   openCreate() {
     this.editingId.set(null);
     this.draft.set(emptyDraft());
+    this.collectionProducts.set([]);
     this.showForm.set(true);
   }
 
@@ -103,6 +108,8 @@ export class Collections {
       featured: c.featured,
       order: c.order,
     });
+    this.collectionProducts.set([]);
+    this.loadCollectionProducts(c.id);
     this.showForm.set(true);
   }
 

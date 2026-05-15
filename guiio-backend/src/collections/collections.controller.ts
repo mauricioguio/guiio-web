@@ -17,14 +17,21 @@ class AdminKeyGuard implements CanActivate {
 
 @Controller('collections')
 export class CollectionsController {
-  constructor(
-    private readonly collectionsService: CollectionsService,
-    private readonly config: ConfigService,
-  ) {}
+  constructor(private readonly collectionsService: CollectionsService) {}
 
   @Get()
   findAll() {
     return this.collectionsService.findAll();
+  }
+
+  @Get('name/:name/products')
+  getProductsByName(@Param('name') name: string) {
+    return this.collectionsService.getProductsByName(name);
+  }
+
+  @Get(':id/products')
+  getProducts(@Param('id') id: string) {
+    return this.collectionsService.getProducts(id);
   }
 
   @Post()
@@ -34,10 +41,22 @@ export class CollectionsController {
     return this.collectionsService.create(data);
   }
 
+  @Post(':id/products')
+  @UseGuards(AdminKeyGuard)
+  addProduct(@Param('id') id: string, @Body('productId') productId: string) {
+    return this.collectionsService.addProduct(id, productId);
+  }
+
   @Patch(':id')
   @UseGuards(AdminKeyGuard)
   update(@Param('id') id: string, @Body() data: any) {
     return this.collectionsService.update(id, data);
+  }
+
+  @Delete(':id/products/:productId')
+  @UseGuards(AdminKeyGuard)
+  removeProduct(@Param('id') id: string, @Param('productId') productId: string) {
+    return this.collectionsService.removeProduct(id, productId);
   }
 
   @Delete(':id')

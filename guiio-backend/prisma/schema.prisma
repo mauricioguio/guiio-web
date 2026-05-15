@@ -24,6 +24,8 @@ model Product {
   colors      Json
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+
+  collectionLinks CollectionProduct[]
 }
 
 model Collection {
@@ -35,6 +37,17 @@ model Collection {
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  productLinks CollectionProduct[]
+}
+
+model CollectionProduct {
+  productId    String
+  collectionId String
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([productId, collectionId])
 }
 
 model Sede {

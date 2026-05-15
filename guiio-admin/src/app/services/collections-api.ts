@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Product } from './products-api';
 
 const API_URL = 'https://guiio-backend.onrender.com/api';
 const ADMIN_KEY = 'guiio-admin-key-2024';
@@ -36,5 +37,17 @@ export class CollectionsApiService {
 
   remove(id: string) {
     return this.http.delete(`${API_URL}/collections/${id}`, { headers: this.headers });
+  }
+
+  getProducts(collectionId: string) {
+    return this.http.get<Product[]>(`${API_URL}/collections/${collectionId}/products`, { headers: this.headers });
+  }
+
+  addProduct(collectionId: string, productId: string) {
+    return this.http.post<{ added: boolean }>(`${API_URL}/collections/${collectionId}/products`, { productId }, { headers: this.headers });
+  }
+
+  removeProduct(collectionId: string, productId: string) {
+    return this.http.delete<{ removed: boolean }>(`${API_URL}/collections/${collectionId}/products/${productId}`, { headers: this.headers });
   }
 }

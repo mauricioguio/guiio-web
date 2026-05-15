@@ -1,9 +1,10 @@
 import { Component, inject, computed } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
 import { RouterLink } from '@angular/router';
-import { ProductService } from '../../services/product';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { switchMap, map, startWith } from 'rxjs';
+import { CollectionService, Collection as CollectionInfo } from '../../services/collection';
+import { Product } from '../../models/product';
 import { ProductCard } from '../../components/product-card/product-card';
 
 @Component({
@@ -12,22 +13,25 @@ import { ProductCard } from '../../components/product-card/product-card';
   templateUrl: './collection.html',
 })
 export class Collection {
-  private readonly productService = inject(ProductService);
   private readonly route = inject(ActivatedRoute);
+  private readonly collectionService = inject(CollectionService);
 
   private readonly collectionName = toSignal(
     this.route.params.pipe(map(p => p['name'] as string))
   );
 
-  protected readonly products = computed(() => {
+  protected readonly collectionInfo = computed<CollectionInfo | null>(() => {
     const name = this.collectionName();
-    if (!name) return [];
-    return this.productService.getAll()().filter(p => p.collection === name);
+    if (!name) return null;
+    return this.collectionService.getAll()().find(c => c.name === name) ?? null;
   });
 
-  protected readonly spotlight = computed(() => {
-    const p = this.products()[0];
-    if (!p) return null;
-    return { name: p.collection, description: p.description, image: p.images?.[0] ?? '' };
-  });
+  protected readonly products = toSignal(
+    this.route.params.pipe(
+      map(p => p['name'] as string),
+      switchMap(name =>
+        this.collectionService.getProductsByName(name).pipe(startWith([] as Product[]))
+      )
+    )
+  );
 }
