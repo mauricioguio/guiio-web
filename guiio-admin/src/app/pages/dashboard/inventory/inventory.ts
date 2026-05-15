@@ -38,6 +38,10 @@ export class Inventory {
   protected deletingSedeId = signal<string | null>(null);
   protected savingSede = signal(false);
 
+  protected editingPinSedeId = signal<string | null>(null);
+  protected sedePinInput = signal('');
+  protected savingPin = signal(false);
+
   protected expandedProductId = signal<string | null>(null);
   protected draftQuantities = signal<Record<string, Record<string, number>>>({});
   protected savingDraft = signal(false);
@@ -195,6 +199,27 @@ export class Inventory {
         this.editingSedeId.set(null);
       },
       error: () => this.savingSede.set(false),
+    });
+  }
+
+  openEditPin(sede: Sede) {
+    this.editingPinSedeId.set(sede.id);
+    this.sedePinInput.set(sede.pin ?? '');
+  }
+
+  savePin() {
+    const id = this.editingPinSedeId();
+    if (!id) return;
+    const pin = this.sedePinInput().trim() || null;
+    this.savingPin.set(true);
+    this.sedesApi.update(id, { pin }).subscribe({
+      next: sede => {
+        this.sedes.update(list => list.map(s => s.id === id ? sede : s));
+        this.savingPin.set(false);
+        this.editingPinSedeId.set(null);
+        this.sedePinInput.set('');
+      },
+      error: () => this.savingPin.set(false),
     });
   }
 

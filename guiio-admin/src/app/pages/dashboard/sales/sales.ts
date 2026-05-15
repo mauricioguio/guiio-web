@@ -1,89 +1,72 @@
-import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { SellerSalesApiService, SellerSale } from '../../../services/seller-sales-api';
 
-interface SaleItem {
-  product: string;
-  size: string;
-  color: string;
-  qty: number;
-  price: number;
-}
-
-interface Sale {
-  id: string;
-  date: Date;
-  client: string;
-  items: SaleItem[];
-  total: number;
-  paymentMethod: 'efectivo' | 'transferencia' | 'datafono';
-}
+const STATUSES = ['PENDING', 'PRODUCING', 'READY', 'DELIVERED', 'COMPLETED', 'CANCELLED'];
 
 @Component({
   selector: 'app-sales',
-  imports: [ReactiveFormsModule, DatePipe],
   templateUrl: './sales.html',
 })
-export class Sales {
-  private readonly fb = inject(FormBuilder);
+export class Sales implements OnInit {
+  private readonly api = inject(SellerSalesApiService);
 
-  protected showForm = signal(false);
-  protected sales = signal<Sale[]>([]);
-  protected items = signal<SaleItem[]>([]);
+  protected sales = signal<SellerSale[]>([]);
+  protected loading = signal(true);
+  protected filterType = signal<'ALL' | 'STOCK' | 'FABRICAR'>('ALL');
+  protected filterStatus = signal('ALL');
+  protected expandedId = signal<string | null>(null);
+  protected updatingId = signal<string | null>(null);
 
-  protected readonly form = this.fb.group({
-    client: [''],
-    paymentMethod: ['efectivo', Validators.required],
-    product: ['', Validators.required],
-    size: ['', Validators.required],
-    color: ['', Validators.required],
-    qty: [1, [Validators.required, Validators.min(1)]],
-    price: [null as number | null, [Validators.required, Validators.min(1)]],
+  protected readonly statuses = STATUSES;
+
+  protected filtered = computed(() => {
+    const type = this.filterType();
+    const status = this.filterStatus();
+    return this.sales().filter(s => {
+      if (type !== 'ALL' && s.type !== type) return false;
+      if (status !== 'ALL' && s.status !== status) return false;
+      return true;
+    });
   });
 
-  addItem() {
-    const { product, size, color, qty, price } = this.form.value;
-    if (!product || !size || !color || !qty || !price) return;
-    this.items.update(list => [...list, {
-      product: product!,
-      size: size!,
-      color: color!,
-      qty: qty!,
-      price: price!,
-    }]);
-    this.form.patchValue({ product: '', size: '', color: '', qty: 1, price: null });
+  ngOnInit() {
+    this.api.getAll().subscribe({
+      next: list => { this.sales.set(list); this.loading.set(false); },
+      error: () => this.loading.set(false),
+    });
   }
 
-  removeItem(index: number) {
-    this.items.update(list => list.filter((_, i) => i !== index));
+  updateStatus(sale: SellerSale, status: string) {
+    this.updatingId.set(sale.id);
+    this.api.updateStatus(sale.id, status).subscribe({
+      next: updated => {
+        this.sales.update(list => list.map(s => s.id === updated.id ? updated : s));
+        this.updatingId.set(null);
+      },
+      error: () => this.updatingId.set(null),
+    });
   }
 
-  get total() {
-    return this.items().reduce((acc, i) => acc + i.price * i.qty, 0);
+  formatPrice(v: number) {
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v);
   }
 
-  saveSale() {
-    if (this.items().length === 0) return;
-    const { client, paymentMethod } = this.form.value;
-    const sale: Sale = {
-      id: Date.now().toString(),
-      date: new Date(),
-      client: client || 'Cliente ocasional',
-      items: this.items(),
-      total: this.total,
-      paymentMethod: (paymentMethod as Sale['paymentMethod']) ?? 'efectivo',
+  formatDate(iso: string) {
+    return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
+  }
+
+  statusLabel(s: string) {
+    const map: Record<string, string> = {
+      COMPLETED: 'Completada', PENDING: 'Pendiente', PRODUCING: 'En producción',
+      READY: 'Lista', DELIVERED: 'Entregada', CANCELLED: 'Cancelada',
     };
-    this.sales.update(list => [sale, ...list]);
-    this.items.set([]);
-    this.form.reset({ paymentMethod: 'efectivo', qty: 1 });
-    this.showForm.set(false);
+    return map[s] ?? s;
   }
 
-  formatPrice(value: number) {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      maximumFractionDigits: 0,
-    }).format(value);
+  statusClass(s: string) {
+    if (s === 'COMPLETED' || s === 'DELIVERED') return 'bg-green-500/10 text-green-400 border-green-500/20';
+    if (s === 'CANCELLED') return 'bg-red-500/10 text-red-400 border-red-500/20';
+    if (s === 'READY') return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+    return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
   }
 }

@@ -1,7 +1,17 @@
 import {
-  Controller, Get, Post, Param, Body, Headers,
+  Controller, Get, Post, Patch, Param, Body, Headers,
   CanActivate, ExecutionContext, Injectable, UseGuards, UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
+@Injectable()
+class AdminKeyGuard implements CanActivate {
+  constructor(private readonly config: ConfigService) {}
+  canActivate(ctx: ExecutionContext): boolean {
+    const req = ctx.switchToHttp().getRequest();
+    return req.headers['x-admin-key'] === this.config.get<string>('ADMIN_API_KEY');
+  }
+}
 import { SellerService } from './seller.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -62,5 +72,17 @@ export class SellerController {
   @UseGuards(SellerGuard)
   getSales(@Headers('x-sede-id') sedeId: string) {
     return this.sellerService.getSales(sedeId);
+  }
+
+  @Get('admin/sales')
+  @UseGuards(AdminKeyGuard)
+  getAllSales() {
+    return this.sellerService.getAllSales();
+  }
+
+  @Patch('admin/sales/:id/status')
+  @UseGuards(AdminKeyGuard)
+  updateSaleStatus(@Param('id') id: string, @Body('status') status: string) {
+    return this.sellerService.updateSaleStatus(id, status);
   }
 }

@@ -1,163 +1,136 @@
 <div class="p-8">
+
   <div class="flex items-center justify-between mb-6">
-    <h2 class="text-white text-xl font-semibold">Ventas tienda física</h2>
-    <button
-      (click)="showForm.set(!showForm())"
-      class="bg-white text-gray-900 text-sm font-semibold px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors"
-    >
-      + Nueva venta
-    </button>
+    <h2 class="text-white text-xl font-semibold">Ventas físicas</h2>
+    <div class="flex items-center gap-2 text-xs text-gray-500">
+      {{ filtered().length }} resultado{{ filtered().length !== 1 ? 's' : '' }}
+    </div>
   </div>
 
-  <!-- Nueva venta form -->
-  @if (showForm()) {
-    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6" [formGroup]="form">
-      <h3 class="text-white font-medium mb-4">Registrar venta</h3>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div class="space-y-1">
-          <label class="text-xs text-gray-400">Cliente (opcional)</label>
-          <input
-            formControlName="client"
-            type="text"
-            placeholder="Nombre del cliente"
-            class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-500"
-          />
-        </div>
-        <div class="space-y-1">
-          <label class="text-xs text-gray-400">Método de pago</label>
-          <select
-            formControlName="paymentMethod"
-            class="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-500"
-          >
-            <option value="efectivo">Efectivo</option>
-            <option value="transferencia">Transferencia</option>
-            <option value="datafono">Datáfono</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Agregar productos -->
-      <div class="border border-gray-800 rounded-xl p-4 mb-4">
-        <p class="text-sm text-gray-400 mb-3">Agregar producto</p>
-        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-          <input
-            formControlName="product"
-            type="text"
-            placeholder="Producto"
-            class="bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
-          />
-          <input
-            formControlName="size"
-            type="text"
-            placeholder="Talla (ej: M/30)"
-            class="bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
-          />
-          <input
-            formControlName="color"
-            type="text"
-            placeholder="Color"
-            class="bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
-          />
-          <input
-            formControlName="qty"
-            type="number"
-            min="1"
-            placeholder="Cant."
-            class="bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
-          />
-          <input
-            formControlName="price"
-            type="number"
-            min="1"
-            placeholder="Precio unitario"
-            class="bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
-          />
-          <button
-            type="button"
-            (click)="addItem()"
-            class="bg-gray-700 text-white text-sm rounded-xl px-3 py-2 hover:bg-gray-600 transition-colors"
-          >
-            Agregar
-          </button>
-        </div>
-      </div>
-
-      <!-- Items agregados -->
-      @if (items().length > 0) {
-        <div class="mb-4 space-y-2">
-          @for (item of items(); track $index) {
-            <div class="flex items-center justify-between bg-gray-800 rounded-xl px-4 py-3">
-              <div class="text-sm text-white">
-                {{ item.product }} — {{ item.size }} / {{ item.color }}
-                <span class="text-gray-400 ml-2">x{{ item.qty }}</span>
-              </div>
-              <div class="flex items-center gap-4">
-                <span class="text-sm text-white font-medium">{{ formatPrice(item.price * item.qty) }}</span>
-                <button (click)="removeItem($index)" class="text-gray-500 hover:text-red-400 transition-colors text-xs">✕</button>
-              </div>
-            </div>
-          }
-          <div class="flex justify-end pt-2">
-            <span class="text-white font-semibold text-sm">Total: {{ formatPrice(total) }}</span>
-          </div>
-        </div>
+  <!-- Filtros -->
+  <div class="flex flex-wrap gap-2 mb-6">
+    <div class="flex gap-1">
+      @for (t of [['ALL','Todas'],['STOCK','Stock'],['FABRICAR','A fabricar']]; track t[0]) {
+        <button
+          (click)="filterType.set($any(t[0]))"
+          class="text-xs px-3 py-1.5 rounded-xl border transition-colors"
+          [class]="filterType() === t[0]
+            ? 'bg-white text-gray-900 border-white'
+            : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-600'"
+        >{{ t[1] }}</button>
       }
-
-      <div class="flex gap-3 justify-end">
-        <button
-          type="button"
-          (click)="showForm.set(false)"
-          class="text-gray-400 text-sm px-4 py-2 hover:text-white transition-colors"
-        >
-          Cancelar
-        </button>
-        <button
-          type="button"
-          (click)="saveSale()"
-          [disabled]="items().length === 0"
-          class="bg-white text-gray-900 text-sm font-semibold px-5 py-2 rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          Guardar venta
-        </button>
-      </div>
     </div>
-  }
+    <div class="flex gap-1 flex-wrap">
+      <button
+        (click)="filterStatus.set('ALL')"
+        class="text-xs px-3 py-1.5 rounded-xl border transition-colors"
+        [class]="filterStatus() === 'ALL'
+          ? 'bg-white text-gray-900 border-white'
+          : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-600'"
+      >Todos los estados</button>
+      @for (s of statuses; track s) {
+        <button
+          (click)="filterStatus.set(s)"
+          class="text-xs px-3 py-1.5 rounded-xl border transition-colors"
+          [class]="filterStatus() === s
+            ? 'bg-white text-gray-900 border-white'
+            : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-600'"
+        >{{ statusLabel(s) }}</button>
+      }
+    </div>
+  </div>
 
-  <!-- Historial de ventas -->
-  @if (sales().length === 0) {
-    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
-      <p class="text-gray-500 text-sm">No hay ventas registradas aún.</p>
-      <p class="text-gray-600 text-xs mt-1">Usa el botón "Nueva venta" para registrar una venta en tienda.</p>
+  @if (loading()) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-400 text-sm">Cargando ventas...</p>
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-500 text-sm">No hay ventas con esos filtros.</p>
     </div>
   } @else {
     <div class="space-y-3">
-      @for (sale of sales(); track sale.id) {
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-          <div class="flex items-center justify-between mb-3">
-            <div>
-              <p class="text-white font-medium text-sm">{{ sale.client }}</p>
-              <p class="text-gray-500 text-xs">{{ sale.date | date:'d MMM yyyy, h:mm a' }}</p>
+      @for (sale of filtered(); track sale.id) {
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+
+          <!-- Fila principal -->
+          <div
+            class="p-5 flex items-center gap-4 cursor-pointer hover:bg-gray-900/80 transition-colors"
+            (click)="expandedId.set(expandedId() === sale.id ? null : sale.id)"
+          >
+            <!-- Sede + tipo -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1 flex-wrap">
+                <span class="text-white font-medium text-sm">{{ sale.sede.name }}</span>
+                @if (sale.type === 'FABRICAR') {
+                  <span class="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-0.5 rounded-full">A fabricar</span>
+                }
+                @if (sale.customerName) {
+                  <span class="text-gray-500 text-xs">· {{ sale.customerName }}</span>
+                }
+              </div>
+              <p class="text-gray-500 text-xs">{{ formatDate(sale.createdAt) }} · {{ sale.items.length }} producto{{ sale.items.length !== 1 ? 's' : '' }}</p>
             </div>
-            <div class="text-right">
-              <p class="text-white font-semibold">{{ formatPrice(sale.total) }}</p>
-              <span class="text-xs px-2 py-0.5 rounded-full"
-                [class.bg-green-500]="sale.paymentMethod === 'efectivo'"
-                [class.bg-blue-500]="sale.paymentMethod === 'transferencia'"
-                [class.bg-purple-500]="sale.paymentMethod === 'datafono'"
-                class="text-white">
-                {{ sale.paymentMethod }}
+
+            <!-- Total -->
+            <span class="text-white font-semibold text-sm shrink-0">{{ formatPrice(sale.total) }}</span>
+
+            <!-- Estado -->
+            <div class="shrink-0">
+              <span class="text-xs border px-2.5 py-1 rounded-full {{ statusClass(sale.status) }}">
+                {{ statusLabel(sale.status) }}
               </span>
             </div>
+
+            <!-- Chevron -->
+            <svg class="w-4 h-4 text-gray-600 shrink-0 transition-transform" [class.rotate-180]="expandedId() === sale.id"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
           </div>
-          <div class="space-y-1">
-            @for (item of sale.items; track $index) {
-              <p class="text-gray-400 text-xs">
-                {{ item.product }} — {{ item.size }} / {{ item.color }} × {{ item.qty }}
-                <span class="text-gray-500 ml-1">{{ formatPrice(item.price * item.qty) }}</span>
-              </p>
-            }
-          </div>
+
+          <!-- Detalle expandido -->
+          @if (expandedId() === sale.id) {
+            <div class="border-t border-gray-800 p-5">
+
+              <!-- Items -->
+              <div class="space-y-2 mb-5">
+                @for (item of sale.items; track item.id) {
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-gray-300 text-sm font-medium">{{ item.productName }}</p>
+                      <p class="text-gray-600 text-xs">Talla {{ item.size }} × {{ item.quantity }}</p>
+                    </div>
+                    <p class="text-gray-400 text-sm">{{ formatPrice(item.price * item.quantity) }}</p>
+                  </div>
+                }
+                @if (sale.notes) {
+                  <p class="text-gray-600 text-xs pt-2 border-t border-gray-800">{{ sale.notes }}</p>
+                }
+              </div>
+
+              <!-- Cambiar estado (solo FABRICAR) -->
+              @if (sale.type === 'FABRICAR') {
+                <div>
+                  <p class="text-gray-500 text-xs uppercase tracking-wider mb-2">Cambiar estado</p>
+                  <div class="flex flex-wrap gap-2">
+                    @for (s of statuses; track s) {
+                      <button
+                        (click)="updateStatus(sale, s)"
+                        [disabled]="sale.status === s || updatingId() === sale.id"
+                        class="text-xs px-3 py-1.5 rounded-xl border transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        [class]="sale.status === s
+                          ? statusClass(s) + ' border-current'
+                          : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-500'"
+                      >
+                        {{ updatingId() === sale.id && sale.status !== s ? '...' : statusLabel(s) }}
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
         </div>
       }
     </div>

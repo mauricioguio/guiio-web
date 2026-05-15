@@ -85,4 +85,19 @@ export class SellerService {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  async getAllSales() {
+    return this.prisma.sale.findMany({
+      include: { items: true, sede: { select: { id: true, name: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async updateSaleStatus(saleId: string, status: string) {
+    return this.prisma.sale.update({
+      where: { id: saleId },
+      data: { status: status as any },
+      include: { items: true, sede: { select: { id: true, name: true } } },
+    });
+  }
 }

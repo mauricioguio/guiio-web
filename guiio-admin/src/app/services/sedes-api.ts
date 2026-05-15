@@ -8,6 +8,7 @@ const headers = { 'x-admin-key': ADMIN_KEY };
 export interface Sede {
   id: string;
   name: string;
+  pin: string | null;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -25,7 +26,7 @@ export class SedesApiService {
     return this.http.post<Sede>(`${API_URL}/sedes`, { name }, { headers });
   }
 
-  update(id: string, data: { name?: string; active?: boolean }) {
+  update(id: string, data: { name?: string; active?: boolean; pin?: string | null }) {
     return this.http.patch<Sede>(`${API_URL}/sedes/${id}`, data, { headers });
   }
 
