@@ -50,7 +50,9 @@ export class Pos implements OnInit, OnDestroy {
 
   protected customerSearchState = signal<'idle' | 'searching' | 'found' | 'notfound'>('idle');
   protected registering = signal(false);
+  protected adjustedItems = signal(0);
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
+  private adjustToast: ReturnType<typeof setTimeout> | null = null;
 
   protected collections = computed(() => {
     const seen = new Set<string>();
@@ -107,6 +109,30 @@ export class Pos implements OnInit, OnDestroy {
     this.saleType.set(type);
     if (type === 'FABRICAR') {
       this.deliveryDate.set(this.calcDeliveryDate(new Date()));
+    } else {
+      this.adjustCartToStock();
+    }
+  }
+
+  private adjustCartToStock() {
+    let adjusted = 0;
+    const newCart = this.cart()
+      .map((item, idx) => {
+        const inv = this.inventory().find(i => i.productId === item.product.id && i.size === item.size)?.quantity ?? 0;
+        const otherLines = this.cart()
+          .filter((it, i) => i !== idx && it.product.id === item.product.id && it.size === item.size)
+          .reduce((s, it) => s + it.quantity, 0);
+        const max = Math.max(0, inv - otherLines);
+        if (item.quantity > max) { adjusted++; return { ...item, quantity: max }; }
+        return item;
+      })
+      .filter(item => item.quantity > 0);
+
+    if (adjusted > 0) {
+      this.cart.set(newCart);
+      this.adjustedItems.set(adjusted);
+      if (this.adjustToast) clearTimeout(this.adjustToast);
+      this.adjustToast = setTimeout(() => this.adjustedItems.set(0), 4000);
     }
   }
 
@@ -212,6 +238,7 @@ export class Pos implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.searchTimer) clearTimeout(this.searchTimer);
+    if (this.adjustToast) clearTimeout(this.adjustToast);
   }
 
   onPhoneInput(value: string) {
