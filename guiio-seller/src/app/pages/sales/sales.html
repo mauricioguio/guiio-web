@@ -3,7 +3,7 @@
   <!-- Navbar -->
   <div class="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
     <div>
-      <p class="text-white font-semibold text-sm">Mis ventas</p>
+      <p class="text-white font-semibold text-sm">Estadísticas de ventas</p>
       <p class="text-gray-500 text-xs">{{ auth.currentSede()?.sedeName }}</p>
     </div>
     <div class="flex items-center gap-3">
@@ -12,65 +12,217 @@
     </div>
   </div>
 
-  <div class="p-4">
+  @if (loading()) {
+    <div class="py-32 text-center"><p class="text-gray-500 text-sm">Cargando ventas...</p></div>
+  } @else if (sales().length === 0) {
+    <div class="py-32 text-center"><p class="text-gray-600 text-sm">No hay ventas registradas</p></div>
+  } @else {
+  <div class="max-w-7xl mx-auto p-4 space-y-5 pb-12">
 
-    @if (loading()) {
-      <div class="py-20 text-center">
-        <p class="text-gray-500 text-sm">Cargando ventas...</p>
+    <!-- ===== Filtros ===== -->
+    <div class="flex flex-wrap gap-3 items-center">
+      <!-- Tipo -->
+      <div class="flex gap-1.5">
+        <button (click)="filterType.set('all')"
+          class="px-3 py-1.5 text-xs font-medium rounded-xl border transition-colors"
+          [class]="filterType() === 'all' ? 'bg-white text-gray-900 border-white' : 'bg-gray-900 text-gray-400 border-gray-800'">
+          Todas
+        </button>
+        <button (click)="filterType.set('STOCK')"
+          class="px-3 py-1.5 text-xs font-medium rounded-xl border transition-colors"
+          [class]="filterType() === 'STOCK' ? 'bg-blue-500 text-white border-blue-500' : 'bg-gray-900 text-gray-400 border-gray-800'">
+          Stock
+        </button>
+        <button (click)="filterType.set('FABRICAR')"
+          class="px-3 py-1.5 text-xs font-medium rounded-xl border transition-colors"
+          [class]="filterType() === 'FABRICAR' ? 'bg-yellow-400 text-gray-900 border-yellow-400' : 'bg-gray-900 text-gray-400 border-gray-800'">
+          Fabricar
+        </button>
       </div>
-    } @else if (sales().length === 0) {
-      <div class="py-20 text-center">
-        <p class="text-gray-600 text-sm">No hay ventas registradas</p>
+      <!-- Meses -->
+      <div class="flex gap-1.5 overflow-x-auto scrollbar-hide">
+        <button (click)="filterMonth.set('all')"
+          class="shrink-0 px-3 py-1.5 text-xs font-medium rounded-xl border transition-colors"
+          [class]="filterMonth() === 'all' ? 'bg-white text-gray-900 border-white' : 'bg-gray-900 text-gray-400 border-gray-800'">
+          Todos los meses
+        </button>
+        @for (m of availableMonths(); track m) {
+          <button (click)="toggleMonth(m)"
+            class="shrink-0 px-3 py-1.5 text-xs font-medium rounded-xl border transition-colors"
+            [class]="filterMonth() === m ? 'bg-white text-gray-900 border-white' : 'bg-gray-900 text-gray-400 border-gray-800'">
+            {{ formatMonthLong(m) }}
+          </button>
+        }
       </div>
-    } @else {
-      <div class="space-y-3 pb-8">
-        @for (sale of sales(); track sale.id) {
-          <div
-            class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden cursor-pointer hover:border-gray-700 transition-colors"
-            (click)="selectedSale.set(selectedSale()?.id === sale.id ? null : sale)"
-          >
-            <div class="p-4">
-              <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2">
-                  <span class="text-white font-semibold text-sm">{{ formatPrice(sale.total) }}</span>
-                  @if (sale.type === 'FABRICAR') {
-                    <span class="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-0.5 rounded-full">A fabricar</span>
-                  }
-                </div>
-                <span class="text-xs border px-2 py-0.5 rounded-full {{ statusClass(sale.status) }}">
-                  {{ statusLabel(sale.status) }}
-                </span>
+    </div>
+
+    <!-- ===== Tarjetas KPI ===== -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+        <p class="text-gray-500 text-xs mb-1">Ingresos totales</p>
+        <p class="text-white font-bold text-xl leading-tight">{{ formatPrice(stats().total) }}</p>
+        <p class="text-gray-600 text-xs mt-1">{{ stats().count }} venta{{ stats().count !== 1 ? 's' : '' }}</p>
+      </div>
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+        <p class="text-gray-500 text-xs mb-1">Promedio por venta</p>
+        <p class="text-white font-bold text-xl leading-tight">{{ formatPrice(stats().avg) }}</p>
+        <p class="text-gray-600 text-xs mt-1">{{ stats().units }} unidad{{ stats().units !== 1 ? 'es' : '' }} vendida{{ stats().units !== 1 ? 's' : '' }}</p>
+      </div>
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+        <p class="text-gray-500 text-xs mb-2">Stock vs Fabricar</p>
+        <div class="flex items-center gap-2 mb-1.5">
+          <div class="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+            <div class="h-full bg-blue-500 rounded-full transition-all" [style.width.%]="stats().stockPct"></div>
+          </div>
+          <span class="text-blue-400 text-xs font-medium w-8 text-right">{{ stats().stockPct }}%</span>
+        </div>
+        <div class="flex justify-between text-xs text-gray-500">
+          <span>Stock · {{ stats().stockCount }}</span>
+          <span>Fabricar · {{ stats().fabricarCount }}</span>
+        </div>
+      </div>
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+        <p class="text-gray-500 text-xs mb-1">Fabricar</p>
+        <p class="text-yellow-400 font-bold text-xl leading-tight">{{ formatPrice(stats().fabricarTotal) }}</p>
+        <p class="text-gray-600 text-xs mt-1">Stock: {{ formatPrice(stats().stockTotal) }}</p>
+      </div>
+    </div>
+
+    <!-- ===== Gráfica mensual ===== -->
+    @if (monthlySummary().length > 1) {
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+        <p class="text-white font-medium text-sm mb-4">Ingresos por mes</p>
+        <div class="flex items-end gap-1.5 h-40">
+          @for (m of monthlySummary(); track m.month) {
+            <div class="flex-1 flex flex-col items-center gap-1 min-w-0 cursor-pointer group"
+                 (click)="toggleMonth(m.month)">
+              <div class="w-full flex flex-col items-center justify-end rounded-t-lg overflow-hidden transition-all"
+                   [style.height.%]="m.pct"
+                   style="min-height:4px"
+                   [class]="filterMonth() === m.month ? 'opacity-100' : (filterMonth() === 'all' ? 'opacity-80 group-hover:opacity-100' : 'opacity-30 group-hover:opacity-60')">
+                <!-- Barra stock (abajo) -->
+                @if (m.stock > 0) {
+                  <div class="w-full bg-blue-500 transition-all"
+                       [style.flex]="m.stock"
+                       style="min-height:2px"></div>
+                }
+                <!-- Barra fabricar (arriba) -->
+                @if (m.fabricar > 0) {
+                  <div class="w-full bg-yellow-400 transition-all"
+                       [style.flex]="m.fabricar"
+                       style="min-height:2px; order:-1"></div>
+                }
               </div>
-              <div class="flex items-center justify-between">
-                <div>
-                  @if (sale.customerName) {
-                    <p class="text-gray-400 text-xs">{{ sale.customerName }}</p>
-                  }
-                  <p class="text-gray-600 text-xs">{{ formatDate(sale.createdAt) }}</p>
+              <p class="text-gray-500 text-xs truncate w-full text-center"
+                 [class.text-white]="filterMonth() === m.month">
+                {{ formatMonth(m.month) }}
+              </p>
+            </div>
+          }
+        </div>
+        <div class="flex items-center gap-4 mt-3 pt-3 border-t border-gray-800">
+          <div class="flex items-center gap-1.5">
+            <div class="w-3 h-3 rounded-sm bg-blue-500"></div>
+            <span class="text-gray-500 text-xs">Stock</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <div class="w-3 h-3 rounded-sm bg-yellow-400"></div>
+            <span class="text-gray-500 text-xs">Fabricar</span>
+          </div>
+          @if (filterMonth() !== 'all') {
+            <button (click)="filterMonth.set('all')" class="ml-auto text-gray-500 hover:text-white text-xs transition-colors">
+              Quitar filtro de mes
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ===== Productos más vendidos ===== -->
+    @if (topProducts().length > 0) {
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+        <p class="text-white font-medium text-sm mb-4">Productos más vendidos</p>
+        <div class="space-y-3">
+          @for (p of topProducts(); track p.name) {
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <p class="text-gray-300 text-xs font-medium truncate flex-1 mr-3">{{ p.name }}</p>
+                <div class="flex items-center gap-3 shrink-0">
+                  <span class="text-gray-500 text-xs">{{ p.qty }} und</span>
+                  <span class="text-white text-xs font-semibold">{{ formatPrice(p.revenue) }}</span>
                 </div>
-                <p class="text-gray-600 text-xs">{{ sale.items.length }} producto{{ sale.items.length !== 1 ? 's' : '' }}</p>
+              </div>
+              <div class="h-1 bg-gray-800 rounded-full overflow-hidden">
+                <div class="h-full bg-blue-500/70 rounded-full transition-all" [style.width.%]="p.pct"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ===== Lista de ventas ===== -->
+    <div>
+      <p class="text-gray-500 text-xs uppercase tracking-wider mb-3">
+        {{ filteredSales().length }} venta{{ filteredSales().length !== 1 ? 's' : '' }}
+        @if (filterMonth() !== 'all') { · {{ formatMonthLong(filterMonth()) }} }
+        @if (filterType() !== 'all') { · {{ filterType() === 'STOCK' ? 'Stock' : 'Fabricar' }} }
+      </p>
+      <div class="space-y-2">
+        @for (sale of filteredSales(); track sale.id) {
+          <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden cursor-pointer hover:border-gray-700 transition-colors"
+               (click)="selectedSale.set(selectedSale()?.id === sale.id ? null : sale)">
+            <div class="p-4">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-white font-semibold text-sm">{{ formatPrice(sale.total) }}</span>
+                    @if (sale.type === 'FABRICAR') {
+                      <span class="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-0.5 rounded-full">Fabricar</span>
+                    }
+                  </div>
+                  <p class="text-gray-500 text-xs">{{ formatDate(sale.createdAt) }}</p>
+                  @if (sale.customerName) {
+                    <p class="text-gray-400 text-xs mt-0.5">{{ sale.customerName }}
+                      @if (sale.customerPhone) { · {{ sale.customerPhone }} }
+                    </p>
+                  }
+                </div>
+                <div class="flex flex-col items-end gap-1.5 shrink-0">
+                  <span class="text-xs border px-2 py-0.5 rounded-full" [class]="statusClass(sale.status)">
+                    {{ statusLabel(sale.status) }}
+                  </span>
+                  <span class="text-gray-600 text-xs">{{ sale.items.length }} prod.</span>
+                </div>
               </div>
             </div>
 
             @if (selectedSale()?.id === sale.id) {
-              <div class="border-t border-gray-800 p-4 space-y-2">
+              <div class="border-t border-gray-800 p-4 space-y-2.5">
                 @for (item of sale.items; track item.productId + item.size) {
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-gray-300 text-xs font-medium">{{ item.productName }}</p>
-                      <p class="text-gray-600 text-xs">Talla {{ item.size }} × {{ item.quantity }}</p>
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="flex-1 min-w-0">
+                      <p class="text-gray-200 text-xs font-medium">{{ item.productName }}</p>
+                      <p class="text-gray-500 text-xs">{{ item.size }} × {{ item.quantity }}</p>
+                      @if (item.note) {
+                        <p class="text-yellow-500/70 text-xs italic mt-0.5">{{ item.note }}</p>
+                      }
                     </div>
-                    <p class="text-gray-400 text-xs">{{ formatPrice(item.price * item.quantity) }}</p>
+                    <p class="text-gray-300 text-xs font-semibold shrink-0">{{ formatPrice(item.price * item.quantity) }}</p>
                   </div>
                 }
                 @if (sale.notes) {
-                  <p class="text-gray-600 text-xs pt-2 border-t border-gray-800 mt-2">{{ sale.notes }}</p>
+                  <div class="pt-2 border-t border-gray-800">
+                    <p class="text-gray-600 text-xs">{{ sale.notes }}</p>
+                  </div>
                 }
               </div>
             }
           </div>
         }
       </div>
-    }
+    </div>
+
   </div>
+  }
 </div>
