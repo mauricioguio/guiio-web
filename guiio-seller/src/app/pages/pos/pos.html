@@ -760,29 +760,27 @@
           </div>
         }
 
-        <!-- Bordado (solo FABRICAR) -->
-        @if (saleType() === 'FABRICAR') {
-          <div class="mb-4 space-y-2.5">
-            <label class="flex items-center gap-3 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                [checked]="selectedBordado()"
-                (change)="selectedBordado.set($any($event.target).checked)"
-                class="w-4 h-4 rounded accent-green-500 cursor-pointer"
-              />
-              <span class="text-sm text-white">Lleva bordado <span class="text-green-400 font-medium">+$10.000</span></span>
-            </label>
-            @if (selectedBordado()) {
-              <input
-                type="text"
-                placeholder="Texto del bordado..."
-                [value]="selectedBordadoText()"
-                (input)="selectedBordadoText.set($any($event.target).value)"
-                class="w-full bg-gray-800 border border-green-700 rounded-xl px-3 py-2.5 text-sm text-green-300 placeholder-gray-500 focus:outline-none focus:border-green-500"
-              />
-            }
-          </div>
-        }
+        <!-- Bordado -->
+        <div class="mb-4 space-y-2.5">
+          <label class="flex items-center gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              [checked]="selectedBordado()"
+              (change)="selectedBordado.set($any($event.target).checked)"
+              class="w-4 h-4 rounded accent-green-500 cursor-pointer"
+            />
+            <span class="text-sm text-white">Lleva bordado <span class="text-green-400 font-medium">+$10.000</span></span>
+          </label>
+          @if (selectedBordado()) {
+            <input
+              type="text"
+              placeholder="Texto del bordado..."
+              [value]="selectedBordadoText()"
+              (input)="selectedBordadoText.set($any($event.target).value)"
+              class="w-full bg-gray-800 border border-green-700 rounded-xl px-3 py-2.5 text-sm text-green-300 placeholder-gray-500 focus:outline-none focus:border-green-500"
+            />
+          }
+        </div>
 
         <!-- Observación -->
         <div class="mb-5">

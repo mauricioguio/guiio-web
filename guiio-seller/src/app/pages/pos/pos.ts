@@ -210,7 +210,7 @@ export class Pos implements OnInit, OnDestroy {
     }
     if (this.saleType() === 'STOCK' && this.stockFor(p.id, size) <= 0) return;
     const note = this.selectedNote().trim();
-    const bordado = this.saleType() === 'FABRICAR' && this.selectedBordado();
+    const bordado = this.selectedBordado();
     const bordadoText = bordado ? this.selectedBordadoText().trim() : '';
     this.cart.update(items => {
       const idx = items.findIndex(i => i.product.id === p.id && i.size === size && i.note === note && !!i.bordado === bordado);
