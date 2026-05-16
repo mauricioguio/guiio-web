@@ -10,6 +10,7 @@ export interface CartItem {
   size: string;
   quantity: number;
   note: string;
+  adjusted?: boolean;
 }
 
 function productSizes(p: Product): string[] {
@@ -123,8 +124,8 @@ export class Pos implements OnInit, OnDestroy {
           .filter((it, i) => i !== idx && it.product.id === item.product.id && it.size === item.size)
           .reduce((s, it) => s + it.quantity, 0);
         const max = Math.max(0, inv - otherLines);
-        if (item.quantity > max) { adjusted++; return { ...item, quantity: max }; }
-        return item;
+        if (item.quantity > max) { adjusted++; return { ...item, quantity: max, adjusted: true }; }
+        return { ...item, adjusted: false };
       })
       .filter(item => item.quantity > 0);
 
@@ -132,7 +133,10 @@ export class Pos implements OnInit, OnDestroy {
       this.cart.set(newCart);
       this.adjustedItems.set(adjusted);
       if (this.adjustToast) clearTimeout(this.adjustToast);
-      this.adjustToast = setTimeout(() => this.adjustedItems.set(0), 4000);
+      this.adjustToast = setTimeout(() => {
+        this.adjustedItems.set(0);
+        this.cart.update(items => items.map(it => ({ ...it, adjusted: false })));
+      }, 5000);
     }
   }
 
@@ -195,7 +199,7 @@ export class Pos implements OnInit, OnDestroy {
       qty = Math.min(qty, inv - otherLines);
       if (qty <= 0) { this.removeFromCart(idx); return; }
     }
-    this.cart.update(items => items.map((it, i) => i === idx ? { ...it, quantity: qty } : it));
+    this.cart.update(items => items.map((it, i) => i === idx ? { ...it, quantity: qty, adjusted: false } : it));
   }
 
   confirmSale() {
