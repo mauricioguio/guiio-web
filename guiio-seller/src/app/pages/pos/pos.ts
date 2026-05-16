@@ -49,6 +49,9 @@ export class Pos implements OnInit, OnDestroy {
   protected selectedProduct = signal<Product | null>(null);
   protected selectedSize = signal('');
   protected selectedNote = signal('');
+  protected tallaCompleta = signal(true);
+  protected selectedTopSize = signal('');
+  protected selectedBottomSize = signal('');
 
   protected customerSearchState = signal<'idle' | 'searching' | 'found' | 'notfound'>('idle');
   protected registering = signal(false);
@@ -177,12 +180,24 @@ export class Pos implements OnInit, OnDestroy {
     const sizes = productSizes(p);
     this.selectedSize.set(sizes[0] ?? '');
     this.selectedNote.set('');
+    this.tallaCompleta.set(true);
+    this.selectedTopSize.set('');
+    this.selectedBottomSize.set('');
   }
 
   addToCart() {
     const p = this.selectedProduct();
-    const size = this.selectedSize();
-    if (!p || !size) return;
+    if (!p) return;
+    let size: string;
+    if (this.saleType() === 'FABRICAR' && !this.tallaCompleta()) {
+      const top = this.selectedTopSize().trim();
+      const bottom = this.selectedBottomSize().trim();
+      if (!top || !bottom) return;
+      size = `Blusa ${top} / Pantalón ${bottom}`;
+    } else {
+      size = this.selectedSize();
+      if (!size) return;
+    }
     if (this.saleType() === 'STOCK' && this.stockFor(p.id, size) <= 0) return;
     const note = this.selectedNote().trim();
     this.cart.update(items => {

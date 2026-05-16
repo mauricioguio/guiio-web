@@ -661,37 +661,97 @@
       </div>
 
       <div class="p-5">
-        <p class="text-gray-400 text-xs uppercase tracking-wider mb-3">Selecciona talla</p>
-        <div class="flex flex-wrap gap-2 mb-3">
-          @for (size of sizesFor(selectedProduct()!); track size) {
-            @let stock = stockFor(selectedProduct()!.id, size);
-            <button
-              (click)="selectedSize.set(size)"
-              [disabled]="saleType() === 'STOCK' && stock === 0"
-              class="px-4 py-2 rounded-xl text-sm border transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              [class]="selectedSize() === size
-                ? 'bg-white text-gray-900 border-white font-medium'
-                : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-gray-500'"
-            >
-              {{ size }}
-              @if (saleType() === 'STOCK' && stock < 999) {
-                <span class="text-xs ml-1 opacity-60">({{ stock }})</span>
-              }
-            </button>
-          }
-        </div>
+
+        <!-- Toggle talla completa / separada (solo FABRICAR) -->
         @if (saleType() === 'FABRICAR') {
-          <div class="mb-5">
-            <p class="text-gray-400 text-xs uppercase tracking-wider mb-1.5">O escribe la talla exacta</p>
-            <input
-              type="text"
-              placeholder="Ej: 34, XL largo, 28/32..."
-              [value]="selectedSize()"
-              (input)="selectedSize.set($any($event.target).value.trim())"
-              class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
-            />
+          <div class="flex gap-2 mb-4">
+            <button
+              (click)="tallaCompleta.set(true)"
+              class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+              [class]="tallaCompleta() ? 'bg-white text-gray-900 border-white' : 'bg-gray-800 text-gray-400 border-gray-700'"
+            >Talla completa</button>
+            <button
+              (click)="tallaCompleta.set(false)"
+              class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+              [class]="!tallaCompleta() ? 'bg-yellow-400 text-gray-900 border-yellow-400' : 'bg-gray-800 text-gray-400 border-gray-700'"
+            >Tallas separadas</button>
           </div>
         }
+
+        <!-- Talla completa (o modo STOCK) -->
+        @if (saleType() === 'STOCK' || tallaCompleta()) {
+          <p class="text-gray-400 text-xs uppercase tracking-wider mb-3">Selecciona talla</p>
+          <div class="flex flex-wrap gap-2 mb-5">
+            @for (size of sizesFor(selectedProduct()!); track size) {
+              @let stock = stockFor(selectedProduct()!.id, size);
+              <button
+                (click)="selectedSize.set(size)"
+                [disabled]="saleType() === 'STOCK' && stock === 0"
+                class="px-4 py-2 rounded-xl text-sm border transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                [class]="selectedSize() === size
+                  ? 'bg-white text-gray-900 border-white font-medium'
+                  : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-gray-500'"
+              >
+                {{ size }}
+                @if (saleType() === 'STOCK' && stock < 999) {
+                  <span class="text-xs ml-1 opacity-60">({{ stock }})</span>
+                }
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Tallas separadas (solo FABRICAR) -->
+        @if (saleType() === 'FABRICAR' && !tallaCompleta()) {
+          <div class="space-y-4 mb-5">
+            <!-- Blusa -->
+            <div>
+              <p class="text-gray-400 text-xs uppercase tracking-wider mb-2">Talla de blusa</p>
+              <div class="flex flex-wrap gap-2 mb-2">
+                @for (size of selectedProduct()!.topSizes; track size) {
+                  <button
+                    (click)="selectedTopSize.set(size)"
+                    class="px-3 py-1.5 rounded-xl text-xs border transition-colors"
+                    [class]="selectedTopSize() === size
+                      ? 'bg-white text-gray-900 border-white font-medium'
+                      : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-gray-500'"
+                  >{{ size }}</button>
+                }
+              </div>
+              <input
+                type="text"
+                placeholder="Ej: S, M, XL, 38..."
+                [value]="selectedTopSize()"
+                (input)="selectedTopSize.set($any($event.target).value)"
+                class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+              />
+            </div>
+            <!-- Pantalón -->
+            <div>
+              <p class="text-gray-400 text-xs uppercase tracking-wider mb-2">Talla de pantalón</p>
+              <div class="flex flex-wrap gap-2 mb-2">
+                @for (size of selectedProduct()!.bottomSizes; track size) {
+                  <button
+                    (click)="selectedBottomSize.set(size)"
+                    class="px-3 py-1.5 rounded-xl text-xs border transition-colors"
+                    [class]="selectedBottomSize() === size
+                      ? 'bg-white text-gray-900 border-white font-medium'
+                      : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-gray-500'"
+                  >{{ size }}</button>
+                }
+              </div>
+              <input
+                type="text"
+                placeholder="Ej: 28, 30, 32..."
+                [value]="selectedBottomSize()"
+                (input)="selectedBottomSize.set($any($event.target).value)"
+                class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+              />
+            </div>
+          </div>
+        }
+
+        <!-- Observación -->
         <div class="mb-5">
           <p class="text-gray-400 text-xs uppercase tracking-wider mb-1.5">Observación (opcional)</p>
           <input
@@ -702,9 +762,12 @@
             class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
           />
         </div>
+
         <button
           (click)="addToCart()"
-          [disabled]="!selectedSize()"
+          [disabled]="saleType() === 'FABRICAR' && !tallaCompleta()
+            ? (!selectedTopSize().trim() || !selectedBottomSize().trim())
+            : !selectedSize()"
           class="w-full bg-white text-gray-900 font-semibold rounded-xl py-3 text-sm hover:bg-gray-100 transition-colors disabled:opacity-40"
         >
           Agregar al pedido
