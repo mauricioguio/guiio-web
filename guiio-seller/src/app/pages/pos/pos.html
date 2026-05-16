@@ -96,10 +96,16 @@
         <span class="text-xl font-bold text-gray-900">{{ formatPrice(netTotal()) }}</span>
       </div>
     } @else {
-      <div class="px-6 py-4 flex items-center justify-between">
+      <div class="px-6 pt-4 flex items-center justify-between" [class.pb-4]="!canceladoEnabled()" [class.pb-2]="canceladoEnabled()">
         <span class="font-semibold text-gray-600">Total</span>
         <span class="text-xl font-bold text-gray-900">{{ formatPrice(cartTotal()) }}</span>
       </div>
+      @if (canceladoEnabled()) {
+        <div class="px-6 pb-4 flex items-center justify-between">
+          <span style="color:#16a34a;font-weight:600;font-size:13px">Pago</span>
+          <span style="color:#16a34a;font-weight:700;font-size:14px">✓ Cancelado</span>
+        </div>
+      }
     }
   </div>
 
@@ -500,7 +506,7 @@
       }
       <button
         (click)="confirmSale()"
-        [disabled]="cart().length === 0 || saving() || !customerPhone().trim() || !customerName().trim()"
+        [disabled]="cart().length === 0 || saving() || !customerPhone().trim() || !customerName().trim() || (!abonoEnabled() && !canceladoEnabled())"
         class="w-full font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         [class]="saleType() === 'FABRICAR'
           ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'
