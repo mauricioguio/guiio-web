@@ -3,6 +3,17 @@ import { Router, RouterLink } from '@angular/router';
 import { SellerApiService, Sale } from '../../services/seller-api';
 import { AuthService } from '../../services/auth';
 
+const PRESETS = [
+  { key: 'all',        label: 'Todo' },
+  { key: 'today',      label: 'Hoy' },
+  { key: 'week',       label: 'Esta semana' },
+  { key: 'month',      label: 'Este mes' },
+  { key: 'last_month', label: 'Mes pasado' },
+  { key: '3months',    label: 'Últimos 3 meses' },
+  { key: '6months',    label: 'Últimos 6 meses' },
+  { key: 'year',       label: 'Este año' },
+];
+
 @Component({
   selector: 'app-sales',
   imports: [RouterLink],
@@ -16,21 +27,25 @@ export class Sales implements OnInit {
   protected sales = signal<Sale[]>([]);
   protected loading = signal(true);
   protected selectedSale = signal<Sale | null>(null);
-  protected filterMonth = signal('all');
-  protected filterType = signal<'all' | 'STOCK' | 'FABRICAR'>('all');
 
-  protected availableMonths = computed(() => {
-    const months = new Set<string>();
-    for (const s of this.sales()) months.add(s.createdAt.slice(0, 7));
-    return Array.from(months).sort().reverse();
-  });
+  protected filterType = signal<'all' | 'STOCK' | 'FABRICAR'>('all');
+  protected filterPreset = signal('all');
+  protected filterFrom = signal<Date | null>(null);
+  protected filterTo = signal<Date | null>(null);
+  protected showCustomRange = signal(false);
+  protected customFrom = signal('');
+  protected customTo = signal('');
+
+  readonly presets = PRESETS;
 
   protected filteredSales = computed(() => {
     let list = this.sales();
-    const m = this.filterMonth();
     const t = this.filterType();
-    if (m !== 'all') list = list.filter(s => s.createdAt.startsWith(m));
+    const from = this.filterFrom();
+    const to = this.filterTo();
     if (t !== 'all') list = list.filter(s => s.type === t);
+    if (from) list = list.filter(s => new Date(s.createdAt) >= from);
+    if (to) list = list.filter(s => new Date(s.createdAt) <= to);
     return list;
   });
 
@@ -59,8 +74,7 @@ export class Sales implements OnInit {
     for (const sale of src) {
       const key = sale.createdAt.slice(0, 7);
       const m = byMonth.get(key) ?? { stock: 0, fabricar: 0, count: 0 };
-      if (sale.type === 'STOCK') m.stock += sale.total;
-      else m.fabricar += sale.total;
+      if (sale.type === 'STOCK') m.stock += sale.total; else m.fabricar += sale.total;
       m.count++;
       byMonth.set(key, m);
     }
@@ -77,8 +91,7 @@ export class Sales implements OnInit {
     for (const sale of this.filteredSales()) {
       for (const item of sale.items) {
         const p = map.get(item.productName) ?? { name: item.productName, qty: 0, revenue: 0 };
-        p.qty += item.quantity;
-        p.revenue += item.price * item.quantity;
+        p.qty += item.quantity; p.revenue += item.price * item.quantity;
         map.set(item.productName, p);
       }
     }
@@ -95,8 +108,66 @@ export class Sales implements OnInit {
     });
   }
 
-  toggleMonth(m: string) {
-    this.filterMonth.set(this.filterMonth() === m ? 'all' : m);
+  setPreset(key: string) {
+    this.filterPreset.set(key);
+    this.showCustomRange.set(false);
+    const now = new Date();
+    const sod = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    switch (key) {
+      case 'today':
+        this.filterFrom.set(sod(now)); this.filterTo.set(null); break;
+      case 'week': {
+        const f = sod(now); f.setDate(f.getDate() - 6);
+        this.filterFrom.set(f); this.filterTo.set(null); break;
+      }
+      case 'month':
+        this.filterFrom.set(new Date(now.getFullYear(), now.getMonth(), 1));
+        this.filterTo.set(null); break;
+      case 'last_month':
+        this.filterFrom.set(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+        this.filterTo.set(new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)); break;
+      case '3months': {
+        const f = new Date(now); f.setMonth(f.getMonth() - 3);
+        this.filterFrom.set(f); this.filterTo.set(null); break;
+      }
+      case '6months': {
+        const f = new Date(now); f.setMonth(f.getMonth() - 6);
+        this.filterFrom.set(f); this.filterTo.set(null); break;
+      }
+      case 'year':
+        this.filterFrom.set(new Date(now.getFullYear(), 0, 1));
+        this.filterTo.set(null); break;
+      default:
+        this.filterFrom.set(null); this.filterTo.set(null);
+    }
+  }
+
+  applyCustomRange() {
+    const from = this.customFrom();
+    const to = this.customTo();
+    if (!from && !to) return;
+    this.filterPreset.set('custom');
+    this.filterFrom.set(from ? new Date(from + 'T00:00:00') : null);
+    this.filterTo.set(to ? new Date(to + 'T23:59:59') : null);
+  }
+
+  toggleChartMonth(month: string) {
+    if (this.filterPreset() === month) {
+      this.setPreset('all');
+    } else {
+      const [y, mo] = month.split('-').map(Number);
+      this.filterPreset.set(month);
+      this.filterFrom.set(new Date(y, mo - 1, 1));
+      this.filterTo.set(new Date(y, mo, 0, 23, 59, 59));
+    }
+  }
+
+  isChartBarActive(month: string) {
+    return this.filterPreset() === month;
+  }
+
+  pct(part: number, total: number): number {
+    return total > 0 ? Math.round((part / total) * 100) : 0;
   }
 
   formatPrice(v: number) {
@@ -117,6 +188,19 @@ export class Sales implements OnInit {
     const [y, mo] = m.split('-');
     const names = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     return `${names[parseInt(mo) - 1]} ${y}`;
+  }
+
+  activePresetLabel(): string {
+    const p = this.filterPreset();
+    if (p === 'custom') {
+      const from = this.customFrom();
+      const to = this.customTo();
+      if (from && to) return `${from} → ${to}`;
+      if (from) return `Desde ${from}`;
+      if (to) return `Hasta ${to}`;
+    }
+    if (p.match(/^\d{4}-\d{2}$/)) return this.formatMonthLong(p);
+    return '';
   }
 
   statusLabel(s: string) {
