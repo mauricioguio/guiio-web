@@ -40,6 +40,7 @@ export class Pos implements OnInit {
   protected saving = signal(false);
   protected savedSale = signal<string | null>(null);
   protected orderDate = signal(new Date());
+  protected deliveryDate = signal<Date>(this.calcDeliveryDate(new Date()));
 
   protected selectedProduct = signal<Product | null>(null);
   protected selectedSize = signal('');
@@ -87,6 +88,34 @@ export class Pos implements OnInit {
       next: ({ items }) => { this.inventory.set(items); done(); },
       error: done,
     });
+  }
+
+  private calcDeliveryDate(from: Date): Date {
+    const d = new Date(from);
+    d.setDate(d.getDate() + 8);
+    if (d.getDay() === 0) d.setDate(d.getDate() + 1); // domingo → lunes
+    return d;
+  }
+
+  setSaleType(type: 'STOCK' | 'FABRICAR') {
+    this.saleType.set(type);
+    if (type === 'FABRICAR') {
+      this.deliveryDate.set(this.calcDeliveryDate(new Date()));
+    }
+  }
+
+  setDeliveryDate(value: string) {
+    if (!value) return;
+    const [y, m, d] = value.split('-').map(Number);
+    this.deliveryDate.set(new Date(y, m - 1, d));
+  }
+
+  deliveryDateInput(): string {
+    const d = this.deliveryDate();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   }
 
   stockFor(productId: string, size: string): number {
@@ -145,6 +174,7 @@ export class Pos implements OnInit {
       type: this.saleType(),
       customerName: this.customerName() || undefined,
       notes: [this.customerPhone() ? `Tel: ${this.customerPhone()}` : '', this.notes()].filter(Boolean).join(' | ') || undefined,
+      deliveryDate: this.saleType() === 'FABRICAR' ? this.deliveryDateInput() : undefined,
       items: items.map(i => ({
         productId: i.product.id,
         productName: i.product.name,
@@ -163,6 +193,7 @@ export class Pos implements OnInit {
         this.showReceipt.set(false);
         this.saving.set(false);
         this.orderDate.set(new Date());
+        this.deliveryDate.set(this.calcDeliveryDate(new Date()));
         this.loadData();
       },
       error: () => this.saving.set(false),
@@ -177,6 +208,10 @@ export class Pos implements OnInit {
 
   formatDate(d: Date) {
     return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' }).format(d);
+  }
+
+  formatDateShort(d: Date) {
+    return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium' }).format(d);
   }
 
   logout() { this.auth.logout(); this.router.navigate(['/login']); }

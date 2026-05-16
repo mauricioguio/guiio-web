@@ -69,6 +69,7 @@ model Sale {
   total        Float
   customerName String?
   notes        String?
+  deliveryDate DateTime?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 

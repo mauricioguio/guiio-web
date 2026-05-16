@@ -47,6 +47,7 @@ export class SellerService {
     type: 'STOCK' | 'FABRICAR';
     customerName?: string;
     notes?: string;
+    deliveryDate?: string;
     items: { productId: string; productName: string; size: string; quantity: number; price: number; note?: string }[];
   }) {
     if (!data.items?.length) throw new BadRequestException('La venta debe tener al menos un producto');
@@ -61,6 +62,7 @@ export class SellerService {
         total,
         customerName: data.customerName || null,
         notes: data.notes || null,
+        deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
         items: { create: data.items },
       },
       include: { items: true, sede: { select: { id: true, name: true } } },

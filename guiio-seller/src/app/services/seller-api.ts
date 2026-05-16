@@ -20,6 +20,7 @@ export interface InventoryItem {
 export interface SaleItemPayload {
   productId: string; productName: string;
   size: string; quantity: number; price: number;
+  note?: string;
 }
 
 export interface Sale {
@@ -62,6 +63,7 @@ export class SellerApiService {
     type: 'STOCK' | 'FABRICAR';
     customerName?: string;
     notes?: string;
+    deliveryDate?: string;
     items: SaleItemPayload[];
   }) {
     return this.http.post<Sale>(`${API}/sales`, data, { headers: this.headers });
