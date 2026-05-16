@@ -265,40 +265,25 @@ export class Pos implements OnInit, OnDestroy {
     const phone = this.customerPhone().trim();
     const digits = phone.replace(/\D/g, '');
     const wa = digits.startsWith('57') ? digits : `57${digits}`;
-    const file = new File([blob], 'recibo-guiio.png', { type: 'image/png' });
     const firstName = this.customerName().trim().split(' ')[0];
     const waText = firstName
       ? `Hola ${firstName}, aquí está tu recibo de Guiio 🛍️`
       : 'Hola, aquí está tu recibo de Guiio 🛍️';
 
-    // Móvil: Web Share API — solo en dispositivos móviles (evita diálogo de Windows)
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (isMobile && (navigator as any).canShare?.({ files: [file] })) {
-      try {
-        await (navigator as any).share({ files: [file], title: 'Recibo Guiio', text: waText });
-        return;
-      } catch { /* cancelado */ }
-    }
-
-    // Desktop: copiar imagen al portapapeles
-    let imageCopied = false;
+    // Copiar imagen al portapapeles
     try {
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-      imageCopied = true;
+      this.clipboardCopied.set(true);
+      setTimeout(() => this.clipboardCopied.set(false), 8000);
     } catch {
-      // Portapapeles no soportado → descargar imagen
+      // Portapapeles no soportado → descargar
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = 'recibo-guiio.png'; a.click();
       URL.revokeObjectURL(url);
     }
 
-    if (imageCopied) {
-      this.clipboardCopied.set(true);
-      setTimeout(() => this.clipboardCopied.set(false), 8000);
-    }
-
-    // Abrir WhatsApp Web (no la app) con el número y mensaje pre-cargados
+    // Abrir WhatsApp Web directamente al chat del cliente
     if (phone) {
       const url = `https://web.whatsapp.com/send?phone=${wa}&text=${encodeURIComponent(waText)}`;
       setTimeout(() => window.open(url, '_blank'), 300);
