@@ -20,13 +20,10 @@ export class Inventario implements OnInit {
 
   protected products = signal<Product[]>([]);
   protected loading = signal(true);
-  protected saving = signal(false);
-  protected saved = signal(false);
   protected search = signal('');
   protected selectedCollection = signal('all');
 
   protected qty = signal<Record<string, number>>({});
-  protected dirty = signal(false);
 
   protected collections = computed(() => {
     const seen = new Set<string>();
@@ -90,41 +87,15 @@ export class Inventario implements OnInit {
     return this.qty()[`${productId}|${size}`] ?? 0;
   }
 
-  setQty(productId: string, size: string, value: string) {
-    const n = parseInt(value, 10);
-    const qty = isNaN(n) || n < 0 ? 0 : n;
-    this.qty.update(q => ({ ...q, [`${productId}|${size}`]: qty }));
-    this.dirty.set(true);
-  }
-
   qtyClass(productId: string, size: string): string {
     const q = this.getQty(productId, size);
-    if (q === 0) return 'text-red-400 border-red-900 bg-red-950/30';
-    if (q <= 3) return 'text-yellow-400 border-yellow-900 bg-yellow-950/30';
-    return 'text-green-400 border-green-900 bg-green-950/20';
+    if (q === 0) return 'text-red-400';
+    if (q <= 3) return 'text-yellow-400';
+    return 'text-green-400';
   }
 
   productStock(p: Product): number {
     return this.sizesFor(p).reduce((s, size) => s + this.getQty(p.id, size), 0);
-  }
-
-  save() {
-    const current = this.qty();
-    const items = Object.entries(current).map(([key, quantity]) => {
-      const [productId, size] = key.split('|');
-      return { productId, size, quantity };
-    });
-    if (!items.length) return;
-    this.saving.set(true);
-    this.api.upsertInventory(items).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.dirty.set(false);
-        this.saved.set(true);
-        setTimeout(() => this.saved.set(false), 3000);
-      },
-      error: () => this.saving.set(false),
-    });
   }
 
   formatPrice(v: number) {

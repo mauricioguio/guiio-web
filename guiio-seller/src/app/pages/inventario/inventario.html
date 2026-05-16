@@ -16,30 +16,18 @@
   @if (loading()) {
     <div class="py-32 text-center"><p class="text-gray-500 text-sm">Cargando inventario...</p></div>
   } @else {
-  <div class="max-w-5xl mx-auto p-4 pb-28 space-y-4">
+  <div class="max-w-5xl mx-auto p-4 pb-12 space-y-4">
 
-    <!-- Resumen + Guardar -->
-    <div class="flex items-center justify-between gap-4 flex-wrap">
-      <div class="flex items-center gap-4">
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl px-4 py-3">
-          <p class="text-gray-500 text-xs">Total unidades</p>
-          <p class="text-white font-bold text-lg">{{ totalUnits() }}</p>
-        </div>
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl px-4 py-3">
-          <p class="text-gray-500 text-xs">SKUs con stock</p>
-          <p class="text-green-400 font-bold text-lg">{{ totalSKUs() }}</p>
-        </div>
+    <!-- Resumen -->
+    <div class="flex items-center gap-4">
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl px-4 py-3">
+        <p class="text-gray-500 text-xs">Total unidades</p>
+        <p class="text-white font-bold text-lg">{{ totalUnits() }}</p>
       </div>
-      <button
-        (click)="save()"
-        [disabled]="!dirty() || saving()"
-        class="px-6 py-3 font-semibold text-sm rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        [class]="saved() ? 'bg-green-500 text-white' : 'bg-white text-gray-900 hover:bg-gray-100'"
-      >
-        @if (saving()) { Guardando... }
-        @else if (saved()) { ✓ Guardado }
-        @else { Guardar cambios }
-      </button>
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl px-4 py-3">
+        <p class="text-gray-500 text-xs">SKUs con stock</p>
+        <p class="text-green-400 font-bold text-lg">{{ totalSKUs() }}</p>
+      </div>
     </div>
 
     <!-- Filtros -->
@@ -100,15 +88,10 @@
             @for (size of sizesFor(p); track size) {
               <div class="flex flex-col items-center gap-1">
                 <span class="text-gray-500 text-xs">{{ size }}</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  [value]="getQty(p.id, size)"
-                  (change)="setQty(p.id, size, $any($event.target).value)"
-                  class="w-16 text-center rounded-xl border px-2 py-1.5 text-sm font-semibold focus:outline-none transition-colors"
-                  [class]="qtyClass(p.id, size)"
-                />
+                <div class="w-16 text-center rounded-xl border px-2 py-1.5 text-sm font-semibold bg-gray-800/50"
+                     [class]="qtyClass(p.id, size)">
+                  {{ getQty(p.id, size) }}
+                </div>
               </div>
             }
           </div>
@@ -124,20 +107,6 @@
     </div>
 
   </div>
-
-  <!-- Botón guardar flotante (móvil) -->
-  @if (dirty()) {
-    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 lg:hidden">
-      <button
-        (click)="save()"
-        [disabled]="saving()"
-        class="px-8 py-3.5 font-semibold text-sm rounded-2xl shadow-2xl transition-colors disabled:opacity-40"
-        [class]="saved() ? 'bg-green-500 text-white' : 'bg-white text-gray-900'"
-      >
-        {{ saving() ? 'Guardando...' : saved() ? '✓ Guardado' : 'Guardar cambios' }}
-      </button>
-    </div>
-  }
   }
 
 </div>
