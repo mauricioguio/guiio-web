@@ -271,8 +271,9 @@ export class Pos implements OnInit, OnDestroy {
       ? `Hola ${firstName}, aquí está tu recibo de Guiio 🛍️`
       : 'Hola, aquí está tu recibo de Guiio 🛍️';
 
-    // Móvil: Web Share API — abre WhatsApp con la imagen directamente
-    if ((navigator as any).canShare?.({ files: [file] })) {
+    // Móvil: Web Share API — solo en dispositivos móviles (evita diálogo de Windows)
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile && (navigator as any).canShare?.({ files: [file] })) {
       try {
         await (navigator as any).share({ files: [file], title: 'Recibo Guiio', text: waText });
         return;
