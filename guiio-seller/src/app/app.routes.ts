@@ -26,5 +26,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/sales/sales').then(m => m.Sales),
     canActivate: [authGuard],
   },
+  {
+    path: 'inventario',
+    loadComponent: () => import('./pages/inventario/inventario').then(m => m.Inventario),
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: 'pos' },
 ];

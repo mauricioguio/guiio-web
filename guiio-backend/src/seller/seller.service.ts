@@ -94,6 +94,17 @@ export class SellerService {
     return sale;
   }
 
+  async upsertInventory(sedeId: string, items: { productId: string; size: string; quantity: number }[]) {
+    await Promise.all(items.map(item =>
+      this.prisma.inventory.upsert({
+        where: { sedeId_productId_size: { sedeId, productId: item.productId, size: item.size } },
+        update: { quantity: item.quantity },
+        create: { sedeId, productId: item.productId, size: item.size, quantity: item.quantity },
+      })
+    ));
+    return { updated: items.length };
+  }
+
   async getSales(sedeId: string) {
     return this.prisma.sale.findMany({
       where: { sedeId },

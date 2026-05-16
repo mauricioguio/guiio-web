@@ -75,6 +75,10 @@ export class SellerApiService {
     return this.http.post<Sale>(`${API}/sales`, data, { headers: this.headers });
   }
 
+  upsertInventory(items: { productId: string; size: string; quantity: number }[]) {
+    return this.http.put<{ updated: number }>(`${API}/inventory`, { items }, { headers: this.headers });
+  }
+
   getSales() {
     return this.http.get<Sale[]>(`${API}/sales`, { headers: this.headers });
   }

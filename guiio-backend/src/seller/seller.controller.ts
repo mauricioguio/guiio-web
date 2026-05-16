@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Patch, Param, Body, Headers,
+  Controller, Get, Post, Put, Patch, Param, Body, Headers,
   CanActivate, ExecutionContext, Injectable, UseGuards, UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -69,6 +69,15 @@ export class SellerController {
   @UseGuards(SellerGuard)
   getInventory(@Param('sedeId') sedeId: string) {
     return this.sellerService.getInventory(sedeId);
+  }
+
+  @Put('inventory')
+  @UseGuards(SellerGuard)
+  upsertInventory(
+    @Headers('x-sede-id') sedeId: string,
+    @Body('items') items: { productId: string; size: string; quantity: number }[],
+  ) {
+    return this.sellerService.upsertInventory(sedeId, items);
   }
 
   @Post('sales')

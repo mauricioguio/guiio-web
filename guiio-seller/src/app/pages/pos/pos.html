@@ -123,7 +123,8 @@
         <p class="text-gray-500 text-xs">{{ auth.currentSede()?.sedeName }}</p>
       </div>
       <div class="flex items-center gap-3">
-        <a routerLink="/ventas" class="text-gray-400 hover:text-white text-sm transition-colors">Mis ventas</a>
+        <a routerLink="/ventas" class="text-gray-400 hover:text-white text-sm transition-colors">Ventas</a>
+        <a routerLink="/inventario" class="text-gray-400 hover:text-white text-sm transition-colors">Inventario</a>
         <button
           (click)="receiptPreview.set(!receiptPreview())"
           class="text-xs px-2.5 py-1 rounded-lg border transition-colors"
