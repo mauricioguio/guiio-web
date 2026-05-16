@@ -53,8 +53,12 @@ export class Pos implements OnInit, OnDestroy {
   protected customerSearchState = signal<'idle' | 'searching' | 'found' | 'notfound'>('idle');
   protected registering = signal(false);
   protected adjustedItems = signal(0);
+  protected receiptPreview = signal(false);
   protected generatingImage = signal(false);
   protected clipboardCopied = signal(false);
+  protected receiptImageUrl = signal<string | null>(null);
+  protected receiptWaUrl = signal('');
+  private receiptBlob: Blob | null = null;
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
   private adjustToast: ReturnType<typeof setTimeout> | null = null;
 
@@ -212,7 +216,6 @@ export class Pos implements OnInit, OnDestroy {
     if (!items.length) return;
     this.saving.set(true);
 
-    // — todo lo siguiente debe ocurrir SINCRÓNICAMENTE dentro del gesto del usuario —
     const phone = this.customerPhone().trim();
     const digits = phone.replace(/\D/g, '');
     const wa = digits.startsWith('57') ? digits : `57${digits}`;
@@ -220,18 +223,6 @@ export class Pos implements OnInit, OnDestroy {
     const waText = firstName
       ? `Hola ${firstName}, aquí está tu recibo de Guiio 🛍️`
       : 'Hola, aquí está tu recibo de Guiio 🛍️';
-
-    // Abrir pestaña de WhatsApp en blanco (sincrónico) — el navegador la permite porque hay gesto
-    const waWindow = phone ? window.open('about:blank', '_blank') : null;
-
-    // Iniciar clipboard.write con una Promise pendiente (sincrónico) — mantiene el permiso del gesto
-    let resolveBlob!: (b: Blob) => void;
-    const blobPromise = new Promise<Blob>(r => (resolveBlob = r));
-    let clipboardStarted = false;
-    try {
-      navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]);
-      clipboardStarted = true;
-    } catch { /* no soportado */ }
 
     this.api.createSale({
       type: this.saleType(),
@@ -251,12 +242,6 @@ export class Pos implements OnInit, OnDestroy {
       next: async sale => {
         const blob = await this.captureReceipt();
 
-        if (clipboardStarted && blob) {
-          resolveBlob(blob); // entrega la imagen al ClipboardItem que ya está esperando
-          this.clipboardCopied.set(true);
-          setTimeout(() => this.clipboardCopied.set(false), 8000);
-        }
-
         this.savedSale.set(sale.id);
         this.cart.set([]);
         this.customerName.set('');
@@ -269,12 +254,38 @@ export class Pos implements OnInit, OnDestroy {
         this.deliveryDate.set(this.calcDeliveryDate(new Date()));
         this.loadData();
 
-        if (waWindow) {
-          waWindow.location.href = `https://web.whatsapp.com/send?phone=${wa}&text=${encodeURIComponent(waText)}`;
+        if (blob && phone) {
+          this.receiptBlob = blob;
+          this.receiptWaUrl.set(`https://web.whatsapp.com/send?phone=${wa}&text=${encodeURIComponent(waText)}`);
+          this.receiptImageUrl.set(URL.createObjectURL(blob));
         }
       },
-      error: () => { this.saving.set(false); waWindow?.close(); },
+      error: () => this.saving.set(false),
     });
+  }
+
+  async copyAndOpenWhatsApp() {
+    const blob = this.receiptBlob;
+    const waUrl = this.receiptWaUrl();
+    if (!blob) return;
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      this.clipboardCopied.set(true);
+      setTimeout(() => this.clipboardCopied.set(false), 6000);
+    } catch {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'recibo-guiio.png'; a.click();
+      URL.revokeObjectURL(url);
+    }
+    if (waUrl) window.open(waUrl, '_blank');
+    this.closeReceiptOverlay();
+  }
+
+  closeReceiptOverlay() {
+    if (this.receiptImageUrl()) URL.revokeObjectURL(this.receiptImageUrl()!);
+    this.receiptImageUrl.set(null);
+    this.receiptBlob = null;
   }
 
   dismissSuccess() { this.savedSale.set(null); }
