@@ -662,7 +662,7 @@
 
       <div class="p-5">
         <p class="text-gray-400 text-xs uppercase tracking-wider mb-3">Selecciona talla</p>
-        <div class="flex flex-wrap gap-2 mb-5">
+        <div class="flex flex-wrap gap-2 mb-3">
           @for (size of sizesFor(selectedProduct()!); track size) {
             @let stock = stockFor(selectedProduct()!.id, size);
             <button
@@ -680,6 +680,18 @@
             </button>
           }
         </div>
+        @if (saleType() === 'FABRICAR') {
+          <div class="mb-5">
+            <p class="text-gray-400 text-xs uppercase tracking-wider mb-1.5">O escribe la talla exacta</p>
+            <input
+              type="text"
+              placeholder="Ej: 34, XL largo, 28/32..."
+              [value]="selectedSize()"
+              (input)="selectedSize.set($any($event.target).value.trim())"
+              class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+            />
+          </div>
+        }
         <div class="mb-5">
           <p class="text-gray-400 text-xs uppercase tracking-wider mb-1.5">Observación (opcional)</p>
           <input
