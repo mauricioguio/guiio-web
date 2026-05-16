@@ -1,4 +1,5 @@
-import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import html2canvas from 'html2canvas';
 import { Router, RouterLink } from '@angular/router';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -52,8 +53,11 @@ export class Pos implements OnInit, OnDestroy {
   protected customerSearchState = signal<'idle' | 'searching' | 'found' | 'notfound'>('idle');
   protected registering = signal(false);
   protected adjustedItems = signal(0);
+  protected generatingImage = signal(false);
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
   private adjustToast: ReturnType<typeof setTimeout> | null = null;
+
+  @ViewChild('receiptEl') receiptEl!: ElementRef<HTMLDivElement>;
 
   protected collections = computed(() => {
     const seen = new Set<string>();
@@ -221,8 +225,8 @@ export class Pos implements OnInit, OnDestroy {
         note: i.note || undefined,
       })),
     }).subscribe({
-      next: sale => {
-        this.openWhatsApp();
+      next: async sale => {
+        const blob = await this.captureReceipt();
         this.savedSale.set(sale.id);
         this.cart.set([]);
         this.customerName.set('');
@@ -234,6 +238,7 @@ export class Pos implements OnInit, OnDestroy {
         this.orderDate.set(new Date());
         this.deliveryDate.set(this.calcDeliveryDate(new Date()));
         this.loadData();
+        if (blob) this.shareOrDownload(blob);
       },
       error: () => this.saving.set(false),
     });
@@ -241,43 +246,36 @@ export class Pos implements OnInit, OnDestroy {
 
   dismissSuccess() { this.savedSale.set(null); }
 
-  private openWhatsApp() {
-    const phone = this.customerPhone().trim();
-    if (!phone) return;
-    const digits = phone.replace(/\D/g, '');
-    const wa = digits.startsWith('57') ? digits : `57${digits}`;
-    window.open(`https://wa.me/${wa}?text=${encodeURIComponent(this.buildReceipt())}`, '_blank');
+  private async captureReceipt(): Promise<Blob | null> {
+    const el = this.receiptEl?.nativeElement;
+    if (!el) return null;
+    this.generatingImage.set(true);
+    try {
+      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: null });
+      return await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'));
+    } catch {
+      return null;
+    } finally {
+      this.generatingImage.set(false);
+    }
   }
 
-  private buildReceipt(): string {
-    const isFabricar = this.saleType() === 'FABRICAR';
-    const lines: string[] = [];
+  private async shareOrDownload(blob: Blob) {
+    const phone = this.customerPhone().trim();
+    const digits = phone.replace(/\D/g, '');
+    const wa = digits.startsWith('57') ? digits : `57${digits}`;
+    const file = new File([blob], 'recibo-guiio.png', { type: 'image/png' });
 
-    lines.push('*Guiio* 🛍️');
-    if (isFabricar) {
-      lines.push('📋 *Pedido a fabricar*');
-      lines.push(`📅 Creación: ${this.formatDateShort(this.orderDate())}`);
-      lines.push(`🚚 Entrega estimada: ${this.formatDateShort(this.deliveryDate())}`);
-    } else {
-      lines.push(`📅 ${this.formatDate(this.orderDate())}`);
-    }
-    if (this.customerName()) lines.push(`👤 ${this.customerName()}`);
-    if (this.notes()) lines.push(`📝 ${this.notes()}`);
-
-    lines.push('');
-    lines.push('*Productos:*');
-    for (const item of this.cart()) {
-      const total = this.formatPrice(item.product.price * item.quantity);
-      lines.push(`• ${item.product.name} - T. ${item.size}${item.quantity > 1 ? ` (x${item.quantity})` : ''} → ${total}`);
-      if (item.note) lines.push(`  _${item.note}_`);
+    if (phone && (navigator as any).canShare?.({ files: [file] })) {
+      try { await (navigator as any).share({ files: [file], title: 'Recibo Guiio' }); return; }
+      catch { /* cancelado o no soportado */ }
     }
 
-    lines.push('');
-    lines.push(`*Total: ${this.formatPrice(this.cartTotal())}*`);
-    lines.push('');
-    lines.push(isFabricar ? 'Te avisaremos cuando tu pedido esté listo ✨' : '¡Gracias por tu compra! 🙏');
-
-    return lines.join('\n');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'recibo-guiio.png'; a.click();
+    URL.revokeObjectURL(url);
+    if (phone) setTimeout(() => window.open(`https://wa.me/${wa}`, '_blank'), 600);
   }
 
   ngOnDestroy() {

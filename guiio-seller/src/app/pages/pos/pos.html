@@ -1,3 +1,95 @@
+<!-- ===== Recibo para captura (fuera de pantalla) ===== -->
+<div #receiptEl style="position:fixed;left:-9999px;top:0;width:360px;font-family:sans-serif"
+     class="bg-white text-gray-900 rounded-2xl overflow-hidden shadow-2xl">
+
+  <!-- Cabecera -->
+  <div class="bg-gray-900 px-6 py-5 text-center">
+    <p class="text-white font-bold text-xl tracking-wide">Guiio</p>
+    @if (saleType() === 'FABRICAR') {
+      <span class="mt-1 inline-block bg-yellow-400 text-gray-900 text-xs font-semibold px-3 py-0.5 rounded-full">
+        Pedido a fabricar
+      </span>
+    } @else {
+      <span class="mt-1 inline-block bg-green-500 text-white text-xs font-semibold px-3 py-0.5 rounded-full">
+        Venta confirmada
+      </span>
+    }
+  </div>
+
+  <!-- Info del pedido -->
+  <div class="px-6 py-4 border-b border-gray-100 space-y-1.5 text-sm">
+    @if (saleType() === 'STOCK') {
+      <div class="flex justify-between">
+        <span class="text-gray-500">Fecha</span>
+        <span class="font-medium">{{ formatDate(orderDate()) }}</span>
+      </div>
+    } @else {
+      <div class="flex justify-between">
+        <span class="text-gray-500">Creación</span>
+        <span class="font-medium">{{ formatDateShort(orderDate()) }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-500">Entrega estimada</span>
+        <span class="font-semibold text-yellow-600">{{ formatDateShort(deliveryDate()) }}</span>
+      </div>
+    }
+    @if (customerName()) {
+      <div class="flex justify-between">
+        <span class="text-gray-500">Cliente</span>
+        <span class="font-medium">{{ customerName() }}</span>
+      </div>
+    }
+    @if (customerPhone()) {
+      <div class="flex justify-between">
+        <span class="text-gray-500">Teléfono</span>
+        <span class="font-medium">{{ customerPhone() }}</span>
+      </div>
+    }
+    @if (notes()) {
+      <div class="flex justify-between">
+        <span class="text-gray-500">Notas</span>
+        <span class="font-medium text-right max-w-[60%]">{{ notes() }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- Productos -->
+  <div class="px-6 py-4 border-b border-gray-100">
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Productos</p>
+    <div class="space-y-3">
+      @for (item of cart(); track item.product.id + item.size) {
+        <div class="flex justify-between items-start gap-3">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-900 leading-snug">{{ item.product.name }}</p>
+            <p class="text-xs text-gray-500 mt-0.5">
+              Talla {{ item.size }} · {{ item.quantity > 1 ? 'x' + item.quantity : '1 und' }}
+            </p>
+            @if (item.note) {
+              <p class="text-xs text-yellow-600 mt-0.5 italic">{{ item.note }}</p>
+            }
+          </div>
+          <span class="text-sm font-semibold text-gray-900 shrink-0 whitespace-nowrap">
+            {{ formatPrice(item.product.price * item.quantity) }}
+          </span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Total -->
+  <div class="px-6 py-4 bg-gray-50 flex items-center justify-between">
+    <span class="font-semibold text-gray-600">Total</span>
+    <span class="text-xl font-bold text-gray-900">{{ formatPrice(cartTotal()) }}</span>
+  </div>
+
+  <!-- Footer -->
+  <div class="px-6 py-4 text-center bg-gray-900">
+    <p class="text-gray-400 text-xs">
+      {{ saleType() === 'FABRICAR' ? 'Te avisaremos cuando tu pedido esté listo ✨' : '¡Gracias por tu compra! 🙏' }}
+    </p>
+  </div>
+</div>
+
 <div class="min-h-screen bg-gray-950 lg:flex lg:h-screen lg:overflow-hidden">
 
   <!-- ===== IZQUIERDA: Selección de productos ===== -->
