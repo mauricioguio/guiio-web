@@ -367,6 +367,7 @@ export class Pos implements OnInit, OnDestroy {
         this.customerName.set(customer.name);
         this.customerSearchState.set('found');
       } else {
+        this.customerName.set('');
         this.customerSearchState.set('notfound');
       }
     });
