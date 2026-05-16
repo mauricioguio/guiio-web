@@ -1,5 +1,7 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { SellerApiService, Product, InventoryItem } from '../../services/seller-api';
 import { AuthService } from '../../services/auth';
 
@@ -20,7 +22,7 @@ function productSizes(p: Product): string[] {
   imports: [RouterLink],
   templateUrl: './pos.html',
 })
-export class Pos implements OnInit {
+export class Pos implements OnInit, OnDestroy {
   private readonly api = inject(SellerApiService);
   readonly auth = inject(AuthService);
   private readonly router = inject(Router);
@@ -45,6 +47,10 @@ export class Pos implements OnInit {
   protected selectedProduct = signal<Product | null>(null);
   protected selectedSize = signal('');
   protected selectedNote = signal('');
+
+  protected customerSearchState = signal<'idle' | 'searching' | 'found' | 'notfound'>('idle');
+  protected registering = signal(false);
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected collections = computed(() => {
     const seen = new Set<string>();
@@ -173,7 +179,8 @@ export class Pos implements OnInit {
     this.api.createSale({
       type: this.saleType(),
       customerName: this.customerName() || undefined,
-      notes: [this.customerPhone() ? `Tel: ${this.customerPhone()}` : '', this.notes()].filter(Boolean).join(' | ') || undefined,
+      customerPhone: this.customerPhone().trim() || undefined,
+      notes: this.notes() || undefined,
       deliveryDate: this.saleType() === 'FABRICAR' ? this.deliveryDateInput() : undefined,
       items: items.map(i => ({
         productId: i.product.id,
@@ -190,6 +197,7 @@ export class Pos implements OnInit {
         this.customerName.set('');
         this.customerPhone.set('');
         this.notes.set('');
+        this.customerSearchState.set('idle');
         this.showReceipt.set(false);
         this.saving.set(false);
         this.orderDate.set(new Date());
@@ -201,6 +209,43 @@ export class Pos implements OnInit {
   }
 
   dismissSuccess() { this.savedSale.set(null); }
+
+  ngOnDestroy() {
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+  }
+
+  onPhoneInput(value: string) {
+    this.customerPhone.set(value);
+    this.customerSearchState.set('idle');
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    const trimmed = value.trim();
+    if (trimmed.length >= 7) {
+      this.customerSearchState.set('searching');
+      this.searchTimer = setTimeout(() => this.lookupCustomer(trimmed), 400);
+    }
+  }
+
+  private lookupCustomer(phone: string) {
+    this.api.findCustomer(phone).pipe(catchError(() => of(null))).subscribe(customer => {
+      if (customer) {
+        this.customerName.set(customer.name);
+        this.customerSearchState.set('found');
+      } else {
+        this.customerSearchState.set('notfound');
+      }
+    });
+  }
+
+  registerCustomer() {
+    const phone = this.customerPhone().trim();
+    const name = this.customerName().trim();
+    if (!phone || !name) return;
+    this.registering.set(true);
+    this.api.createCustomer(phone, name).subscribe({
+      next: () => { this.customerSearchState.set('found'); this.registering.set(false); },
+      error: () => this.registering.set(false),
+    });
+  }
 
   formatPrice(v: number) {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v);

@@ -37,6 +37,18 @@ export class SellerController {
     private readonly prisma: PrismaService,
   ) {}
 
+  @Get('customers/:phone')
+  @UseGuards(SellerGuard)
+  findCustomer(@Param('phone') phone: string) {
+    return this.sellerService.findCustomer(phone);
+  }
+
+  @Post('customers')
+  @UseGuards(SellerGuard)
+  createCustomer(@Body('phone') phone: string, @Body('name') name: string) {
+    return this.sellerService.createCustomer(phone, name);
+  }
+
   @Get('sedes')
   getSedes() {
     return this.sellerService.getSedes();

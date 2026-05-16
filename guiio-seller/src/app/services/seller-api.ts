@@ -23,9 +23,14 @@ export interface SaleItemPayload {
   note?: string;
 }
 
+export interface SellerCustomer {
+  phone: string;
+  name: string;
+}
+
 export interface Sale {
   id: string; type: string; status: string; total: number;
-  customerName: string | null; notes: string | null;
+  customerName: string | null; customerPhone: string | null; notes: string | null;
   createdAt: string;
   items: SaleItemPayload[];
 }
@@ -62,6 +67,7 @@ export class SellerApiService {
   createSale(data: {
     type: 'STOCK' | 'FABRICAR';
     customerName?: string;
+    customerPhone?: string;
     notes?: string;
     deliveryDate?: string;
     items: SaleItemPayload[];
@@ -71,5 +77,13 @@ export class SellerApiService {
 
   getSales() {
     return this.http.get<Sale[]>(`${API}/sales`, { headers: this.headers });
+  }
+
+  findCustomer(phone: string) {
+    return this.http.get<SellerCustomer>(`${API}/customers/${encodeURIComponent(phone)}`, { headers: this.headers });
+  }
+
+  createCustomer(phone: string, name: string) {
+    return this.http.post<SellerCustomer>(`${API}/customers`, { phone, name }, { headers: this.headers });
   }
 }

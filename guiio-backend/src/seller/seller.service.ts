@@ -43,9 +43,22 @@ export class SellerService {
     return products.map(p => ({ ...p, type: p.type.toLowerCase() }));
   }
 
+  async findCustomer(phone: string) {
+    return this.prisma.sellerCustomer.findUnique({ where: { phone } });
+  }
+
+  async createCustomer(phone: string, name: string) {
+    return this.prisma.sellerCustomer.upsert({
+      where: { phone },
+      update: { name },
+      create: { phone, name },
+    });
+  }
+
   async createSale(sedeId: string, data: {
     type: 'STOCK' | 'FABRICAR';
     customerName?: string;
+    customerPhone?: string;
     notes?: string;
     deliveryDate?: string;
     items: { productId: string; productName: string; size: string; quantity: number; price: number; note?: string }[];
@@ -61,6 +74,7 @@ export class SellerService {
         status: data.type === 'STOCK' ? 'COMPLETED' : 'PENDING',
         total,
         customerName: data.customerName || null,
+        customerPhone: data.customerPhone || null,
         notes: data.notes || null,
         deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
         items: { create: data.items },

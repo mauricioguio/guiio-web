@@ -67,9 +67,10 @@ model Sale {
   type         SaleType   @default(STOCK)
   status       SaleStatus @default(COMPLETED)
   total        Float
-  customerName String?
-  notes        String?
-  deliveryDate DateTime?
+  customerName  String?
+  customerPhone String?
+  notes         String?
+  deliveryDate  DateTime?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -114,6 +115,13 @@ model Inventory {
   sede      Sede     @relation(fields: [sedeId], references: [id], onDelete: Cascade)
 
   @@unique([sedeId, productId, size])
+}
+
+model SellerCustomer {
+  phone     String   @id
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Customer {
