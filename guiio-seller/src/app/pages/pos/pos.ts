@@ -12,6 +12,8 @@ export interface CartItem {
   quantity: number;
   note: string;
   adjusted?: boolean;
+  bordado?: boolean;
+  bordadoText?: string;
 }
 
 function productSizes(p: Product): string[] {
@@ -52,6 +54,8 @@ export class Pos implements OnInit, OnDestroy {
   protected tallaCompleta = signal(true);
   protected selectedTopSize = signal('');
   protected selectedBottomSize = signal('');
+  protected selectedBordado = signal(false);
+  protected selectedBordadoText = signal('');
 
   protected customerSearchState = signal<'idle' | 'searching' | 'found' | 'notfound'>('idle');
   protected registering = signal(false);
@@ -87,8 +91,12 @@ export class Pos implements OnInit, OnDestroy {
   });
 
   protected cartTotal = computed(() =>
-    this.cart().reduce((s, i) => s + i.product.price * i.quantity, 0)
+    this.cart().reduce((s, i) => s + this.itemPrice(i) * i.quantity, 0)
   );
+
+  itemPrice(i: CartItem): number {
+    return i.product.price + (i.bordado ? 10000 : 0);
+  }
 
   protected cartCount = computed(() =>
     this.cart().reduce((s, i) => s + i.quantity, 0)
@@ -183,6 +191,8 @@ export class Pos implements OnInit, OnDestroy {
     this.tallaCompleta.set(true);
     this.selectedTopSize.set('');
     this.selectedBottomSize.set('');
+    this.selectedBordado.set(false);
+    this.selectedBordadoText.set('');
   }
 
   addToCart() {
@@ -200,12 +210,14 @@ export class Pos implements OnInit, OnDestroy {
     }
     if (this.saleType() === 'STOCK' && this.stockFor(p.id, size) <= 0) return;
     const note = this.selectedNote().trim();
+    const bordado = this.saleType() === 'FABRICAR' && this.selectedBordado();
+    const bordadoText = bordado ? this.selectedBordadoText().trim() : '';
     this.cart.update(items => {
-      const idx = items.findIndex(i => i.product.id === p.id && i.size === size && i.note === note);
+      const idx = items.findIndex(i => i.product.id === p.id && i.size === size && i.note === note && !!i.bordado === bordado);
       if (idx >= 0) {
         return items.map((it, i) => i === idx ? { ...it, quantity: it.quantity + 1 } : it);
       }
-      return [...items, { product: p, size, quantity: 1, note }];
+      return [...items, { product: p, size, quantity: 1, note, bordado, bordadoText }];
     });
     this.selectedProduct.set(null);
   }
@@ -250,8 +262,8 @@ export class Pos implements OnInit, OnDestroy {
         productName: i.product.name,
         size: i.size,
         quantity: i.quantity,
-        price: i.product.price,
-        note: i.note || undefined,
+        price: this.itemPrice(i),
+        note: [i.note, i.bordadoText ? `Bordado: ${i.bordadoText}` : ''].filter(Boolean).join(' | ') || undefined,
       })),
     }).subscribe({
       next: async sale => {
