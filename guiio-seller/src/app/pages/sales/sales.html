@@ -131,7 +131,7 @@
                 }
               </div>
               <p class="text-gray-500 text-xs truncate w-full text-center"
-                 [class.text-white]="filterMonth() === m.month">
+                 [class.text-white]="isChartBarActive(m.month)">
                 {{ formatMonth(m.month) }}
               </p>
             </div>
