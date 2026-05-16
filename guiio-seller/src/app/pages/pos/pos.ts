@@ -57,6 +57,10 @@ export class Pos implements OnInit, OnDestroy {
   protected selectedBordado = signal(false);
   protected selectedBordadoText = signal('');
 
+  protected abonoEnabled = signal(false);
+  protected abonoAmount = signal(0);
+  protected netTotal = computed(() => Math.max(0, this.cartTotal() - this.abonoAmount()));
+
   protected customerSearchState = signal<'idle' | 'searching' | 'found' | 'notfound'>('idle');
   protected registering = signal(false);
   protected adjustedItems = signal(0);
@@ -255,7 +259,7 @@ export class Pos implements OnInit, OnDestroy {
       type: this.saleType(),
       customerName: this.customerName() || undefined,
       customerPhone: phone || undefined,
-      notes: this.notes() || undefined,
+      notes: [this.notes(), this.abonoEnabled() && this.abonoAmount() > 0 ? `Abono: $${this.abonoAmount().toLocaleString('es-CO')}` : ''].filter(Boolean).join(' | ') || undefined,
       deliveryDate: this.saleType() === 'FABRICAR' ? this.deliveryDateInput() : undefined,
       items: items.map(i => ({
         productId: i.product.id,
@@ -279,6 +283,8 @@ export class Pos implements OnInit, OnDestroy {
         this.saving.set(false);
         this.orderDate.set(new Date());
         this.deliveryDate.set(this.calcDeliveryDate(new Date()));
+        this.abonoEnabled.set(false);
+        this.abonoAmount.set(0);
         this.loadData();
 
         if (blob && phone) {
@@ -368,6 +374,16 @@ export class Pos implements OnInit, OnDestroy {
       next: () => { this.customerSearchState.set('found'); this.registering.set(false); },
       error: () => this.registering.set(false),
     });
+  }
+
+  onAbonoInput(value: string) {
+    const n = parseInt(value.replace(/\D/g, ''), 10);
+    this.abonoAmount.set(isNaN(n) ? 0 : n);
+  }
+
+  abonoInputValue(): string {
+    const v = this.abonoAmount();
+    return v > 0 ? v.toLocaleString('es-CO') : '';
   }
 
   formatPrice(v: number) {

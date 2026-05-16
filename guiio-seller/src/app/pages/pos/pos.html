@@ -80,10 +80,27 @@
     </div>
   </div>
 
-  <!-- Total -->
-  <div class="px-6 py-4 bg-gray-50 flex items-center justify-between">
-    <span class="font-semibold text-gray-600">Total</span>
-    <span class="text-xl font-bold text-gray-900">{{ formatPrice(cartTotal()) }}</span>
+  <!-- Total / Abono -->
+  <div class="bg-gray-50">
+    @if (abonoEnabled() && abonoAmount() > 0) {
+      <div class="px-6 pt-4 pb-1 flex items-center justify-between text-sm">
+        <span class="text-gray-500">Subtotal</span>
+        <span class="text-gray-600">{{ formatPrice(cartTotal()) }}</span>
+      </div>
+      <div class="px-6 py-1 flex items-center justify-between text-sm">
+        <span style="color:#2563eb">Abono recibido</span>
+        <span style="color:#2563eb">− {{ formatPrice(abonoAmount()) }}</span>
+      </div>
+      <div class="px-6 pt-1 pb-4 flex items-center justify-between border-t border-gray-200 mt-1">
+        <span class="font-semibold text-gray-600">Por pagar</span>
+        <span class="text-xl font-bold text-gray-900">{{ formatPrice(netTotal()) }}</span>
+      </div>
+    } @else {
+      <div class="px-6 py-4 flex items-center justify-between">
+        <span class="font-semibold text-gray-600">Total</span>
+        <span class="text-xl font-bold text-gray-900">{{ formatPrice(cartTotal()) }}</span>
+      </div>
+    }
   </div>
 
   <!-- Footer -->
@@ -412,12 +429,45 @@
       }
     </div>
 
-    <!-- Footer: total + confirmar -->
-    <div class="p-5 border-t border-gray-800 shrink-0">
-      <div class="flex items-center justify-between mb-4">
-        <span class="text-gray-400 text-sm">Total</span>
-        <span class="text-white font-bold text-xl">{{ formatPrice(cartTotal()) }}</span>
+    <!-- Footer: abono + total + confirmar -->
+    <div class="p-5 border-t border-gray-800 shrink-0 space-y-3">
+      <!-- Abono -->
+      <div class="space-y-2">
+        <label class="flex items-center gap-3 cursor-pointer select-none">
+          <input type="checkbox" [checked]="abonoEnabled()" (change)="abonoEnabled.set($any($event.target).checked); abonoAmount.set(0)"
+            class="w-4 h-4 rounded accent-blue-500 cursor-pointer" />
+          <span class="text-sm text-white">Abono</span>
+        </label>
+        @if (abonoEnabled()) {
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+            <input type="text" inputmode="numeric" placeholder="0"
+              [value]="abonoInputValue()"
+              (input)="onAbonoInput($any($event.target).value)"
+              class="w-full bg-gray-800 border border-blue-700 rounded-xl pl-7 pr-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500" />
+          </div>
+        }
       </div>
+      <!-- Totales -->
+      @if (abonoEnabled() && abonoAmount() > 0) {
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-gray-500">Subtotal</span>
+          <span class="text-gray-400">{{ formatPrice(cartTotal()) }}</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-blue-400">Abono</span>
+          <span class="text-blue-400">− {{ formatPrice(abonoAmount()) }}</span>
+        </div>
+        <div class="flex items-center justify-between border-t border-gray-800 pt-2">
+          <span class="text-gray-400 text-sm">Por pagar</span>
+          <span class="text-white font-bold text-xl">{{ formatPrice(netTotal()) }}</span>
+        </div>
+      } @else {
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400 text-sm">Total</span>
+          <span class="text-white font-bold text-xl">{{ formatPrice(cartTotal()) }}</span>
+        </div>
+      }
       <button
         (click)="confirmSale()"
         [disabled]="cart().length === 0 || saving()"
@@ -628,16 +678,49 @@
       </div>
 
       <!-- Footer -->
-      <div class="p-5 border-t border-gray-800 shrink-0">
+      <div class="p-5 border-t border-gray-800 shrink-0 space-y-3">
         @if (saleType() === 'FABRICAR') {
-          <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-3 py-2 mb-3">
+          <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-3 py-2">
             <p class="text-yellow-400 text-xs">Pedido a fabricar — se enviará a producción</p>
           </div>
         }
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-gray-400 text-sm">Total</span>
-          <span class="text-white font-bold text-xl">{{ formatPrice(cartTotal()) }}</span>
+        <!-- Abono -->
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 cursor-pointer select-none">
+            <input type="checkbox" [checked]="abonoEnabled()" (change)="abonoEnabled.set($any($event.target).checked); abonoAmount.set(0)"
+              class="w-4 h-4 rounded accent-blue-500 cursor-pointer" />
+            <span class="text-sm text-white">Abono</span>
+          </label>
+          @if (abonoEnabled()) {
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+              <input type="text" inputmode="numeric" placeholder="0"
+                [value]="abonoInputValue()"
+                (input)="onAbonoInput($any($event.target).value)"
+                class="w-full bg-gray-900 border border-blue-700 rounded-xl pl-7 pr-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500" />
+            </div>
+          }
         </div>
+        <!-- Totales -->
+        @if (abonoEnabled() && abonoAmount() > 0) {
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-500">Subtotal</span>
+            <span class="text-gray-400">{{ formatPrice(cartTotal()) }}</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-blue-400">Abono</span>
+            <span class="text-blue-400">− {{ formatPrice(abonoAmount()) }}</span>
+          </div>
+          <div class="flex items-center justify-between border-t border-gray-800 pt-2">
+            <span class="text-gray-400 text-sm">Por pagar</span>
+            <span class="text-white font-bold text-xl">{{ formatPrice(netTotal()) }}</span>
+          </div>
+        } @else {
+          <div class="flex items-center justify-between">
+            <span class="text-gray-400 text-sm">Total</span>
+            <span class="text-white font-bold text-xl">{{ formatPrice(cartTotal()) }}</span>
+          </div>
+        }
         <button
           (click)="confirmSale()"
           [disabled]="cart().length === 0 || saving()"
