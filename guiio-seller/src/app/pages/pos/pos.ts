@@ -54,6 +54,7 @@ export class Pos implements OnInit, OnDestroy {
   protected registering = signal(false);
   protected adjustedItems = signal(0);
   protected generatingImage = signal(false);
+  protected clipboardCopied = signal(false);
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
   private adjustToast: ReturnType<typeof setTimeout> | null = null;
 
@@ -265,17 +266,34 @@ export class Pos implements OnInit, OnDestroy {
     const digits = phone.replace(/\D/g, '');
     const wa = digits.startsWith('57') ? digits : `57${digits}`;
     const file = new File([blob], 'recibo-guiio.png', { type: 'image/png' });
+    const firstName = this.customerName().trim().split(' ')[0];
+    const waText = firstName
+      ? `Hola ${firstName}, aquí está tu recibo de Guiio 🛍️`
+      : 'Hola, aquí está tu recibo de Guiio 🛍️';
 
-    if (phone && (navigator as any).canShare?.({ files: [file] })) {
-      try { await (navigator as any).share({ files: [file], title: 'Recibo Guiio' }); return; }
-      catch { /* cancelado o no soportado */ }
+    // Móvil: Web Share API — abre WhatsApp directamente con la imagen
+    if ((navigator as any).canShare?.({ files: [file] })) {
+      try {
+        await (navigator as any).share({ files: [file], title: 'Recibo Guiio', text: waText });
+        return;
+      } catch { /* cancelado */ }
     }
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'recibo-guiio.png'; a.click();
-    URL.revokeObjectURL(url);
-    if (phone) setTimeout(() => window.open(`https://wa.me/${wa}`, '_blank'), 600);
+    // Desktop: copiar imagen al portapapeles
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      this.clipboardCopied.set(true);
+      setTimeout(() => this.clipboardCopied.set(false), 6000);
+    } catch {
+      // Portapapeles no disponible → descargar
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'recibo-guiio.png'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Abrir WhatsApp con mensaje pre-escrito
+    if (phone) setTimeout(() => window.open(`https://wa.me/${wa}?text=${encodeURIComponent(waText)}`, '_blank'), 400);
   }
 
   ngOnDestroy() {

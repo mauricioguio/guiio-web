@@ -3,14 +3,14 @@
      class="bg-white text-gray-900 rounded-2xl overflow-hidden shadow-2xl">
 
   <!-- Cabecera -->
-  <div class="bg-gray-900 px-6 py-5 text-center">
+  <div class="bg-gray-900 px-6 py-5 flex flex-col items-center gap-2">
     <p class="text-white font-bold text-xl tracking-wide">Guiio</p>
     @if (saleType() === 'FABRICAR') {
-      <span class="mt-1 inline-block bg-yellow-400 text-gray-900 text-xs font-semibold px-3 py-0.5 rounded-full">
+      <span class="bg-yellow-400 text-gray-900 text-xs font-semibold px-3 py-1 rounded-full">
         Pedido a fabricar
       </span>
     } @else {
-      <span class="mt-1 inline-block bg-green-500 text-white text-xs font-semibold px-3 py-0.5 rounded-full">
+      <span class="bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
         Venta confirmada
       </span>
     }
@@ -692,6 +692,18 @@
           Agregar al pedido
         </button>
       </div>
+    </div>
+  </div>
+}
+
+<!-- ===== Toast portapapeles ===== -->
+@if (clipboardCopied()) {
+  <div class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 w-max max-w-xs">
+    <div class="bg-gray-800 border border-gray-700 text-white text-sm px-5 py-3 rounded-2xl flex items-center gap-3 shadow-2xl">
+      <svg class="w-4 h-4 text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/>
+      </svg>
+      <span>Imagen copiada — pégala en WhatsApp con <strong>Ctrl+V</strong></span>
     </div>
   </div>
 }
