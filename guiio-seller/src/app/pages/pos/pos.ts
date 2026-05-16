@@ -212,7 +212,7 @@ export class Pos implements OnInit, OnDestroy {
     if (!items.length) return;
     this.saving.set(true);
 
-    // Abrir ventana en blanco inmediatamente (sincrónico) para evitar bloqueo de popup
+    // — todo lo siguiente debe ocurrir SINCRÓNICAMENTE dentro del gesto del usuario —
     const phone = this.customerPhone().trim();
     const digits = phone.replace(/\D/g, '');
     const wa = digits.startsWith('57') ? digits : `57${digits}`;
@@ -220,7 +220,18 @@ export class Pos implements OnInit, OnDestroy {
     const waText = firstName
       ? `Hola ${firstName}, aquí está tu recibo de Guiio 🛍️`
       : 'Hola, aquí está tu recibo de Guiio 🛍️';
+
+    // Abrir pestaña de WhatsApp en blanco (sincrónico) — el navegador la permite porque hay gesto
     const waWindow = phone ? window.open('about:blank', '_blank') : null;
+
+    // Iniciar clipboard.write con una Promise pendiente (sincrónico) — mantiene el permiso del gesto
+    let resolveBlob!: (b: Blob) => void;
+    const blobPromise = new Promise<Blob>(r => (resolveBlob = r));
+    let clipboardStarted = false;
+    try {
+      navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]);
+      clipboardStarted = true;
+    } catch { /* no soportado */ }
 
     this.api.createSale({
       type: this.saleType(),
@@ -239,6 +250,13 @@ export class Pos implements OnInit, OnDestroy {
     }).subscribe({
       next: async sale => {
         const blob = await this.captureReceipt();
+
+        if (clipboardStarted && blob) {
+          resolveBlob(blob); // entrega la imagen al ClipboardItem que ya está esperando
+          this.clipboardCopied.set(true);
+          setTimeout(() => this.clipboardCopied.set(false), 8000);
+        }
+
         this.savedSale.set(sale.id);
         this.cart.set([]);
         this.customerName.set('');
@@ -250,19 +268,6 @@ export class Pos implements OnInit, OnDestroy {
         this.orderDate.set(new Date());
         this.deliveryDate.set(this.calcDeliveryDate(new Date()));
         this.loadData();
-
-        if (blob) {
-          try {
-            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-            this.clipboardCopied.set(true);
-            setTimeout(() => this.clipboardCopied.set(false), 8000);
-          } catch {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'recibo-guiio.png'; a.click();
-            URL.revokeObjectURL(url);
-          }
-        }
 
         if (waWindow) {
           waWindow.location.href = `https://web.whatsapp.com/send?phone=${wa}&text=${encodeURIComponent(waText)}`;
