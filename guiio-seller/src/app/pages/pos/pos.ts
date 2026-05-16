@@ -59,6 +59,7 @@ export class Pos implements OnInit, OnDestroy {
 
   protected abonoEnabled = signal(false);
   protected abonoAmount = signal(0);
+  protected canceladoEnabled = signal(false);
   protected netTotal = computed(() => Math.max(0, this.cartTotal() - this.abonoAmount()));
 
   protected customerSearchState = signal<'idle' | 'searching' | 'found' | 'notfound'>('idle');
@@ -264,7 +265,7 @@ export class Pos implements OnInit, OnDestroy {
       type: this.saleType(),
       customerName: this.customerName() || undefined,
       customerPhone: phone || undefined,
-      notes: [this.notes(), this.abonoEnabled() && this.abonoAmount() > 0 ? `Abono: $${this.abonoAmount().toLocaleString('es-CO')}` : ''].filter(Boolean).join(' | ') || undefined,
+      notes: [this.notes(), this.abonoEnabled() && this.abonoAmount() > 0 ? `Abono: $${this.abonoAmount().toLocaleString('es-CO')}` : '', this.canceladoEnabled() ? 'Cancelado' : ''].filter(Boolean).join(' | ') || undefined,
       deliveryDate: this.saleType() === 'FABRICAR' ? this.deliveryDateInput() : undefined,
       items: items.map(i => ({
         productId: i.product.id,
@@ -290,6 +291,7 @@ export class Pos implements OnInit, OnDestroy {
         this.deliveryDate.set(this.calcDeliveryDate(new Date()));
         this.abonoEnabled.set(false);
         this.abonoAmount.set(0);
+        this.canceladoEnabled.set(false);
         this.loadData();
 
         if (blob && phone) {
