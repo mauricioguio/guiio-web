@@ -249,6 +249,7 @@ export class Pos implements OnInit, OnDestroy {
   confirmSale() {
     const items = this.cart();
     if (!items.length) return;
+    if (!this.customerPhone().trim() || !this.customerName().trim()) return;
     this.saving.set(true);
 
     const phone = this.customerPhone().trim();

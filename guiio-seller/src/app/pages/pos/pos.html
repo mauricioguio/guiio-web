@@ -486,7 +486,7 @@
       }
       <button
         (click)="confirmSale()"
-        [disabled]="cart().length === 0 || saving()"
+        [disabled]="cart().length === 0 || saving() || !customerPhone().trim() || !customerName().trim()"
         class="w-full font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         [class]="saleType() === 'FABRICAR'
           ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'
