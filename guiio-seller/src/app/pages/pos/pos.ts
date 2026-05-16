@@ -222,6 +222,7 @@ export class Pos implements OnInit, OnDestroy {
       })),
     }).subscribe({
       next: sale => {
+        this.openWhatsApp();
         this.savedSale.set(sale.id);
         this.cart.set([]);
         this.customerName.set('');
@@ -239,6 +240,45 @@ export class Pos implements OnInit, OnDestroy {
   }
 
   dismissSuccess() { this.savedSale.set(null); }
+
+  private openWhatsApp() {
+    const phone = this.customerPhone().trim();
+    if (!phone) return;
+    const digits = phone.replace(/\D/g, '');
+    const wa = digits.startsWith('57') ? digits : `57${digits}`;
+    window.open(`https://wa.me/${wa}?text=${encodeURIComponent(this.buildReceipt())}`, '_blank');
+  }
+
+  private buildReceipt(): string {
+    const isFabricar = this.saleType() === 'FABRICAR';
+    const lines: string[] = [];
+
+    lines.push('*Guiio* 🛍️');
+    if (isFabricar) {
+      lines.push('📋 *Pedido a fabricar*');
+      lines.push(`📅 Creación: ${this.formatDateShort(this.orderDate())}`);
+      lines.push(`🚚 Entrega estimada: ${this.formatDateShort(this.deliveryDate())}`);
+    } else {
+      lines.push(`📅 ${this.formatDate(this.orderDate())}`);
+    }
+    if (this.customerName()) lines.push(`👤 ${this.customerName()}`);
+    if (this.notes()) lines.push(`📝 ${this.notes()}`);
+
+    lines.push('');
+    lines.push('*Productos:*');
+    for (const item of this.cart()) {
+      const total = this.formatPrice(item.product.price * item.quantity);
+      lines.push(`• ${item.product.name} - T. ${item.size}${item.quantity > 1 ? ` (x${item.quantity})` : ''} → ${total}`);
+      if (item.note) lines.push(`  _${item.note}_`);
+    }
+
+    lines.push('');
+    lines.push(`*Total: ${this.formatPrice(this.cartTotal())}*`);
+    lines.push('');
+    lines.push(isFabricar ? 'Te avisaremos cuando tu pedido esté listo ✨' : '¡Gracias por tu compra! 🙏');
+
+    return lines.join('\n');
+  }
 
   ngOnDestroy() {
     if (this.searchTimer) clearTimeout(this.searchTimer);
