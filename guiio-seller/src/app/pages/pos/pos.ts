@@ -185,6 +185,10 @@ export class Pos implements OnInit, OnDestroy {
     return Math.max(0, inv - inCart);
   }
 
+  rawStockFor(productId: string, size: string): number {
+    return this.inventory().find(i => i.productId === productId && i.size === size)?.quantity ?? 0;
+  }
+
   sizesFor(p: Product): string[] { return productSizes(p); }
 
   openProduct(p: Product) {
