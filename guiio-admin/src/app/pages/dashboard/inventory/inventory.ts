@@ -46,6 +46,13 @@ export class Inventory {
   protected draftQuantities = signal<Record<string, Record<string, number>>>({});
   protected savingDraft = signal(false);
 
+  // ── By-sede view ──
+  protected viewMode = signal<'overview' | 'by-sede'>('overview');
+  protected selectedSedeId = signal<string | null>(null);
+  protected batchDraft = signal<Record<string, Record<string, number>>>({});
+  protected savingBatch = signal(false);
+  protected batchSaved = signal(false);
+
   protected productCollections = computed(() => {
     const seen = new Set<string>();
     const result: string[] = [];
@@ -97,6 +104,31 @@ export class Inventory {
   protected expandedSizes = computed(() => {
     const p = this.expandedProduct();
     return p ? productSizes(p) : [];
+  });
+
+  protected selectedSede = computed(() => {
+    const id = this.selectedSedeId();
+    return id ? this.sedes().find(s => s.id === id) ?? null : null;
+  });
+
+  protected batchRows = computed(() =>
+    this.filteredProducts().map(p => ({ product: p, sizes: productSizes(p) })),
+  );
+
+  protected batchChangesCount = computed(() => {
+    const sedeId = this.selectedSedeId();
+    if (!sedeId) return 0;
+    const draft = this.batchDraft();
+    let count = 0;
+    for (const [productId, sizeMap] of Object.entries(draft)) {
+      for (const [size, qty] of Object.entries(sizeMap)) {
+        const current = this.inventoryItems().find(
+          i => i.productId === productId && i.size === size && i.sedeId === sedeId,
+        )?.quantity ?? 0;
+        if (qty !== current) count++;
+      }
+    }
+    return count;
   });
 
   constructor() { this.loadAll(); }
@@ -234,5 +266,85 @@ export class Inventory {
         this.deletingSedeId.set(null);
       },
     });
+  }
+
+  // ── By-sede view ──
+
+  switchToBySedeView() {
+    this.viewMode.set('by-sede');
+    if (!this.selectedSedeId() && this.sedes().length > 0) {
+      this.selectSede(this.sedes()[0].id);
+    }
+  }
+
+  selectSede(sedeId: string) {
+    this.selectedSedeId.set(sedeId);
+    this.batchSaved.set(false);
+    const draft: Record<string, Record<string, number>> = {};
+    for (const p of this.products()) {
+      draft[p.id] = {};
+      for (const size of productSizes(p)) {
+        const item = this.inventoryItems().find(
+          i => i.productId === p.id && i.size === size && i.sedeId === sedeId,
+        );
+        draft[p.id][size] = item?.quantity ?? 0;
+      }
+    }
+    this.batchDraft.set(draft);
+  }
+
+  setBatchQty(productId: string, size: string, value: number) {
+    this.batchDraft.update(d => ({
+      ...d,
+      [productId]: { ...d[productId], [size]: Math.max(0, isNaN(value) ? 0 : value) },
+    }));
+  }
+
+  draftTotalForProduct(productId: string, sizes: string[]): number {
+    const draft = this.batchDraft();
+    return sizes.reduce((sum, size) => sum + (draft[productId]?.[size] ?? 0), 0);
+  }
+
+  saveBatch() {
+    const sedeId = this.selectedSedeId();
+    if (!sedeId) return;
+    const draft = this.batchDraft();
+    const entries: { productId: string; size: string; qty: number }[] = [];
+    for (const [productId, sizeMap] of Object.entries(draft)) {
+      for (const [size, qty] of Object.entries(sizeMap)) {
+        const current = this.inventoryItems().find(
+          i => i.productId === productId && i.size === size && i.sedeId === sedeId,
+        )?.quantity ?? 0;
+        if (qty !== current) entries.push({ productId, size, qty });
+      }
+    }
+    if (entries.length === 0) return;
+    this.savingBatch.set(true);
+    this.batchSaved.set(false);
+    let remaining = entries.length;
+    const saved: InventoryItem[] = [];
+    for (const { productId, size, qty } of entries) {
+      this.inventoryApi.upsert(sedeId, productId, size, qty).subscribe({
+        next: item => {
+          saved.push(item);
+          if (--remaining === 0) {
+            this.inventoryItems.update(items => {
+              let list = [...items];
+              for (const newItem of saved) {
+                const idx = list.findIndex(
+                  i => i.productId === newItem.productId && i.size === newItem.size && i.sedeId === newItem.sedeId,
+                );
+                list = idx >= 0 ? list.map((it, i) => i === idx ? newItem : it) : [...list, newItem];
+              }
+              return list;
+            });
+            this.savingBatch.set(false);
+            this.batchSaved.set(true);
+            setTimeout(() => this.batchSaved.set(false), 3000);
+          }
+        },
+        error: () => { if (--remaining === 0) this.savingBatch.set(false); },
+      });
+    }
   }
 }
