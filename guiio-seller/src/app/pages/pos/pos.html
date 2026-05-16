@@ -214,10 +214,16 @@
                 <div class="flex flex-wrap gap-1">
                   @for (size of sizesFor(p); track size) {
                     @let qty = rawStockFor(p.id, size);
-                    <span
-                      class="text-[10px] px-1.5 py-0.5 rounded-md font-medium leading-none"
-                      [class]="qty > 0 ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'"
-                    >{{ size }} {{ qty }}</span>
+                    <div
+                      class="flex flex-col items-center px-1.5 py-1 rounded-md"
+                      style="gap:7px"
+                      [class]="qty > 0 ? 'bg-green-500/15' : 'bg-red-500/15'"
+                    >
+                      <span class="text-[10px] font-medium leading-none"
+                        [class]="qty > 0 ? 'text-green-400' : 'text-red-400'">{{ size }}</span>
+                      <span class="text-[10px] font-semibold leading-none"
+                        [class]="qty > 0 ? 'text-green-400' : 'text-red-400'">{{ qty }}</span>
+                    </div>
                   }
                 </div>
               </div>
