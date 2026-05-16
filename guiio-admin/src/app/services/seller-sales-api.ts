@@ -12,6 +12,7 @@ export interface SaleItem {
   size: string;
   quantity: number;
   price: number;
+  note: string | null;
 }
 
 export interface SellerSale {
