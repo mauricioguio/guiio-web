@@ -77,13 +77,14 @@ model Sale {
 }
 
 model SaleItem {
-  id          String @id @default(cuid())
+  id          String  @id @default(cuid())
   saleId      String
   productId   String
   productName String
   size        String
   quantity    Int
   price       Float
+  note        String?
 
   sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
 }

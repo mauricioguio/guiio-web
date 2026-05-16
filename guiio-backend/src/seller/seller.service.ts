@@ -47,7 +47,7 @@ export class SellerService {
     type: 'STOCK' | 'FABRICAR';
     customerName?: string;
     notes?: string;
-    items: { productId: string; productName: string; size: string; quantity: number; price: number }[];
+    items: { productId: string; productName: string; size: string; quantity: number; price: number; note?: string }[];
   }) {
     if (!data.items?.length) throw new BadRequestException('La venta debe tener al menos un producto');
 

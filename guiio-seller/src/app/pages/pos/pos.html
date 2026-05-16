@@ -197,6 +197,9 @@
             <div class="min-w-0">
               <p class="text-white text-xs font-medium truncate">{{ item.product.name }}</p>
               <p class="text-gray-500 text-xs mt-0.5">T. {{ item.size }} · {{ formatPrice(item.product.price) }}</p>
+              @if (item.note) {
+                <p class="text-yellow-500/80 text-xs mt-0.5 italic truncate">{{ item.note }}</p>
+              }
             </div>
             <div class="flex items-center gap-1">
               <button
@@ -347,6 +350,9 @@
             <div class="min-w-0">
               <p class="text-white text-xs font-medium truncate">{{ item.product.name }}</p>
               <p class="text-gray-500 text-xs mt-0.5">T. {{ item.size }} · {{ formatPrice(item.product.price) }}</p>
+              @if (item.note) {
+                <p class="text-yellow-500/80 text-xs mt-0.5 italic truncate">{{ item.note }}</p>
+              }
             </div>
             <div class="flex items-center gap-1">
               <button
@@ -437,6 +443,16 @@
               }
             </button>
           }
+        </div>
+        <div class="mb-5">
+          <p class="text-gray-400 text-xs uppercase tracking-wider mb-1.5">Observación (opcional)</p>
+          <input
+            type="text"
+            placeholder="Ej: con bordado, talla especial..."
+            [value]="selectedNote()"
+            (input)="selectedNote.set($any($event.target).value)"
+            class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+          />
         </div>
         <button
           (click)="addToCart()"

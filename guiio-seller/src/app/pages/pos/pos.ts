@@ -7,6 +7,7 @@ export interface CartItem {
   product: Product;
   size: string;
   quantity: number;
+  note: string;
 }
 
 function productSizes(p: Product): string[] {
@@ -42,6 +43,7 @@ export class Pos implements OnInit {
 
   protected selectedProduct = signal<Product | null>(null);
   protected selectedSize = signal('');
+  protected selectedNote = signal('');
 
   protected collections = computed(() => {
     const seen = new Set<string>();
@@ -90,7 +92,7 @@ export class Pos implements OnInit {
   stockFor(productId: string, size: string): number {
     if (this.saleType() === 'FABRICAR') return Infinity;
     const inv = this.inventory().find(i => i.productId === productId && i.size === size)?.quantity ?? 0;
-    const inCart = this.cart().find(i => i.product.id === productId && i.size === size)?.quantity ?? 0;
+    const inCart = this.cart().filter(i => i.product.id === productId && i.size === size).reduce((s, i) => s + i.quantity, 0);
     return Math.max(0, inv - inCart);
   }
 
@@ -100,6 +102,7 @@ export class Pos implements OnInit {
     this.selectedProduct.set(p);
     const sizes = productSizes(p);
     this.selectedSize.set(sizes[0] ?? '');
+    this.selectedNote.set('');
   }
 
   addToCart() {
@@ -107,12 +110,13 @@ export class Pos implements OnInit {
     const size = this.selectedSize();
     if (!p || !size) return;
     if (this.saleType() === 'STOCK' && this.stockFor(p.id, size) <= 0) return;
+    const note = this.selectedNote().trim();
     this.cart.update(items => {
-      const idx = items.findIndex(i => i.product.id === p.id && i.size === size);
+      const idx = items.findIndex(i => i.product.id === p.id && i.size === size && i.note === note);
       if (idx >= 0) {
         return items.map((it, i) => i === idx ? { ...it, quantity: it.quantity + 1 } : it);
       }
-      return [...items, { product: p, size, quantity: 1 }];
+      return [...items, { product: p, size, quantity: 1, note }];
     });
     this.selectedProduct.set(null);
   }
@@ -126,7 +130,8 @@ export class Pos implements OnInit {
     if (this.saleType() === 'STOCK') {
       const item = this.cart()[idx];
       const inv = this.inventory().find(i => i.productId === item.product.id && i.size === item.size)?.quantity ?? 0;
-      qty = Math.min(qty, inv);
+      const otherLines = this.cart().filter((it, i) => i !== idx && it.product.id === item.product.id && it.size === item.size).reduce((s, it) => s + it.quantity, 0);
+      qty = Math.min(qty, inv - otherLines);
       if (qty <= 0) { this.removeFromCart(idx); return; }
     }
     this.cart.update(items => items.map((it, i) => i === idx ? { ...it, quantity: qty } : it));
@@ -146,6 +151,7 @@ export class Pos implements OnInit {
         size: i.size,
         quantity: i.quantity,
         price: i.product.price,
+        note: i.note || undefined,
       })),
     }).subscribe({
       next: sale => {
