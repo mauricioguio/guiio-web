@@ -89,8 +89,9 @@ export class Pos implements OnInit {
 
   stockFor(productId: string, size: string): number {
     if (this.saleType() === 'FABRICAR') return Infinity;
-    const item = this.inventory().find(i => i.productId === productId && i.size === size);
-    return item?.quantity ?? 0;
+    const inv = this.inventory().find(i => i.productId === productId && i.size === size)?.quantity ?? 0;
+    const inCart = this.cart().find(i => i.product.id === productId && i.size === size)?.quantity ?? 0;
+    return Math.max(0, inv - inCart);
   }
 
   sizesFor(p: Product): string[] { return productSizes(p); }
@@ -105,6 +106,7 @@ export class Pos implements OnInit {
     const p = this.selectedProduct();
     const size = this.selectedSize();
     if (!p || !size) return;
+    if (this.saleType() === 'STOCK' && this.stockFor(p.id, size) <= 0) return;
     this.cart.update(items => {
       const idx = items.findIndex(i => i.product.id === p.id && i.size === size);
       if (idx >= 0) {
@@ -121,6 +123,12 @@ export class Pos implements OnInit {
 
   updateQty(idx: number, qty: number) {
     if (qty <= 0) { this.removeFromCart(idx); return; }
+    if (this.saleType() === 'STOCK') {
+      const item = this.cart()[idx];
+      const inv = this.inventory().find(i => i.productId === item.product.id && i.size === item.size)?.quantity ?? 0;
+      qty = Math.min(qty, inv);
+      if (qty <= 0) { this.removeFromCart(idx); return; }
+    }
     this.cart.update(items => items.map((it, i) => i === idx ? { ...it, quantity: qty } : it));
   }
 
