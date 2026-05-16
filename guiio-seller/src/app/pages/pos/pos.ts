@@ -211,10 +211,21 @@ export class Pos implements OnInit, OnDestroy {
     const items = this.cart();
     if (!items.length) return;
     this.saving.set(true);
+
+    // Abrir ventana en blanco inmediatamente (sincrónico) para evitar bloqueo de popup
+    const phone = this.customerPhone().trim();
+    const digits = phone.replace(/\D/g, '');
+    const wa = digits.startsWith('57') ? digits : `57${digits}`;
+    const firstName = this.customerName().trim().split(' ')[0];
+    const waText = firstName
+      ? `Hola ${firstName}, aquí está tu recibo de Guiio 🛍️`
+      : 'Hola, aquí está tu recibo de Guiio 🛍️';
+    const waWindow = phone ? window.open('about:blank', '_blank') : null;
+
     this.api.createSale({
       type: this.saleType(),
       customerName: this.customerName() || undefined,
-      customerPhone: this.customerPhone().trim() || undefined,
+      customerPhone: phone || undefined,
       notes: this.notes() || undefined,
       deliveryDate: this.saleType() === 'FABRICAR' ? this.deliveryDateInput() : undefined,
       items: items.map(i => ({
@@ -239,9 +250,25 @@ export class Pos implements OnInit, OnDestroy {
         this.orderDate.set(new Date());
         this.deliveryDate.set(this.calcDeliveryDate(new Date()));
         this.loadData();
-        if (blob) this.shareOrDownload(blob);
+
+        if (blob) {
+          try {
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+            this.clipboardCopied.set(true);
+            setTimeout(() => this.clipboardCopied.set(false), 8000);
+          } catch {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'recibo-guiio.png'; a.click();
+            URL.revokeObjectURL(url);
+          }
+        }
+
+        if (waWindow) {
+          waWindow.location.href = `https://web.whatsapp.com/send?phone=${wa}&text=${encodeURIComponent(waText)}`;
+        }
       },
-      error: () => this.saving.set(false),
+      error: () => { this.saving.set(false); waWindow?.close(); },
     });
   }
 
@@ -261,34 +288,6 @@ export class Pos implements OnInit, OnDestroy {
     }
   }
 
-  private async shareOrDownload(blob: Blob) {
-    const phone = this.customerPhone().trim();
-    const digits = phone.replace(/\D/g, '');
-    const wa = digits.startsWith('57') ? digits : `57${digits}`;
-    const firstName = this.customerName().trim().split(' ')[0];
-    const waText = firstName
-      ? `Hola ${firstName}, aquí está tu recibo de Guiio 🛍️`
-      : 'Hola, aquí está tu recibo de Guiio 🛍️';
-
-    // Copiar imagen al portapapeles
-    try {
-      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-      this.clipboardCopied.set(true);
-      setTimeout(() => this.clipboardCopied.set(false), 8000);
-    } catch {
-      // Portapapeles no soportado → descargar
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'recibo-guiio.png'; a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    // Abrir WhatsApp Web directamente al chat del cliente
-    if (phone) {
-      const url = `https://web.whatsapp.com/send?phone=${wa}&text=${encodeURIComponent(waText)}`;
-      setTimeout(() => window.open(url, '_blank'), 300);
-    }
-  }
 
   ngOnDestroy() {
     if (this.searchTimer) clearTimeout(this.searchTimer);
