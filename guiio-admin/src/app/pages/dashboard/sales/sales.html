@@ -27,8 +27,8 @@
         [class]="filterStatus() === 'ALL'
           ? 'bg-white text-gray-900 border-white'
           : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-600'"
-      >Todos los estados</button>
-      @for (s of statuses; track s) {
+      >Todos</button>
+      @for (s of allStatuses; track s) {
         <button
           (click)="filterStatus.set(s)"
           class="text-xs px-3 py-1.5 rounded-xl border transition-colors"
@@ -51,14 +51,29 @@
   } @else {
     <div class="space-y-3">
       @for (sale of filtered(); track sale.id) {
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+
+        @let badge = urgencyBadge(sale);
+
+        <div
+          class="bg-gray-900 border rounded-2xl overflow-hidden transition-colors"
+          [class]="urgencyBorderClass(sale)"
+        >
 
           <!-- Fila principal -->
           <div
-            class="p-5 flex items-center gap-4 cursor-pointer hover:bg-gray-900/80 transition-colors"
+            class="p-5 flex items-center gap-4 cursor-pointer hover:bg-gray-800/30 transition-colors relative"
             (click)="expandedId.set(expandedId() === sale.id ? null : sale.id)"
           >
-            <!-- Sede + tipo -->
+
+            <!-- Badge de urgencia (esquina superior derecha) -->
+            @if (badge) {
+              <span
+                class="absolute top-3 right-10 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                [class]="badge.cls"
+              >{{ badge.text }}</span>
+            }
+
+            <!-- Info principal -->
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-1 flex-wrap">
                 <span class="text-white font-medium text-sm">{{ sale.sede.name }}</span>
@@ -69,13 +84,21 @@
                   <span class="text-gray-500 text-xs">· {{ sale.customerName }}</span>
                 }
               </div>
-              <p class="text-gray-500 text-xs">{{ formatDate(sale.createdAt) }} · {{ sale.items.length }} producto{{ sale.items.length !== 1 ? 's' : '' }}</p>
+              <div class="flex items-center gap-3 flex-wrap">
+                <p class="text-gray-500 text-xs">{{ formatDate(sale.createdAt) }}</p>
+                @if (sale.type === 'FABRICAR' && sale.deliveryDate) {
+                  <p class="text-gray-400 text-xs">
+                    Entrega: <span class="font-medium text-gray-300">{{ formatDateShort(sale.deliveryDate) }}</span>
+                  </p>
+                }
+                <p class="text-gray-600 text-xs">{{ sale.items.length }} producto{{ sale.items.length !== 1 ? 's' : '' }}</p>
+              </div>
             </div>
 
             <!-- Total -->
             <span class="text-white font-semibold text-sm shrink-0">{{ formatPrice(sale.total) }}</span>
 
-            <!-- Estado -->
+            <!-- Estado badge -->
             <div class="shrink-0">
               <span class="text-xs border px-2.5 py-1 rounded-full {{ statusClass(sale.status) }}">
                 {{ statusLabel(sale.status) }}
@@ -111,24 +134,25 @@
 
               <!-- Cambiar estado (solo FABRICAR) -->
               @if (sale.type === 'FABRICAR') {
-                <div>
-                  <p class="text-gray-500 text-xs uppercase tracking-wider mb-2">Cambiar estado</p>
-                  <div class="flex flex-wrap gap-2">
-                    @for (s of statuses; track s) {
-                      <button
-                        (click)="updateStatus(sale, s)"
-                        [disabled]="sale.status === s || updatingId() === sale.id"
-                        class="text-xs px-3 py-1.5 rounded-xl border transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                        [class]="sale.status === s
-                          ? statusClass(s) + ' border-current'
-                          : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-500'"
-                      >
-                        {{ updatingId() === sale.id && sale.status !== s ? '...' : statusLabel(s) }}
-                      </button>
+                <div class="flex items-center gap-3">
+                  <p class="text-gray-500 text-xs uppercase tracking-wider shrink-0">Estado</p>
+                  <select
+                    [value]="sale.status"
+                    (change)="updateStatus(sale, $any($event.target).value)"
+                    [disabled]="updatingId() === sale.id"
+                    class="flex-1 rounded-xl px-3 py-2 text-sm font-medium border focus:outline-none transition-colors disabled:opacity-40 cursor-pointer"
+                    [class]="selectClass(sale.status)"
+                  >
+                    @for (s of fabricarStatuses; track s) {
+                      <option [value]="s" class="bg-gray-900 text-white">{{ statusLabel(s) }}</option>
                     }
-                  </div>
+                  </select>
+                  @if (updatingId() === sale.id) {
+                    <span class="text-gray-500 text-xs shrink-0">Guardando...</span>
+                  }
                 </div>
               }
+
             </div>
           }
         </div>

@@ -21,6 +21,7 @@ export interface SellerSale {
   total: number;
   customerName: string | null;
   notes: string | null;
+  deliveryDate: string | null;
   createdAt: string;
   items: SaleItem[];
   sede: { id: string; name: string };
