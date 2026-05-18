@@ -23,7 +23,7 @@ export class Collection {
   protected readonly collectionInfo = computed<CollectionInfo | null>(() => {
     const name = this.collectionName();
     if (!name) return null;
-    return this.collectionService.getAll()().find(c => c.name === name) ?? null;
+    return this.collectionService.getAll()().find(c => c.name.toLowerCase() === name.toLowerCase()) ?? null;
   });
 
   protected readonly products = toSignal(

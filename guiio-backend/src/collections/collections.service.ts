@@ -38,7 +38,9 @@ export class CollectionsService {
   }
 
   async getProductsByName(name: string) {
-    const col = await this.prisma.collection.findUnique({ where: { name } });
+    const col = await this.prisma.collection.findFirst({
+      where: { name: { equals: name, mode: 'insensitive' } },
+    });
     if (!col) return [];
     return this.getProducts(col.id);
   }
