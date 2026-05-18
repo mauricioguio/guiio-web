@@ -1,4 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
+import { forkJoin } from 'rxjs';
 import { CollectionsApiService, Collection, CollectionPayload } from '../../../services/collections-api';
 import { ProductsApiService, Product } from '../../../services/products-api';
 import { CloudinaryService } from '../../../services/cloudinary';
@@ -36,6 +37,8 @@ export class Collections {
   protected draft = signal<Draft>(emptyDraft());
   protected productSearch = signal('');
   protected assigningId = signal<string | null>(null);
+  protected selectedProductIds = signal<Set<string>>(new Set());
+  protected addingBatch = signal(false);
 
   protected otherProducts = computed(() => {
     const inCollection = new Set(this.collectionProducts().map(p => p.id));
@@ -45,6 +48,13 @@ export class Collections {
       if (q && !p.name.toLowerCase().includes(q)) return false;
       return true;
     });
+  });
+
+  protected allOtherSelected = computed(() => {
+    const others = this.otherProducts();
+    if (others.length === 0) return false;
+    const sel = this.selectedProductIds();
+    return others.every(p => sel.has(p.id));
   });
 
   constructor() { this.load(); }
@@ -92,10 +102,44 @@ export class Collections {
     });
   }
 
+  toggleProductSelection(id: string) {
+    this.selectedProductIds.update(set => {
+      const next = new Set(set);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  toggleSelectAll() {
+    if (this.allOtherSelected()) {
+      this.selectedProductIds.set(new Set());
+    } else {
+      this.selectedProductIds.set(new Set(this.otherProducts().map(p => p.id)));
+    }
+  }
+
+  addSelected() {
+    const id = this.editingId();
+    if (!id) return;
+    const selected = this.selectedProductIds();
+    const toAdd = this.otherProducts().filter(p => selected.has(p.id));
+    if (toAdd.length === 0) return;
+    this.addingBatch.set(true);
+    forkJoin(toAdd.map(p => this.api.addProduct(id, p.id))).subscribe({
+      next: () => {
+        this.collectionProducts.update(list => [...list, ...toAdd]);
+        this.selectedProductIds.set(new Set());
+        this.addingBatch.set(false);
+      },
+      error: () => this.addingBatch.set(false),
+    });
+  }
+
   openCreate() {
     this.editingId.set(null);
     this.draft.set(emptyDraft());
     this.collectionProducts.set([]);
+    this.selectedProductIds.set(new Set());
     this.showForm.set(true);
   }
 
@@ -109,6 +153,7 @@ export class Collections {
       order: c.order,
     });
     this.collectionProducts.set([]);
+    this.selectedProductIds.set(new Set());
     this.loadCollectionProducts(c.id);
     this.showForm.set(true);
   }
@@ -116,6 +161,7 @@ export class Collections {
   closeForm() {
     this.showForm.set(false);
     this.editingId.set(null);
+    this.selectedProductIds.set(new Set());
   }
 
   patch(p: Partial<Draft>) {
