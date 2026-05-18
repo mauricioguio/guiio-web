@@ -1,9 +1,9 @@
 <a [routerLink]="['/producto', product().id]"
    class="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
   <!-- Image -->
-  <div class="aspect-[3/4] bg-gray-100 overflow-hidden relative">
+  <div class="aspect-[2/3] bg-gray-100 overflow-hidden relative">
     <img [src]="product().images[0]" [alt]="product().name"
-         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+         class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
          onerror="this.style.display='none'">
     @if (!product().inStock) {
       <span class="absolute top-3 left-3 bg-gray-900 text-white text-xs px-2 py-1 rounded">
