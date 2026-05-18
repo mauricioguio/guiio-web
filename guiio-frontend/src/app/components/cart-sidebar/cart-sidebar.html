@@ -36,7 +36,7 @@
           <li class="flex gap-4">
             <div class="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0">
               <img [src]="item.product.images[0]" [alt]="item.product.name"
-                   class="w-full h-full object-cover" onerror="this.src='/assets/placeholder.jpg'">
+                   class="w-full h-full object-cover" onerror="this.style.display='none'">
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-medium text-gray-900 truncate">{{ item.product.name }}</p>
