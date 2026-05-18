@@ -184,6 +184,7 @@ enum OrderStatus {
 model HeroSettings {
   id              String   @id @default("singleton")
   backgroundImage String?
+  imagePosition   String?
   badge           String?
   title           String?
   subtitle        String?

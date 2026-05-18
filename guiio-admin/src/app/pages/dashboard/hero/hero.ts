@@ -18,6 +18,7 @@ export class HeroPage {
   protected saved = signal(false);
 
   protected backgroundImage = signal<string | null>(null);
+  protected imagePosition = signal<string>('50% 50%');
   protected badge = signal<string>('');
   protected badgeEnabled = signal(true);
   protected title = signal<string>('');
@@ -33,6 +34,7 @@ export class HeroPage {
     this.api.get().subscribe({
       next: (data) => {
         this.backgroundImage.set(data.backgroundImage);
+        this.imagePosition.set(data.imagePosition ?? '50% 50%');
         this.badge.set(data.badge ?? '');
         this.badgeEnabled.set(!!data.badge);
         this.title.set(data.title ?? '');
@@ -58,6 +60,23 @@ export class HeroPage {
 
   removeImage() {
     this.backgroundImage.set(null);
+    this.imagePosition.set('50% 50%');
+  }
+
+  onFocalPointClick(event: MouseEvent) {
+    const el = event.currentTarget as HTMLElement;
+    const rect = el.getBoundingClientRect();
+    const x = Math.round(((event.clientX - rect.left) / rect.width) * 100);
+    const y = Math.round(((event.clientY - rect.top) / rect.height) * 100);
+    this.imagePosition.set(`${x}% ${y}%`);
+  }
+
+  focalX() {
+    return parseFloat(this.imagePosition().split(' ')[0]) ?? 50;
+  }
+
+  focalY() {
+    return parseFloat(this.imagePosition().split(' ')[1]) ?? 50;
   }
 
   addButton() {
@@ -78,6 +97,7 @@ export class HeroPage {
     this.saving.set(true);
     const payload: Partial<HeroSettings> = {
       backgroundImage: this.backgroundImage(),
+      imagePosition: this.imagePosition(),
       badge: this.badgeEnabled() ? (this.badge() || null) : null,
       title: this.titleEnabled() ? (this.title() || null) : null,
       subtitle: this.subtitleEnabled() ? (this.subtitle() || null) : null,

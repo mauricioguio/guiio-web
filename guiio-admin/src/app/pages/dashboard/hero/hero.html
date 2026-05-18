@@ -16,23 +16,50 @@
       </div>
       <div class="p-4">
         @if (backgroundImage()) {
-          <div class="relative mb-3">
-            <img [src]="backgroundImage()!" alt="Hero" class="w-full h-40 object-cover object-top rounded-xl" />
+          <!-- Focal point selector -->
+          <div class="mb-2">
+            <p class="text-gray-500 text-xs mb-1.5">Haz clic en la imagen para mover el foco</p>
+            <div
+              class="relative w-full h-52 rounded-xl overflow-hidden cursor-crosshair select-none"
+              (click)="onFocalPointClick($event)">
+              <img
+                [src]="backgroundImage()!"
+                alt="Hero"
+                class="w-full h-full object-cover pointer-events-none"
+                [style.object-position]="imagePosition()" />
+              <!-- Focal point dot -->
+              <div
+                class="absolute w-6 h-6 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                [style.left.%]="focalX()"
+                [style.top.%]="focalY()">
+                <div class="w-6 h-6 rounded-full border-2 border-white shadow-lg bg-white/20 flex items-center justify-center">
+                  <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                </div>
+              </div>
+            </div>
+            <p class="text-gray-600 text-xs mt-1">Posición: {{ imagePosition() }}</p>
+          </div>
+          <div class="flex gap-2">
+            <label class="cursor-pointer">
+              <input type="file" accept="image/*" class="hidden" (change)="onImagePick($event)" [disabled]="uploadingImage()">
+              <span class="block px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-xs rounded-xl transition-colors border border-gray-700">
+                {{ uploadingImage() ? 'Subiendo...' : 'Cambiar imagen' }}
+              </span>
+            </label>
             <button
               (click)="removeImage()"
-              class="absolute top-2 right-2 bg-black/60 hover:bg-red-500/80 text-white rounded-lg w-7 h-7 flex items-center justify-center transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
+              class="px-4 py-2 bg-transparent hover:bg-red-500/10 text-red-400 text-xs rounded-xl transition-colors border border-red-500/20">
+              Quitar imagen
             </button>
           </div>
+        } @else {
+          <label class="flex items-center gap-2 cursor-pointer w-fit">
+            <input type="file" accept="image/*" class="hidden" (change)="onImagePick($event)" [disabled]="uploadingImage()">
+            <span class="block px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-xs rounded-xl transition-colors border border-gray-700">
+              {{ uploadingImage() ? 'Subiendo...' : '+ Subir imagen' }}
+            </span>
+          </label>
         }
-        <label class="flex items-center gap-2 cursor-pointer w-fit">
-          <input type="file" accept="image/*" class="hidden" (change)="onImagePick($event)" [disabled]="uploadingImage()">
-          <span class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-xs rounded-xl transition-colors border border-gray-700">
-            {{ uploadingImage() ? 'Subiendo...' : backgroundImage() ? 'Cambiar imagen' : '+ Subir imagen' }}
-          </span>
-        </label>
       </div>
     </div>
 

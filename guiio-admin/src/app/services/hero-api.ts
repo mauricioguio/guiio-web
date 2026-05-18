@@ -12,6 +12,7 @@ export interface HeroButton {
 
 export interface HeroSettings {
   backgroundImage: string | null;
+  imagePosition: string | null;
   badge: string | null;
   title: string | null;
   subtitle: string | null;

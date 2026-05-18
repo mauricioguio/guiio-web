@@ -11,6 +11,7 @@ export interface HeroButton {
 
 export interface HeroSettings {
   backgroundImage: string | null;
+  imagePosition: string | null;
   badge: string | null;
   title: string | null;
   subtitle: string | null;
@@ -19,6 +20,7 @@ export interface HeroSettings {
 
 const DEFAULT: HeroSettings = {
   backgroundImage: null,
+  imagePosition: 'center center',
   badge: 'Uniformes médicos premium',
   title: 'Así como tú cuidas de ellos, nosotros cuidamos de ti',
   subtitle: 'Más de 18 años confeccionando uniformes de alta calidad para profesionales de la salud.',

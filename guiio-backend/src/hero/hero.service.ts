@@ -24,6 +24,7 @@ export class HeroService {
 
   update(data: {
     backgroundImage?: string | null;
+    imagePosition?: string | null;
     badge?: string | null;
     title?: string | null;
     subtitle?: string | null;
