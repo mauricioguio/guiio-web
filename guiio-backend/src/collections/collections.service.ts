@@ -38,9 +38,10 @@ export class CollectionsService {
   }
 
   async getProductsByName(name: string) {
-    const col = await this.prisma.collection.findFirst({
-      where: { name: { equals: name, mode: 'insensitive' } },
-    });
+    const normalize = (s: string) =>
+      s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+    const all = await this.prisma.collection.findMany();
+    const col = all.find(c => normalize(c.name) === normalize(name));
     if (!col) return [];
     return this.getProducts(col.id);
   }

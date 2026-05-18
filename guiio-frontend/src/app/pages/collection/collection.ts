@@ -6,6 +6,7 @@ import { switchMap, map, startWith } from 'rxjs';
 import { CollectionService, Collection as CollectionInfo } from '../../services/collection';
 import { Product } from '../../models/product';
 import { ProductCard } from '../../components/product-card/product-card';
+import { slugify } from '../../utils/slugify';
 
 @Component({
   selector: 'app-collection',
@@ -23,7 +24,7 @@ export class Collection {
   protected readonly collectionInfo = computed<CollectionInfo | null>(() => {
     const name = this.collectionName();
     if (!name) return null;
-    return this.collectionService.getAll()().find(c => c.name.toLowerCase() === name.toLowerCase()) ?? null;
+    return this.collectionService.getAll()().find(c => slugify(c.name) === slugify(name)) ?? null;
   });
 
   protected readonly products = toSignal(

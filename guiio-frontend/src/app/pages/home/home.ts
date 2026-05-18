@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { ProductService } from '../../services/product';
 import { CollectionService } from '../../services/collection';
 import { ProductCard } from '../../components/product-card/product-card';
+import { slugify } from '../../utils/slugify';
 
 @Component({
   selector: 'app-home',
@@ -21,4 +22,6 @@ export class Home {
   protected readonly collections = computed(() =>
     this.collectionService.getAll()().sort((a, b) => a.order - b.order)
   );
+
+  protected readonly slugify = slugify;
 }
