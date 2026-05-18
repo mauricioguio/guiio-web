@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-const API_URL = 'https://guiio-backend.onrender.com/api';
+const API_URL = 'https://guiio-web-production.up.railway.app/api';
 const ADMIN_KEY = 'guiio-admin-key-2024';
 const headers = { 'x-admin-key': ADMIN_KEY };
 

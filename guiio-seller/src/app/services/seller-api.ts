@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth';
 
-const API = 'https://guiio-backend.onrender.com/api/seller';
+const API = 'https://guiio-web-production.up.railway.app/api/seller';
 
 export interface Sede { id: string; name: string; }
 

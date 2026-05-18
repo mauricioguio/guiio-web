@@ -6,7 +6,7 @@ import { CartService } from './cart';
 export class PaymentService {
   private readonly http = inject(HttpClient);
   private readonly cart = inject(CartService);
-  private readonly apiUrl = 'https://guiio-backend.onrender.com/api';
+  private readonly apiUrl = 'https://guiio-web-production.up.railway.app/api';
 
   createPreference(customer: {
     name: string; email: string; phone: string;

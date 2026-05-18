@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Product } from './products-api';
 
-const API_URL = 'https://guiio-backend.onrender.com/api';
+const API_URL = 'https://guiio-web-production.up.railway.app/api';
 const ADMIN_KEY = 'guiio-admin-key-2024';
 
 export interface Collection {
