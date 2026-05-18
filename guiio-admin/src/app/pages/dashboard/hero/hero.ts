@@ -52,7 +52,7 @@ export class HeroPage {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     this.uploadingImage.set(true);
-    this.cloudinary.upload(file).subscribe({
+    this.cloudinary.uploadRaw(file).subscribe({
       next: url => { this.backgroundImage.set(url); this.uploadingImage.set(false); },
       error: () => this.uploadingImage.set(false),
     });

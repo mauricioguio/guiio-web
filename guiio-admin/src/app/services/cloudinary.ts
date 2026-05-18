@@ -35,6 +35,16 @@ export class CloudinaryService {
     });
   }
 
+  uploadRaw(file: File) {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('upload_preset', UPLOAD_PRESET);
+    return this.http.post<{ secure_url: string }>(
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      form,
+    ).pipe(map(res => res.secure_url));
+  }
+
   upload(file: File) {
     return from(this.toWebP(file)).pipe(
       switchMap(webp => {
