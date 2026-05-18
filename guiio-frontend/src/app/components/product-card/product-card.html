@@ -4,6 +4,7 @@
   <div class="aspect-[3/4] bg-gray-100 overflow-hidden relative">
     <img [src]="product().images[0]" [alt]="product().name"
          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+         loading="lazy"
          onerror="this.style.display='none'">
     @if (!product().inStock) {
       <span class="absolute top-3 left-3 bg-gray-900 text-white text-xs px-2 py-1 rounded">
