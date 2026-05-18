@@ -1,6 +1,7 @@
 @if (collectionInfo()) {
   <!-- Hero de colección -->
-  <section class="flex flex-col md:flex-row items-stretch min-h-[560px] border-b border-gray-100">
+  <section class="border-b border-gray-100">
+  <div class="max-w-[1440px] mx-auto flex flex-col md:flex-row items-stretch min-h-[560px]">
     <!-- Imagen -->
     <div class="w-full md:w-1/2 bg-gray-50 flex items-center justify-center overflow-hidden">
       @if (collectionInfo()!.image) {
@@ -29,10 +30,11 @@
         </a>
       </div>
     </div>
+  </div>
   </section>
 
   <!-- Grid de productos -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+  <section class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
     <div class="flex items-end justify-between mb-10">
       <div>
         <p class="text-sm uppercase tracking-widest text-gray-400 mb-1">{{ products()?.length ?? 0 }} productos</p>
