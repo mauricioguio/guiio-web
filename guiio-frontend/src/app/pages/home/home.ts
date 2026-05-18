@@ -29,5 +29,13 @@ export class Home {
       .sort((a, b) => a.order - b.order)
   );
 
+  protected readonly mujerCollection = computed(() =>
+    this.collectionService.getAll()().find(c => slugify(c.name) === 'mujer') ?? null
+  );
+
+  protected readonly hombreCollection = computed(() =>
+    this.collectionService.getAll()().find(c => slugify(c.name) === 'hombre') ?? null
+  );
+
   protected readonly slugify = slugify;
 }
