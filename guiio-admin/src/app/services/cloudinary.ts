@@ -18,6 +18,6 @@ export class CloudinaryService {
         `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
         form,
       )
-      .pipe(map(res => res.secure_url));
+      .pipe(map(res => res.secure_url.replace('/upload/', '/upload/f_auto,q_auto/')));
   }
 }
