@@ -50,9 +50,9 @@
       @for (product of filtered(); track product.id) {
         <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden transition-opacity" [class.opacity-50]="!product.active">
           @if (product.images[0]) {
-            <img [src]="product.images[0]" class="w-full aspect-[2/3] md:aspect-auto md:h-48 object-cover object-top bg-gray-800" />
+            <img [src]="product.images[0]" class="w-full aspect-[2/3] md:aspect-auto md:h-[21rem] object-cover object-top bg-gray-800" />
           } @else {
-            <div class="w-full aspect-[2/3] md:aspect-auto md:h-48 bg-gray-800 flex items-center justify-center">
+            <div class="w-full aspect-[2/3] md:aspect-auto md:h-[21rem] bg-gray-800 flex items-center justify-center">
               <span class="text-gray-600 text-xs">Sin imagen</span>
             </div>
           }
