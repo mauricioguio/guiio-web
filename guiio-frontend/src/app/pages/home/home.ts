@@ -2,6 +2,7 @@ import { Component, inject, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProductService } from '../../services/product';
 import { CollectionService } from '../../services/collection';
+import { HeroService } from '../../services/hero';
 import { ProductCard } from '../../components/product-card/product-card';
 import { slugify } from '../../utils/slugify';
 
@@ -14,6 +15,9 @@ import { slugify } from '../../utils/slugify';
 export class Home {
   private readonly productService = inject(ProductService);
   private readonly collectionService = inject(CollectionService);
+  private readonly heroService = inject(HeroService);
+
+  protected readonly hero = this.heroService.getSettings();
 
   protected readonly featured = computed(() =>
     this.productService.getAll()().filter(p => p.featured)

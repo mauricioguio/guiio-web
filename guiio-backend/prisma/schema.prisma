@@ -180,3 +180,13 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
 }
+
+model HeroSettings {
+  id              String   @id @default("singleton")
+  backgroundImage String?
+  badge           String?
+  title           String?
+  subtitle        String?
+  buttons         Json     @default("[]")
+  updatedAt       DateTime @updatedAt
+}

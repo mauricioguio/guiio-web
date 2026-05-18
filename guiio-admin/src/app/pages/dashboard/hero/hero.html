@@ -1,0 +1,197 @@
+<div class="p-8 max-w-2xl">
+  <h2 class="text-white text-xl font-semibold mb-1">Hero principal</h2>
+  <p class="text-gray-500 text-sm mb-8">Configura la imagen, textos y botones del banner de inicio.</p>
+
+  @if (loading()) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-400 text-sm">Cargando...</p>
+    </div>
+  } @else {
+
+    <!-- Imagen de fondo -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden mb-4">
+      <div class="px-6 py-4 border-b border-gray-800">
+        <p class="text-white font-medium text-sm">Imagen de fondo</p>
+        <p class="text-gray-500 text-xs mt-0.5">Se muestra detrás del texto. Si no hay imagen, se ve el fondo oscuro.</p>
+      </div>
+      <div class="p-4">
+        @if (backgroundImage()) {
+          <div class="relative mb-3">
+            <img [src]="backgroundImage()!" alt="Hero" class="w-full h-40 object-cover object-top rounded-xl" />
+            <button
+              (click)="removeImage()"
+              class="absolute top-2 right-2 bg-black/60 hover:bg-red-500/80 text-white rounded-lg w-7 h-7 flex items-center justify-center transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        }
+        <label class="flex items-center gap-2 cursor-pointer w-fit">
+          <input type="file" accept="image/*" class="hidden" (change)="onImagePick($event)" [disabled]="uploadingImage()">
+          <span class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-xs rounded-xl transition-colors border border-gray-700">
+            {{ uploadingImage() ? 'Subiendo...' : backgroundImage() ? 'Cambiar imagen' : '+ Subir imagen' }}
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Textos -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden mb-4">
+      <div class="px-6 py-4 border-b border-gray-800">
+        <p class="text-white font-medium text-sm">Textos</p>
+      </div>
+      <div class="p-4 space-y-4">
+
+        <!-- Badge -->
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <button
+              (click)="badgeEnabled.set(!badgeEnabled())"
+              [class]="badgeEnabled()
+                ? 'w-9 h-5 bg-blue-500 rounded-full relative transition-colors'
+                : 'w-9 h-5 bg-gray-700 rounded-full relative transition-colors'">
+              <span [class]="badgeEnabled()
+                ? 'absolute top-0.5 right-0.5 w-4 h-4 bg-white rounded-full transition-all'
+                : 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-all'"></span>
+            </button>
+            <span class="text-gray-400 text-xs uppercase tracking-widest">Etiqueta superior</span>
+          </div>
+          @if (badgeEnabled()) {
+            <input
+              type="text"
+              [ngModel]="badge()"
+              (ngModelChange)="badge.set($event)"
+              placeholder="Ej: Uniformes médicos premium"
+              class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl px-3 py-2.5 placeholder-gray-600 focus:outline-none focus:border-gray-500">
+          }
+        </div>
+
+        <!-- Título -->
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <button
+              (click)="titleEnabled.set(!titleEnabled())"
+              [class]="titleEnabled()
+                ? 'w-9 h-5 bg-blue-500 rounded-full relative transition-colors'
+                : 'w-9 h-5 bg-gray-700 rounded-full relative transition-colors'">
+              <span [class]="titleEnabled()
+                ? 'absolute top-0.5 right-0.5 w-4 h-4 bg-white rounded-full transition-all'
+                : 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-all'"></span>
+            </button>
+            <span class="text-gray-400 text-xs uppercase tracking-widest">Título principal</span>
+          </div>
+          @if (titleEnabled()) {
+            <textarea
+              [ngModel]="title()"
+              (ngModelChange)="title.set($event)"
+              placeholder="Ej: Así como tú cuidas de ellos, nosotros cuidamos de ti"
+              rows="2"
+              class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl px-3 py-2.5 placeholder-gray-600 focus:outline-none focus:border-gray-500 resize-none"></textarea>
+          }
+        </div>
+
+        <!-- Subtítulo -->
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <button
+              (click)="subtitleEnabled.set(!subtitleEnabled())"
+              [class]="subtitleEnabled()
+                ? 'w-9 h-5 bg-blue-500 rounded-full relative transition-colors'
+                : 'w-9 h-5 bg-gray-700 rounded-full relative transition-colors'">
+              <span [class]="subtitleEnabled()
+                ? 'absolute top-0.5 right-0.5 w-4 h-4 bg-white rounded-full transition-all'
+                : 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-all'"></span>
+            </button>
+            <span class="text-gray-400 text-xs uppercase tracking-widest">Subtítulo</span>
+          </div>
+          @if (subtitleEnabled()) {
+            <textarea
+              [ngModel]="subtitle()"
+              (ngModelChange)="subtitle.set($event)"
+              placeholder="Ej: Más de 18 años confeccionando uniformes..."
+              rows="2"
+              class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl px-3 py-2.5 placeholder-gray-600 focus:outline-none focus:border-gray-500 resize-none"></textarea>
+          }
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden mb-6">
+      <div class="px-6 py-4 border-b border-gray-800">
+        <p class="text-white font-medium text-sm">Botones</p>
+        <p class="text-gray-500 text-xs mt-0.5">Máximo 3 botones. El enlace puede ser una ruta interna como /coleccion/mujer</p>
+      </div>
+      <div class="p-4 space-y-2">
+
+        @for (btn of buttons(); track $index; let i = $index) {
+          <div class="bg-gray-800 border border-gray-700 rounded-xl p-3 space-y-2">
+            <div class="flex items-center gap-2">
+              <!-- Estilo del botón -->
+              <div class="flex rounded-lg overflow-hidden border border-gray-700 shrink-0">
+                <button
+                  (click)="updateButton(i, 'variant', 'primary')"
+                  [class]="btn.variant === 'primary'
+                    ? 'px-2.5 py-1 text-xs bg-white text-gray-900 font-medium'
+                    : 'px-2.5 py-1 text-xs bg-transparent text-gray-500 hover:text-gray-300'">
+                  Relleno
+                </button>
+                <button
+                  (click)="updateButton(i, 'variant', 'outline')"
+                  [class]="btn.variant === 'outline'
+                    ? 'px-2.5 py-1 text-xs bg-white text-gray-900 font-medium'
+                    : 'px-2.5 py-1 text-xs bg-transparent text-gray-500 hover:text-gray-300'">
+                  Borde
+                </button>
+              </div>
+              <!-- Eliminar -->
+              <button
+                (click)="removeButton(i)"
+                class="ml-auto w-7 h-7 flex items-center justify-center text-gray-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <input
+                type="text"
+                [value]="btn.label"
+                (input)="updateButton(i, 'label', $any($event.target).value)"
+                placeholder="Texto del botón"
+                class="bg-gray-900 border border-gray-700 text-white text-xs rounded-lg px-3 py-2 placeholder-gray-600 focus:outline-none focus:border-gray-500">
+              <input
+                type="text"
+                [value]="btn.link"
+                (input)="updateButton(i, 'link', $any($event.target).value)"
+                placeholder="/coleccion/mujer"
+                class="bg-gray-900 border border-gray-700 text-white text-xs rounded-lg px-3 py-2 placeholder-gray-600 focus:outline-none focus:border-gray-500">
+            </div>
+          </div>
+        }
+
+        @if (buttons().length < 3) {
+          <button
+            (click)="addButton()"
+            class="w-full py-2 text-xs text-gray-500 hover:text-white border border-dashed border-gray-700 hover:border-gray-500 rounded-xl transition-colors">
+            + Agregar botón
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Guardar -->
+    <button
+      (click)="save()"
+      [disabled]="saving() || uploadingImage()"
+      class="w-full py-3 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+      [class]="saved()
+        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+        : 'bg-white text-gray-900 hover:bg-gray-100'">
+      {{ saved() ? 'Guardado' : saving() ? 'Guardando...' : 'Guardar cambios' }}
+    </button>
+
+  }
+</div>
