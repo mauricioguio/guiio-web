@@ -40,10 +40,20 @@ export class CollectionsService {
   async getProductsByName(name: string) {
     const normalize = (s: string) =>
       s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
-    const all = await this.prisma.collection.findMany();
-    const col = all.find(c => normalize(c.name) === normalize(name));
-    if (!col) return [];
-    return this.getProducts(col.id);
+    const target = normalize(name);
+
+    const products = await this.prisma.product.findMany({ where: { active: true } });
+    const byField = products
+      .filter(p => normalize(p.collection) === target)
+      .map(p => this.serialize(p));
+
+    // Also include products explicitly assigned via join table (extra assignments from admin)
+    const cols = await this.prisma.collection.findMany();
+    const col = cols.find(c => normalize(c.name) === target);
+    const byJoin = col ? await this.getProducts(col.id) : [];
+    const seenIds = new Set(byField.map(p => p.id));
+
+    return [...byField, ...byJoin.filter(p => !seenIds.has(p.id))];
   }
 
   async addProduct(collectionId: string, productId: string) {

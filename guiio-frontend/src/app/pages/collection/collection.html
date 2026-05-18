@@ -46,7 +46,9 @@
         }
       </div>
     } @else {
-      <p class="text-gray-400 text-sm py-12 text-center">Cargando productos...</p>
+      <p class="text-gray-400 text-sm py-12 text-center">
+        {{ products() === undefined ? 'Cargando productos...' : 'No hay productos en esta colección.' }}
+      </p>
     }
   </section>
 } @else {
