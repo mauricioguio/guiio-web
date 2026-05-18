@@ -55,21 +55,21 @@
 <!-- Colecciones destacadas (administrable desde admin → toggle "Destacada") -->
 @if (featuredCollections().length > 0) {
   <section class="py-12 bg-gray-50">
-    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         @for (col of featuredCollections(); track col.id) {
           <a [routerLink]="['/coleccion', slugify(col.name)]"
-             class="group relative h-80 rounded-2xl overflow-hidden bg-gray-200 flex items-end p-8">
+             class="group relative h-[40rem] rounded-2xl overflow-hidden bg-gray-200 flex items-center justify-center">
             @if (col.image) {
               <img [src]="col.image" [alt]="col.name"
                    class="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
             }
-            <div class="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-gray-900/10 group-hover:from-gray-900/80 transition-all"></div>
-            <div class="relative text-white">
-              <p class="text-xs uppercase tracking-widest mb-1 text-gray-300">Colección</p>
-              <h3 class="text-2xl font-bold mb-1">{{ col.name }}</h3>
+            <div class="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-gray-900/20 to-gray-900/10 group-hover:from-gray-900/70 transition-all"></div>
+            <div class="relative text-white text-center px-8">
+              <p class="text-xs uppercase tracking-widest mb-2 text-gray-300">Colección</p>
+              <h3 class="text-3xl font-bold mb-2">{{ col.name }}</h3>
               @if (col.description) {
-                <p class="text-sm text-gray-300 line-clamp-1">{{ col.description }}</p>
+                <p class="text-sm text-gray-300 line-clamp-2">{{ col.description }}</p>
               }
             </div>
           </a>
@@ -108,7 +108,7 @@
 
   <div class="max-w-[1024px] mx-auto">
     @for (col of mainCollections(); track col.id; let i = $index) {
-      <div class="flex flex-col md:flex-row md:h-[380px] border-t border-gray-100">
+      <div class="flex flex-col md:flex-row md:h-[525px] border-t border-gray-100">
         <!-- Imagen -->
         <div class="w-full md:w-1/2 bg-gray-50 overflow-hidden flex items-center justify-center h-64 md:h-full"
              [style.order]="i % 2 === 0 ? 2 : 1">
