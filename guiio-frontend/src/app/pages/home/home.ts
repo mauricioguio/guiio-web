@@ -23,18 +23,16 @@ export class Home {
     this.collectionService.getAll()().sort((a, b) => a.order - b.order)
   );
 
-  protected readonly mainCollections = computed(() =>
+  protected readonly featuredCollections = computed(() =>
     this.collectionService.getAll()()
-      .filter(c => !['hombre', 'mujer'].includes(slugify(c.name)))
+      .filter(c => c.featured)
       .sort((a, b) => a.order - b.order)
   );
 
-  protected readonly mujerCollection = computed(() =>
-    this.collectionService.getAll()().find(c => slugify(c.name) === 'mujer') ?? null
-  );
-
-  protected readonly hombreCollection = computed(() =>
-    this.collectionService.getAll()().find(c => slugify(c.name) === 'hombre') ?? null
+  protected readonly mainCollections = computed(() =>
+    this.collectionService.getAll()()
+      .filter(c => !c.featured)
+      .sort((a, b) => a.order - b.order)
   );
 
   protected readonly slugify = slugify;

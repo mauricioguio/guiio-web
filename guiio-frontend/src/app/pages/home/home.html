@@ -52,42 +52,32 @@
   </div>
 </section>
 
-<!-- Gender categories -->
-<section class="py-12 bg-gray-50">
-  <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Mujer -->
-      <a routerLink="/coleccion/mujer"
-         class="group relative h-80 rounded-2xl overflow-hidden bg-gray-200 flex items-end p-8">
-        @if (mujerCollection()?.image) {
-          <img [src]="mujerCollection()!.image!" alt="Mujer"
-               class="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+<!-- Colecciones destacadas (administrable desde admin → toggle "Destacada") -->
+@if (featuredCollections().length > 0) {
+  <section class="py-12 bg-gray-50">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        @for (col of featuredCollections(); track col.id) {
+          <a [routerLink]="['/coleccion', slugify(col.name)]"
+             class="group relative h-80 rounded-2xl overflow-hidden bg-gray-200 flex items-end p-8">
+            @if (col.image) {
+              <img [src]="col.image" [alt]="col.name"
+                   class="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+            }
+            <div class="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-gray-900/10 group-hover:from-gray-900/80 transition-all"></div>
+            <div class="relative text-white">
+              <p class="text-xs uppercase tracking-widest mb-1 text-gray-300">Colección</p>
+              <h3 class="text-2xl font-bold mb-1">{{ col.name }}</h3>
+              @if (col.description) {
+                <p class="text-sm text-gray-300 line-clamp-1">{{ col.description }}</p>
+              }
+            </div>
+          </a>
         }
-        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-gray-900/10 group-hover:from-gray-900/80 transition-all"></div>
-        <div class="relative text-white">
-          <p class="text-xs uppercase tracking-widest mb-1 text-gray-300">Colección</p>
-          <h3 class="text-2xl font-bold mb-1">{{ mujerCollection()?.name ?? 'Mujer' }}</h3>
-          <p class="text-sm text-gray-300">Diseño, comodidad y estilo</p>
-        </div>
-      </a>
-
-      <!-- Hombre -->
-      <a routerLink="/coleccion/hombre"
-         class="group relative h-80 rounded-2xl overflow-hidden bg-gray-200 flex items-end p-8">
-        @if (hombreCollection()?.image) {
-          <img [src]="hombreCollection()!.image!" alt="Hombre"
-               class="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
-        }
-        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-gray-900/10 group-hover:from-gray-900/80 transition-all"></div>
-        <div class="relative text-white">
-          <p class="text-xs uppercase tracking-widest mb-1 text-gray-300">Colección</p>
-          <h3 class="text-2xl font-bold mb-1">{{ hombreCollection()?.name ?? 'Hombre' }}</h3>
-          <p class="text-sm text-gray-300">Comodidad, estilo y funcionalidad</p>
-        </div>
-      </a>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
+}
 
 <!-- Featured products (solo si hay destacados) -->
 @if (featured().length > 0) {
