@@ -1,0 +1,155 @@
+<div class="p-8 max-w-3xl">
+
+  <h2 class="text-white text-xl font-semibold mb-1">Página de inicio</h2>
+  <p class="text-gray-500 text-sm mb-8">Configura qué colecciones aparecen en cada módulo.</p>
+
+  @if (loading()) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-400 text-sm">Cargando...</p>
+    </div>
+  } @else {
+
+    <!-- Módulo: Bloques de colecciones destacadas -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden mb-6">
+
+      <!-- Header del módulo -->
+      <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+        <div>
+          <p class="text-white font-medium text-sm">Bloques destacados</p>
+          <p class="text-gray-500 text-xs mt-0.5">Las colecciones seleccionadas aparecen como tarjetas grandes en el home</p>
+        </div>
+        <!-- Preview miniatura -->
+        <div class="hidden sm:flex gap-1 items-center">
+          <div class="w-12 h-8 bg-gray-800 rounded flex items-end p-1 gap-0.5">
+            <div class="flex-1 bg-gray-600 rounded-sm h-full"></div>
+            <div class="flex-1 bg-gray-600 rounded-sm h-full"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de colecciones seleccionadas -->
+      <div class="p-4 space-y-2">
+
+        @if (featured().length === 0) {
+          <p class="text-gray-600 text-xs py-3 text-center">Ninguna colección seleccionada. Agrega al menos una.</p>
+        }
+
+        @for (col of featured(); track col.id; let i = $index; let last = $last) {
+          <div class="flex items-center gap-3 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5">
+            <!-- Imagen -->
+            @if (col.image) {
+              <img [src]="col.image" [alt]="col.name" class="w-10 h-10 rounded-lg object-cover object-top bg-gray-700 shrink-0" />
+            } @else {
+              <div class="w-10 h-10 rounded-lg bg-gray-700 shrink-0 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </div>
+            }
+
+            <!-- Nombre -->
+            <p class="text-white text-sm flex-1 truncate">{{ col.name }}</p>
+
+            <!-- Orden -->
+            <span class="text-gray-600 text-xs mr-1">{{ i + 1 }}</span>
+
+            <!-- Botones reordenar -->
+            <div class="flex gap-1">
+              <button
+                (click)="moveUp(col)"
+                [disabled]="i === 0 || savingId() === col.id"
+                class="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-white hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-30">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="18 15 12 9 6 15"/>
+                </svg>
+              </button>
+              <button
+                (click)="moveDown(col)"
+                [disabled]="last || savingId() === col.id"
+                class="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-white hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-30">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Quitar -->
+            <button
+              (click)="removeFromFeatured(col)"
+              [disabled]="savingId() === col.id"
+              class="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-40">
+              @if (savingId() === col.id) {
+                <span class="text-xs">...</span>
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              }
+            </button>
+          </div>
+        }
+
+        <!-- Botón agregar -->
+        <button
+          (click)="showPicker.set(true)"
+          class="w-full mt-1 py-2 text-xs text-gray-500 hover:text-white border border-dashed border-gray-700 hover:border-gray-500 rounded-xl transition-colors">
+          + Agregar colección
+        </button>
+      </div>
+    </div>
+
+    <!-- Módulo: Nuestras líneas (solo info) -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden opacity-60">
+      <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+        <div>
+          <p class="text-white font-medium text-sm">Nuestras líneas</p>
+          <p class="text-gray-500 text-xs mt-0.5">Se muestran automáticamente las colecciones NO destacadas, ordenadas por su número de orden</p>
+        </div>
+        <span class="text-xs text-gray-600 bg-gray-800 px-2 py-1 rounded-lg">Automático</span>
+      </div>
+      <div class="px-6 py-3 flex flex-wrap gap-2">
+        @for (col of available(); track col.id) {
+          <span class="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded-lg">{{ col.name }}</span>
+        }
+        @if (available().length === 0) {
+          <p class="text-gray-600 text-xs py-1">Todas las colecciones están destacadas.</p>
+        }
+      </div>
+    </div>
+
+  }
+</div>
+
+<!-- Picker de colecciones -->
+@if (showPicker()) {
+  <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" (click)="showPicker.set(false)">
+    <div class="bg-gray-950 border border-gray-800 rounded-2xl p-6 w-96 max-h-[70vh] flex flex-col" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-white font-medium">Seleccionar colección</p>
+        <button (click)="showPicker.set(false)" class="text-gray-500 hover:text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="overflow-y-auto space-y-2">
+        @for (col of available(); track col.id) {
+          <button
+            (click)="addToFeatured(col)"
+            [disabled]="savingId() === col.id"
+            class="w-full flex items-center gap-3 bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-xl px-3 py-2.5 transition-colors disabled:opacity-40 text-left">
+            @if (col.image) {
+              <img [src]="col.image" [alt]="col.name" class="w-10 h-10 rounded-lg object-cover object-top bg-gray-800 shrink-0" />
+            } @else {
+              <div class="w-10 h-10 rounded-lg bg-gray-800 shrink-0"></div>
+            }
+            <p class="text-white text-sm truncate">{{ col.name }}</p>
+          </button>
+        }
+        @if (available().length === 0) {
+          <p class="text-gray-500 text-sm text-center py-4">Todas las colecciones ya están destacadas.</p>
+        }
+      </div>
+    </div>
+  </div>
+}

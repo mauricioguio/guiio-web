@@ -43,6 +43,11 @@ export const routes: Routes = [
         canActivate: [adminGuard],
       },
       {
+        path: 'home',
+        loadComponent: () => import('./pages/dashboard/home-page/home-page').then(m => m.HomePage),
+        canActivate: [adminGuard],
+      },
+      {
         path: 'clients',
         loadComponent: () => import('./pages/dashboard/clients/clients').then(m => m.Clients),
         canActivate: [adminGuard],
