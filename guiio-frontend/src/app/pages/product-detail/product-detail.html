@@ -59,6 +59,17 @@
           </div>
         }
 
+        <!-- Calculadora de tallas -->
+        @if (p.type === 'conjunto' || p.type === 'top' || p.type === 'bottom') {
+          <button (click)="openCalc()"
+            class="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 underline underline-offset-2 mb-5 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 12h20M12 2v20"/><circle cx="12" cy="12" r="10"/>
+            </svg>
+            ¿Cuál es mi talla?
+          </button>
+        }
+
         <!-- CONJUNTO: talla blusa + talla pantalón -->
         @if (p.type === 'conjunto') {
           <div class="mb-5">
@@ -249,5 +260,136 @@
   <div class="max-w-7xl mx-auto px-4 py-20 text-center text-gray-400">
     <p>Producto no encontrado.</p>
     <a routerLink="/catalogo" class="text-gray-900 underline mt-4 inline-block">Ver catálogo</a>
+  </div>
+}
+
+<!-- Modal calculadora de tallas -->
+@if (showSizeCalc()) {
+  <div class="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4"
+       (click)="showSizeCalc.set(false)">
+    <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+         (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div>
+          <p class="font-semibold text-gray-900">Calculadora de tallas</p>
+          <p class="text-xs text-gray-500 mt-0.5">Ingresa tus medidas en centímetros</p>
+        </div>
+        <button (click)="showSizeCalc.set(false)"
+          class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Inputs -->
+      <div class="px-6 py-5 space-y-4">
+
+        @if (product()?.type === 'top' || product()?.type === 'conjunto') {
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+              Contorno de busto / pecho
+              <span class="text-gray-400 font-normal">(cm)</span>
+            </label>
+            <div class="relative">
+              <input
+                type="number"
+                [ngModel]="calcBust()"
+                (ngModelChange)="calcBust.set($event ? +$event : null)"
+                placeholder="Ej: 90"
+                min="60" max="160"
+                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 transition-colors">
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">cm</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">Mide alrededor de la parte más ancha del pecho</p>
+          </div>
+        }
+
+        @if (product()?.type === 'bottom' || product()?.type === 'conjunto') {
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+              Contorno de cadera
+              <span class="text-gray-400 font-normal">(cm)</span>
+            </label>
+            <div class="relative">
+              <input
+                type="number"
+                [ngModel]="calcHip()"
+                (ngModelChange)="calcHip.set($event ? +$event : null)"
+                placeholder="Ej: 98"
+                min="60" max="160"
+                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 transition-colors">
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">cm</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">Mide alrededor de la parte más ancha de las caderas</p>
+          </div>
+        }
+
+        <!-- Tabla de referencia -->
+        <div class="bg-gray-50 rounded-xl p-4">
+          <p class="text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide">Tabla de referencia</p>
+          @if (product()?.type === 'top' || product()?.type === 'conjunto') {
+            <p class="text-xs text-gray-500 font-medium mb-1">Busto → Blusa</p>
+            <div class="grid grid-cols-7 gap-1 text-center text-xs mb-3">
+              @for (row of [['XS','≤82'],['S','83-87'],['M','88-92'],['L','93-97'],['XL','98-102'],['XXL','103+']]; track $index) {
+                <div class="flex flex-col">
+                  <span class="font-semibold text-gray-800">{{ row[0] }}</span>
+                  <span class="text-gray-400 text-[10px] leading-tight">{{ row[1] }}</span>
+                </div>
+              }
+            </div>
+          }
+          @if (product()?.type === 'bottom' || product()?.type === 'conjunto') {
+            <p class="text-xs text-gray-500 font-medium mb-1">Cadera → Pantalón</p>
+            <div class="grid grid-cols-7 gap-1 text-center text-xs">
+              @for (row of [['XS','≤88'],['S','89-93'],['M','94-98'],['L','99-103'],['XL','104-108'],['XXL','109+']]; track $index) {
+                <div class="flex flex-col">
+                  <span class="font-semibold text-gray-800">{{ row[0] }}</span>
+                  <span class="text-gray-400 text-[10px] leading-tight">{{ row[1] }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Resultado -->
+      @if (calcTopResult() || calcBottomResult()) {
+        <div class="px-6 pb-2">
+          <div class="bg-gray-900 rounded-xl px-4 py-3 flex items-center justify-between">
+            <div>
+              <p class="text-xs text-gray-400 mb-0.5">Tu talla recomendada</p>
+              <div class="flex items-center gap-3">
+                @if (calcTopResult()) {
+                  <span class="text-white font-bold text-lg">{{ calcTopResult() }}
+                    <span class="text-gray-400 text-xs font-normal ml-1">blusa</span>
+                  </span>
+                }
+                @if (calcBottomResult()) {
+                  <span class="text-white font-bold text-lg">{{ calcBottomResult() }}
+                    <span class="text-gray-400 text-xs font-normal ml-1">pantalón</span>
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Footer -->
+      <div class="px-6 py-4 flex gap-3">
+        <button (click)="showSizeCalc.set(false)"
+          class="flex-1 py-3 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+          Cancelar
+        </button>
+        <button (click)="applyCalcSizes()"
+          [disabled]="!calcTopResult() && !calcBottomResult()"
+          class="flex-1 py-3 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+          Usar esta talla
+        </button>
+      </div>
+    </div>
   </div>
 }
