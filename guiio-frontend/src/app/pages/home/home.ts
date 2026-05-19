@@ -1,5 +1,6 @@
 import { Component, inject, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { NgClass } from '@angular/common';
 import { ProductService } from '../../services/product';
 import { CollectionService } from '../../services/collection';
 import { HeroService } from '../../services/hero';
@@ -8,7 +9,7 @@ import { slugify } from '../../utils/slugify';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, ProductCard],
+  imports: [RouterLink, ProductCard, NgClass],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })

@@ -118,8 +118,8 @@
     @for (col of mainCollections(); track col.id; let i = $index) {
       <div class="flex flex-col md:flex-row md:h-[525px] border-t border-gray-100">
         <!-- Imagen -->
-        <div class="w-full md:w-1/2 bg-gray-50 overflow-hidden flex items-center justify-center h-64 md:h-full"
-             [style.order]="i % 2 === 0 ? 2 : 1">
+        <div class="w-full md:w-1/2 bg-gray-50 overflow-hidden flex items-center justify-center h-[24rem] md:h-full order-2"
+             [ngClass]="{ 'md:order-1': i % 2 !== 0 }">
           @if (col.image) {
             <img [src]="col.image" [alt]="col.name"
                  class="w-full h-full object-cover object-top" />
@@ -134,8 +134,8 @@
           }
         </div>
         <!-- Texto -->
-        <div class="w-full md:w-1/2 flex items-center px-8 md:px-14 py-10"
-             [style.order]="i % 2 === 0 ? 1 : 2">
+        <div class="w-full md:w-1/2 flex items-center px-8 md:px-14 py-10 order-1"
+             [ngClass]="{ 'md:order-2': i % 2 !== 0 }">
           <div>
             <p class="text-xs uppercase tracking-widest text-gray-400 mb-3">Colección</p>
             <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{{ col.name }}</h3>
