@@ -37,7 +37,6 @@ export class SellerService {
 
   async getProducts() {
     const products = await this.prisma.product.findMany({
-      where: { active: true },
       orderBy: { name: 'asc' },
     });
     return products.map(p => ({ ...p, type: p.type.toLowerCase() }));
