@@ -31,7 +31,7 @@ export class CollectionsService {
 
   async getProducts(collectionId: string) {
     const links = await this.prisma.collectionProduct.findMany({
-      where: { collectionId },
+      where: { collectionId, product: { active: true } as any },
       include: { product: true },
     });
     return links.map(({ product }) => this.serialize(product));
