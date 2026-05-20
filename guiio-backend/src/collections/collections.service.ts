@@ -29,12 +29,13 @@ export class CollectionsService {
     return { ...p, type: p.type.toLowerCase() };
   }
 
-  async getProducts(collectionId: string) {
+  async getProducts(collectionId: string, onlyActive = false) {
     const links = await this.prisma.collectionProduct.findMany({
-      where: { collectionId, product: { active: true } as any },
+      where: { collectionId },
       include: { product: true },
     });
-    return links.map(({ product }) => this.serialize(product));
+    const filtered = onlyActive ? links.filter(l => l.product.active) : links;
+    return filtered.map(({ product }) => this.serialize(product));
   }
 
   async getProductsByName(name: string) {
@@ -50,7 +51,7 @@ export class CollectionsService {
     // Also include products explicitly assigned via join table (extra assignments from admin)
     const cols = await this.prisma.collection.findMany();
     const col = cols.find(c => normalize(c.name) === target);
-    const byJoin = col ? await this.getProducts(col.id) : [];
+    const byJoin = col ? await this.getProducts(col.id, true) : [];
     const seenIds = new Set(byField.map(p => p.id));
 
     return [...byField, ...byJoin.filter(p => !seenIds.has(p.id))];
