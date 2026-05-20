@@ -24,7 +24,9 @@ export class ProductsService {
   }
 
   async findOne(id: string) {
-    const p = await this.prisma.product.findUnique({ where: { id } });
+    const p = await this.prisma.product.findFirst({
+      where: { id, ...({ active: true } as any) },
+    });
     return p ? { ...p, type: p.type.toLowerCase() } : null;
   }
 
