@@ -5,19 +5,31 @@ import { PrismaService } from '../prisma/prisma.service';
 export class HomeSectionsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  get() {
-    return this.prisma.homeSections.upsert({
+  private clean(row: any) {
+    return {
+      ...row,
+      galleryImages: (row.galleryImages as any[]).filter(Boolean),
+    };
+  }
+
+  async get() {
+    const row = await this.prisma.homeSections.upsert({
       where: { id: 'singleton' },
       create: { id: 'singleton' },
       update: {},
     });
+    return this.clean(row);
   }
 
-  update(data: { storyText?: string | null; storyImage?: string | null; galleryImages?: string[] }) {
-    return this.prisma.homeSections.upsert({
+  async update(data: { storyText?: string | null; storyImage?: string | null; galleryImages?: string[] }) {
+    if (data.galleryImages) {
+      data.galleryImages = data.galleryImages.filter(Boolean);
+    }
+    const row = await this.prisma.homeSections.upsert({
       where: { id: 'singleton' },
       create: { id: 'singleton', ...data },
       update: data,
     });
+    return this.clean(row);
   }
 }
