@@ -77,16 +77,16 @@ export class Home {
           return total > 1 ? (i + 2) % total : 0;
         });
         this.fading.set(false);
-      }, 400);
-    }, 4000);
+      }, 800);
+    }, 5000);
 
     const colId = setInterval(() => {
       this.colFading.set(true);
       setTimeout(() => {
         this.colCycleIndex.update(i => i + 1);
         this.colFading.set(false);
-      }, 400);
-    }, 3500);
+      }, 800);
+    }, 5000);
 
     this.destroyRef.onDestroy(() => { clearInterval(id); clearInterval(colId); });
   }
