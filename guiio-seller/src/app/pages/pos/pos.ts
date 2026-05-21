@@ -14,6 +14,8 @@ export interface CartItem {
   adjusted?: boolean;
   bordado?: boolean;
   bordadoText?: string;
+  itemDiscount?: number;
+  itemDiscountType?: 'pct' | 'value';
 }
 
 function productSizes(p: Product): string[] {
@@ -60,7 +62,11 @@ export class Pos implements OnInit, OnDestroy {
   protected abonoEnabled = signal(false);
   protected abonoAmount = signal(0);
   protected canceladoEnabled = signal(false);
-  protected netTotal = computed(() => Math.max(0, this.cartTotal() - this.abonoAmount()));
+
+  protected orderDiscountEnabled = signal(false);
+  protected orderDiscountType = signal<'pct' | 'value'>('pct');
+  protected orderDiscountValue = signal(0);
+  protected editingDiscountIdx = signal<number | null>(null);
 
   protected customerSearchState = signal<'idle' | 'searching' | 'found' | 'notfound'>('idle');
   protected registering = signal(false);
@@ -95,13 +101,35 @@ export class Pos implements OnInit, OnDestroy {
     });
   });
 
-  protected cartTotal = computed(() =>
-    this.cart().reduce((s, i) => s + this.itemPrice(i) * i.quantity, 0)
-  );
-
   itemPrice(i: CartItem): number {
     return i.product.price + (i.bordado ? 10000 : 0);
   }
+
+  itemEffectivePrice(i: CartItem): number {
+    const base = this.itemPrice(i);
+    if (!i.itemDiscount || i.itemDiscount <= 0) return base;
+    if (i.itemDiscountType === 'value') return Math.max(0, base - i.itemDiscount);
+    return Math.max(0, Math.round(base * (1 - Math.min(i.itemDiscount, 100) / 100)));
+  }
+
+  protected cartTotal = computed(() =>
+    this.cart().reduce((s, i) => s + this.itemEffectivePrice(i) * i.quantity, 0)
+  );
+
+  protected orderDiscountAmount = computed(() => {
+    if (!this.orderDiscountEnabled() || this.orderDiscountValue() <= 0) return 0;
+    const subtotal = this.cartTotal();
+    if (this.orderDiscountType() === 'pct') {
+      return Math.round(subtotal * Math.min(this.orderDiscountValue(), 100) / 100);
+    }
+    return Math.min(this.orderDiscountValue(), subtotal);
+  });
+
+  protected finalTotal = computed(() =>
+    Math.max(0, this.cartTotal() - this.orderDiscountAmount())
+  );
+
+  protected netTotal = computed(() => Math.max(0, this.finalTotal() - this.abonoAmount()));
 
   protected cartCount = computed(() =>
     this.cart().reduce((s, i) => s + i.quantity, 0)
@@ -233,6 +261,9 @@ export class Pos implements OnInit, OnDestroy {
 
   removeFromCart(idx: number) {
     this.cart.update(items => items.filter((_, i) => i !== idx));
+    const editing = this.editingDiscountIdx();
+    if (editing === idx) this.editingDiscountIdx.set(null);
+    else if (editing !== null && editing > idx) this.editingDiscountIdx.update(i => i! - 1);
   }
 
   updateQty(idx: number, qty: number) {
@@ -265,14 +296,21 @@ export class Pos implements OnInit, OnDestroy {
       type: this.saleType(),
       customerName: this.customerName() || undefined,
       customerPhone: phone || undefined,
-      notes: [this.notes(), this.abonoEnabled() && this.abonoAmount() > 0 ? `Abono: $${this.abonoAmount().toLocaleString('es-CO')}` : '', this.canceladoEnabled() ? 'Cancelado' : ''].filter(Boolean).join(' | ') || undefined,
+      notes: [
+        this.notes(),
+        this.abonoEnabled() && this.abonoAmount() > 0 ? `Abono: $${this.abonoAmount().toLocaleString('es-CO')}` : '',
+        this.orderDiscountEnabled() && this.orderDiscountAmount() > 0
+          ? `Descuento: ${this.orderDiscountType() === 'pct' ? this.orderDiscountValue() + '%' : '$' + this.orderDiscountValue().toLocaleString('es-CO')}`
+          : '',
+        this.canceladoEnabled() ? 'Cancelado' : '',
+      ].filter(Boolean).join(' | ') || undefined,
       deliveryDate: this.saleType() === 'FABRICAR' ? this.deliveryDateInput() : undefined,
       items: items.map(i => ({
         productId: i.product.id,
         productName: i.product.name,
         size: i.size,
         quantity: i.quantity,
-        price: this.itemPrice(i),
+        price: this.itemEffectivePrice(i),
         note: [i.note, i.bordadoText ? `Bordado: ${i.bordadoText}` : ''].filter(Boolean).join(' | ') || undefined,
       })),
     }).subscribe({
@@ -292,6 +330,9 @@ export class Pos implements OnInit, OnDestroy {
         this.abonoEnabled.set(false);
         this.abonoAmount.set(0);
         this.canceladoEnabled.set(false);
+        this.orderDiscountEnabled.set(false);
+        this.orderDiscountValue.set(0);
+        this.editingDiscountIdx.set(null);
         this.loadData();
 
         if (blob && phone) {
@@ -392,6 +433,46 @@ export class Pos implements OnInit, OnDestroy {
   abonoInputValue(): string {
     const v = this.abonoAmount();
     return v > 0 ? v.toLocaleString('es-CO') : '';
+  }
+
+  onOrderDiscountInput(value: string) {
+    const n = parseInt(value.replace(/\D/g, ''), 10);
+    this.orderDiscountValue.set(isNaN(n) ? 0 : n);
+  }
+
+  orderDiscountInputValue(): string {
+    const v = this.orderDiscountValue();
+    return v > 0 ? v.toLocaleString('es-CO') : '';
+  }
+
+  openItemDiscount(idx: number) {
+    const item = this.cart()[idx];
+    if (!item.itemDiscountType) {
+      this.cart.update(items => items.map((it, i) =>
+        i === idx ? { ...it, itemDiscountType: 'pct' as const, itemDiscount: it.itemDiscount ?? 0 } : it
+      ));
+    }
+    this.editingDiscountIdx.set(idx);
+  }
+
+  toggleItemDiscountType(idx: number) {
+    this.cart.update(items => items.map((it, i) =>
+      i === idx ? { ...it, itemDiscountType: it.itemDiscountType === 'pct' ? 'value' as const : 'pct' as const, itemDiscount: 0 } : it
+    ));
+  }
+
+  onItemDiscountInput(idx: number, value: string) {
+    const n = parseInt(value.replace(/\D/g, ''), 10);
+    this.cart.update(items => items.map((it, i) =>
+      i === idx ? { ...it, itemDiscount: Math.max(0, isNaN(n) ? 0 : n) } : it
+    ));
+  }
+
+  removeItemDiscount(idx: number) {
+    this.cart.update(items => items.map((it, i) =>
+      i === idx ? { ...it, itemDiscount: 0, itemDiscountType: undefined } : it
+    ));
+    this.editingDiscountIdx.set(null);
   }
 
   formatPrice(v: number) {
