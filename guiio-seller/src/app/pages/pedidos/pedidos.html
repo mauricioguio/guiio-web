@@ -317,13 +317,6 @@
                 </div>
               </div>
             }
-            <button
-              (click)="saveDelivery()"
-              [disabled]="savingDelivery()"
-              class="mt-3 w-full py-3 rounded-2xl bg-yellow-500 text-gray-900 font-semibold text-sm disabled:opacity-50 hover:bg-yellow-400 transition-colors"
-            >
-              {{ savingDelivery() ? 'Guardando...' : 'Guardar entrega y generar comprobante' }}
-            </button>
           }
         </div>
 
@@ -375,11 +368,14 @@
               />
             </div>
             <button
-              (click)="savePayment()"
-              [disabled]="savingPayment() || !paymentInput()"
+              (click)="paymentInput() ? savePayment() : saveDelivery()"
+              [disabled]="savingPayment() || savingDelivery() || (!paymentInput() && !hasDeliveryChanges(order))"
               class="w-full py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-sm disabled:opacity-40 hover:bg-purple-500 transition-colors"
             >
-              {{ savingPayment() ? 'Guardando...' : (hasDeliveryChanges(order) ? 'Registrar entrega + abono y generar comprobante' : 'Registrar abono y generar comprobante') }}
+              @if (savingPayment() || savingDelivery()) { Guardando... }
+              @else if (!paymentInput() && hasDeliveryChanges(order)) { Guardar entrega y generar comprobante }
+              @else if (paymentInput() && hasDeliveryChanges(order)) { Registrar entrega + abono y generar comprobante }
+              @else { Registrar abono y generar comprobante }
             </button>
           </div>
         </div>
