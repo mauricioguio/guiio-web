@@ -119,11 +119,6 @@ export class SellerService {
     });
   }
 
-  async deleteSale(saleId: string) {
-    await this.prisma.sale.delete({ where: { id: saleId } });
-    return { deleted: true };
-  }
-
   async updateSaleStatus(saleId: string, status: string) {
     return this.prisma.sale.update({
       where: { id: saleId },

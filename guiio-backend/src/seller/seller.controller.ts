@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Put, Patch, Delete, Param, Body, Headers,
+  Controller, Get, Post, Put, Patch, Param, Body, Headers,
   CanActivate, ExecutionContext, Injectable, UseGuards, UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -107,9 +107,4 @@ export class SellerController {
     return this.sellerService.updateSaleStatus(id, status);
   }
 
-  @Delete('admin/sales/:id')
-  @UseGuards(AdminKeyGuard)
-  deleteSale(@Param('id') id: string) {
-    return this.sellerService.deleteSale(id);
-  }
 }
