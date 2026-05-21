@@ -310,25 +310,25 @@
           </div>
         </div>
       } @else {
-        <div class="space-y-2">
-          <div class="flex items-center gap-2 bg-gray-800/60 rounded-xl px-3 py-2.5">
+        <div class="flex gap-2">
+          <div class="flex-1 flex items-center gap-2 bg-gray-800/60 rounded-xl px-3 py-2.5 min-w-0">
             <svg class="w-3.5 h-3.5 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke-width="1.5"/>
               <line x1="16" y1="2" x2="16" y2="6" stroke-width="1.5"/><line x1="8" y1="2" x2="8" y2="6" stroke-width="1.5"/>
               <line x1="3" y1="10" x2="21" y2="10" stroke-width="1.5"/>
             </svg>
-            <div>
-              <p class="text-gray-500 text-xs">Fecha de creación</p>
-              <p class="text-white text-xs font-medium">{{ formatDate(orderDate()) }}</p>
+            <div class="min-w-0">
+              <p class="text-gray-500 text-xs">Creación</p>
+              <p class="text-white text-xs font-medium truncate">{{ formatDateShort(orderDate()) }}</p>
             </div>
           </div>
-          <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-3 py-2.5">
-            <p class="text-yellow-400/80 text-xs mb-1.5">Fecha de entrega estimada</p>
+          <div class="flex-1 bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-3 py-2 min-w-0">
+            <p class="text-yellow-400/80 text-xs mb-1">Entrega estimada</p>
             <input
               type="date"
               [value]="deliveryDateInput()"
               (change)="setDeliveryDate($any($event.target).value)"
-              class="w-full bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-2.5 py-1.5 text-yellow-300 text-xs font-medium focus:outline-none focus:border-yellow-400"
+              class="w-full bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-2 py-1 text-yellow-300 text-xs font-medium focus:outline-none focus:border-yellow-400"
             />
           </div>
         </div>
@@ -336,44 +336,44 @@
     </div>
 
     <!-- Datos del cliente -->
-    <div class="px-5 py-4 border-b border-gray-800 space-y-2.5 shrink-0">
+    <div class="px-5 py-3 border-b border-gray-800 space-y-2 shrink-0">
 
-      <!-- Teléfono (búsqueda automática) -->
-      <div class="relative">
-        <input
-          type="tel"
-          placeholder="Teléfono *"
-          [value]="customerPhone()"
-          (input)="onPhoneInput($any($event.target).value)"
-          class="w-full bg-gray-800 border rounded-xl px-3 py-2.5 pr-9 text-sm text-white placeholder-gray-500 focus:outline-none transition-colors"
-          [class]="customerSearchState() === 'found'
-            ? 'border-green-600 focus:border-green-500'
-            : customerSearchState() === 'notfound'
-            ? 'border-yellow-600 focus:border-yellow-500'
-            : 'border-gray-700 focus:border-gray-600'"
-        />
-        <div class="absolute right-3 top-1/2 -translate-y-1/2">
-          @if (customerSearchState() === 'searching') {
-            <svg class="w-4 h-4 text-gray-500 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-            </svg>
-          } @else if (customerSearchState() === 'found') {
-            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>
-          }
+      <!-- Teléfono + Nombre en una fila -->
+      <div class="flex gap-2">
+        <div class="relative flex-1">
+          <input
+            type="tel"
+            placeholder="Teléfono *"
+            [value]="customerPhone()"
+            (input)="onPhoneInput($any($event.target).value)"
+            class="w-full bg-gray-800 border rounded-xl px-3 py-2.5 pr-9 text-sm text-white placeholder-gray-500 focus:outline-none transition-colors"
+            [class]="customerSearchState() === 'found'
+              ? 'border-green-600 focus:border-green-500'
+              : customerSearchState() === 'notfound'
+              ? 'border-yellow-600 focus:border-yellow-500'
+              : 'border-gray-700 focus:border-gray-600'"
+          />
+          <div class="absolute right-3 top-1/2 -translate-y-1/2">
+            @if (customerSearchState() === 'searching') {
+              <svg class="w-4 h-4 text-gray-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+              </svg>
+            } @else if (customerSearchState() === 'found') {
+              <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+            }
+          </div>
         </div>
+        <input
+          type="text"
+          placeholder="Nombre *"
+          [value]="customerName()"
+          (input)="customerName.set($any($event.target).value)"
+          class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+        />
       </div>
-
-      <!-- Nombre -->
-      <input
-        type="text"
-        placeholder="Nombre del cliente *"
-        [value]="customerName()"
-        (input)="customerName.set($any($event.target).value)"
-        class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
-      />
 
       <!-- Estado cliente -->
       @if (customerSearchState() === 'found') {
@@ -660,15 +660,20 @@
           @if (saleType() === 'STOCK') {
             <p class="text-gray-500 text-xs">{{ formatDate(orderDate()) }}</p>
           } @else {
-            <div class="space-y-2">
-              <p class="text-gray-500 text-xs">Creación: {{ formatDate(orderDate()) }}</p>
-              <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-3 py-2.5">
-                <p class="text-yellow-400/80 text-xs mb-1.5">Entrega estimada</p>
+            <div class="flex gap-2 mt-2">
+              <div class="flex-1 flex items-center gap-2 bg-gray-800/60 rounded-xl px-3 py-2 min-w-0">
+                <div class="min-w-0">
+                  <p class="text-gray-500 text-xs">Creación</p>
+                  <p class="text-white text-xs font-medium truncate">{{ formatDateShort(orderDate()) }}</p>
+                </div>
+              </div>
+              <div class="flex-1 bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-3 py-2 min-w-0">
+                <p class="text-yellow-400/80 text-xs mb-1">Entrega estimada</p>
                 <input
                   type="date"
                   [value]="deliveryDateInput()"
                   (change)="setDeliveryDate($any($event.target).value)"
-                  class="w-full bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-2.5 py-1.5 text-yellow-300 text-xs font-medium focus:outline-none focus:border-yellow-400"
+                  class="w-full bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-2 py-1 text-yellow-300 text-xs font-medium focus:outline-none focus:border-yellow-400"
                 />
               </div>
             </div>
@@ -676,44 +681,44 @@
         </div>
 
         <!-- Datos del cliente -->
-        <div class="px-5 py-4 border-b border-gray-800 space-y-2.5">
+        <div class="px-5 py-3 border-b border-gray-800 space-y-2">
 
-          <!-- Teléfono con búsqueda -->
-          <div class="relative">
-            <input
-              type="tel"
-              placeholder="Teléfono *"
-              [value]="customerPhone()"
-              (input)="onPhoneInput($any($event.target).value)"
-              class="w-full bg-gray-900 border rounded-xl px-3 py-2.5 pr-9 text-sm text-white placeholder-gray-600 focus:outline-none transition-colors"
-              [class]="customerSearchState() === 'found'
-                ? 'border-green-700 focus:border-green-600'
-                : customerSearchState() === 'notfound'
-                ? 'border-yellow-700 focus:border-yellow-600'
-                : 'border-gray-800 focus:border-gray-600'"
-            />
-            <div class="absolute right-3 top-1/2 -translate-y-1/2">
-              @if (customerSearchState() === 'searching') {
-                <svg class="w-4 h-4 text-gray-500 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                </svg>
-              } @else if (customerSearchState() === 'found') {
-                <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                </svg>
-              }
+          <!-- Teléfono + Nombre en una fila -->
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <input
+                type="tel"
+                placeholder="Teléfono *"
+                [value]="customerPhone()"
+                (input)="onPhoneInput($any($event.target).value)"
+                class="w-full bg-gray-900 border rounded-xl px-3 py-2.5 pr-9 text-sm text-white placeholder-gray-600 focus:outline-none transition-colors"
+                [class]="customerSearchState() === 'found'
+                  ? 'border-green-700 focus:border-green-600'
+                  : customerSearchState() === 'notfound'
+                  ? 'border-yellow-700 focus:border-yellow-600'
+                  : 'border-gray-800 focus:border-gray-600'"
+              />
+              <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                @if (customerSearchState() === 'searching') {
+                  <svg class="w-4 h-4 text-gray-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                  </svg>
+                } @else if (customerSearchState() === 'found') {
+                  <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                  </svg>
+                }
+              </div>
             </div>
+            <input
+              type="text"
+              placeholder="Nombre *"
+              [value]="customerName()"
+              (input)="customerName.set($any($event.target).value)"
+              class="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-gray-600"
+            />
           </div>
-
-          <!-- Nombre -->
-          <input
-            type="text"
-            placeholder="Nombre del cliente *"
-            [value]="customerName()"
-            (input)="customerName.set($any($event.target).value)"
-            class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-gray-600"
-          />
 
           <!-- Estado cliente -->
           @if (customerSearchState() === 'found') {
