@@ -79,6 +79,7 @@
                 <span class="text-white font-medium text-sm">{{ sale.sede.name }}</span>
                 @if (sale.type === 'FABRICAR') {
                   <span class="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-0.5 rounded-full">A fabricar</span>
+                  <span class="text-xs text-gray-600 font-mono">#{{ sale.orderNumber }}</span>
                 }
                 @if (sale.customerName) {
                   <span class="text-gray-500 text-xs">· {{ sale.customerName }}</span>
@@ -120,9 +121,17 @@
               <div class="space-y-3 mb-5">
                 @for (item of sale.items; track item.id) {
                   <div class="flex items-start justify-between gap-4">
-                    <div class="min-w-0">
+                    <div class="min-w-0 flex-1">
                       <p class="text-gray-300 text-sm font-medium">{{ item.productName }}</p>
-                      <p class="text-gray-600 text-xs">Talla {{ item.size }} × {{ item.quantity }}</p>
+                      <p class="text-gray-600 text-xs">
+                        Talla {{ item.size }} × {{ item.quantity }}
+                        @if (sale.type === 'FABRICAR' && item.deliveredQty > 0) {
+                          · <span class="text-green-400">✓ {{ item.deliveredQty }} entregado{{ item.deliveredQty > 1 ? 's' : '' }}</span>
+                          @if (item.quantity - item.deliveredQty > 0) {
+                            · <span class="text-yellow-500">{{ item.quantity - item.deliveredQty }} pendiente{{ item.quantity - item.deliveredQty > 1 ? 's' : '' }}</span>
+                          }
+                        }
+                      </p>
                       @if (item.note) {
                         <p class="text-yellow-400/80 text-xs mt-0.5 italic">{{ item.note }}</p>
                       }
@@ -134,6 +143,26 @@
                   <p class="text-gray-500 text-xs pt-2 border-t border-gray-800">{{ sale.notes }}</p>
                 }
               </div>
+
+              <!-- Pagos / abonos (solo FABRICAR) -->
+              @if (sale.type === 'FABRICAR' && sale.payments.length > 0) {
+                <div class="mb-5 p-3 bg-gray-800/50 rounded-xl space-y-1.5">
+                  <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Abonos</p>
+                  @for (p of sale.payments; track p.id) {
+                    <div class="flex justify-between items-center text-xs">
+                      <span class="text-gray-500">{{ formatDate(p.createdAt) }}@if (p.note) { · {{ p.note }}}</span>
+                      <span class="text-green-400 font-semibold">{{ formatPrice(p.amount) }}</span>
+                    </div>
+                  }
+                  <div class="border-t border-gray-700 pt-1.5 flex justify-between text-xs font-semibold">
+                    <span class="text-gray-400">Saldo pendiente</span>
+                    @let paid = totalPaid(sale); @let balance = sale.total - paid;
+                    <span [class]="balance > 0 ? 'text-red-400' : 'text-green-400'">
+                      {{ balance > 0 ? formatPrice(balance) : 'Pagado' }}
+                    </span>
+                  </div>
+                </div>
+              }
 
               <!-- Cambiar estado (solo FABRICAR) -->
               @if (sale.type === 'FABRICAR') {

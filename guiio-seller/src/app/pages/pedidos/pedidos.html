@@ -1,0 +1,386 @@
+<!-- ===== Comprobante de actualización (fuera de pantalla) ===== -->
+<div #receiptEl
+     [style]="receiptPreview()
+       ? 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:360px;font-family:sans-serif;z-index:9999'
+       : 'position:fixed;left:-9999px;top:0;width:360px;font-family:sans-serif'"
+     class="bg-white text-gray-900 overflow-hidden shadow-2xl">
+  @if (receiptOrder(); as order) {
+
+    <!-- Cabecera -->
+    <div class="bg-gray-900 px-6 py-5 flex flex-col items-center gap-1">
+      <img src="assets/logo-guiio.png" alt="Guiio" style="height:36px;width:auto" />
+      @if (receiptEvent() === 'payment') {
+        <span style="color:#a78bfa;font-size:13px;font-weight:600;margin-top:4px">Abono registrado</span>
+      } @else if (isFullyDelivered(order)) {
+        <span style="color:#22c55e;font-size:13px;font-weight:600;margin-top:4px">Pedido entregado completo</span>
+      } @else {
+        <span style="color:#facc15;font-size:13px;font-weight:600;margin-top:4px">Entrega parcial registrada</span>
+      }
+    </div>
+
+    <!-- Info del pedido -->
+    <div class="px-6 py-4 border-b border-gray-100 space-y-1.5 text-sm">
+      <div class="flex justify-between">
+        <span class="text-gray-500">Pedido</span>
+        <span class="font-bold">#{{ order.orderNumber }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-500">Estado</span>
+        <span class="font-medium">{{ statusLabels[order.status] }}</span>
+      </div>
+      @if (order.customerName) {
+        <div class="flex justify-between">
+          <span class="text-gray-500">Cliente</span>
+          <span class="font-medium">{{ order.customerName }}</span>
+        </div>
+      }
+      @if (order.customerPhone) {
+        <div class="flex justify-between">
+          <span class="text-gray-500">Teléfono</span>
+          <span class="font-medium">{{ order.customerPhone }}</span>
+        </div>
+      }
+      @if (order.deliveryDate) {
+        <div class="flex justify-between">
+          <span class="text-gray-500">Entrega estimada</span>
+          <span class="font-semibold" style="color:#ca8a04">{{ formatDateShort(order.deliveryDate) }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Productos -->
+    <div class="px-6 py-4 border-b border-gray-100">
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Productos</p>
+      <div class="space-y-2.5">
+        @for (item of order.items; track item.id) {
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 leading-snug">{{ item.productName }}</p>
+              <p class="text-xs text-gray-500">Talla {{ item.size }}</p>
+              @if (item.note) {
+                <p class="text-xs text-yellow-600 mt-0.5 italic">{{ item.note }}</p>
+              }
+            </div>
+            <div class="text-right shrink-0 text-xs space-y-0.5">
+              @if (item.deliveredQty > 0) {
+                <p style="color:#16a34a;font-weight:600">✓ {{ item.deliveredQty }} entregado{{ item.deliveredQty > 1 ? 's' : '' }}</p>
+              }
+              @if (item.quantity - item.deliveredQty > 0) {
+                <p style="color:#d97706">⏳ {{ item.quantity - item.deliveredQty }} pendiente{{ item.quantity - item.deliveredQty > 1 ? 's' : '' }}</p>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Pagos y saldo -->
+    <div class="px-6 py-4 border-b border-gray-100">
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Pagos</p>
+      <div class="space-y-1.5 text-sm mb-3">
+        @for (p of order.payments; track p.id) {
+          <div class="flex justify-between items-center">
+            <span class="text-gray-500 text-xs">{{ formatDateShort(p.createdAt) }}@if (p.note) { · {{ p.note }}}</span>
+            <span class="font-medium" style="color:#16a34a">{{ formatPrice(p.amount) }}</span>
+          </div>
+        }
+        @if (order.payments.length === 0) {
+          <p class="text-xs text-gray-400">Sin abonos registrados</p>
+        }
+      </div>
+      <div class="border-t border-gray-100 pt-3 space-y-1 text-sm">
+        <div class="flex justify-between">
+          <span class="text-gray-500">Total pedido</span>
+          <span class="font-medium">{{ formatPrice(order.total) }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Total pagado</span>
+          <span class="font-semibold" style="color:#16a34a">{{ formatPrice(totalPaid(order)) }}</span>
+        </div>
+        @if (pendingBalance(order) > 0) {
+          <div class="flex justify-between">
+            <span class="text-gray-700 font-semibold">Saldo pendiente</span>
+            <span class="font-bold" style="color:#dc2626">{{ formatPrice(pendingBalance(order)) }}</span>
+          </div>
+        } @else {
+          <div class="flex justify-between">
+            <span class="text-gray-700 font-semibold">Saldo</span>
+            <span class="font-bold" style="color:#16a34a">Pagado en su totalidad</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Pie -->
+    <div class="px-6 py-3 text-center">
+      <p class="text-xs text-gray-400">guiiouniformes.com</p>
+    </div>
+  }
+</div>
+
+<!-- ===== Overlay del comprobante ===== -->
+@if (receiptPreview()) {
+  <div class="fixed inset-0 bg-black/70 z-[9998] flex items-end justify-center pb-4 px-4"
+       (click)="closeReceipt()">
+    <div class="flex gap-3 w-full max-w-xs" (click)="$event.stopPropagation()">
+      <button
+        (click)="captureReceipt()"
+        [disabled]="capturingReceipt()"
+        class="flex-1 py-3 rounded-2xl bg-white text-gray-900 font-semibold text-sm disabled:opacity-50">
+        {{ capturingReceipt() ? 'Guardando...' : 'Descargar comprobante' }}
+      </button>
+      <button (click)="closeReceipt()"
+              class="px-4 py-3 rounded-2xl bg-gray-800 text-gray-300 text-sm font-medium">
+        Cerrar
+      </button>
+    </div>
+  </div>
+}
+
+<!-- ===== Pantalla principal ===== -->
+<div class="min-h-screen bg-gray-950 text-white">
+
+  <!-- Navbar -->
+  <nav class="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center gap-3">
+    <a routerLink="/pos" class="text-gray-400 hover:text-white transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <h1 class="font-semibold text-base">Pedidos en curso</h1>
+    <span class="ml-auto text-xs text-gray-500">{{ auth.currentSede()?.name }}</span>
+  </nav>
+
+  <!-- Lista de pedidos -->
+  @if (!selectedId()) {
+    <div class="p-4">
+
+      @if (loading()) {
+        <div class="text-center py-16 text-gray-500 text-sm">Cargando pedidos...</div>
+      } @else if (orders().length === 0) {
+        <div class="text-center py-16 text-gray-500 text-sm">No hay pedidos en curso.</div>
+      } @else {
+        <div class="space-y-3">
+          @for (order of orders(); track order.id) {
+            <div
+              class="bg-gray-900 border border-gray-800 rounded-2xl p-4 cursor-pointer hover:border-gray-600 transition-colors active:bg-gray-800"
+              (click)="openOrder(order)"
+            >
+              <div class="flex items-start justify-between gap-3 mb-2">
+                <div>
+                  <span class="text-white font-bold text-base">#{{ order.orderNumber }}</span>
+                  @if (order.customerName) {
+                    <span class="text-gray-400 text-sm ml-2">{{ order.customerName }}</span>
+                  }
+                </div>
+                <span class="text-xs border px-2 py-0.5 rounded-full shrink-0 {{ statusClass(order.status) }}">
+                  {{ statusLabels[order.status] }}
+                </span>
+              </div>
+              <div class="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
+                @if (order.deliveryDate) {
+                  <span class="text-yellow-500 font-medium">Entrega: {{ formatDateShort(order.deliveryDate) }}</span>
+                }
+                <span>{{ totalUnits(order) }} prenda{{ totalUnits(order) !== 1 ? 's' : '' }}</span>
+                <span>{{ totalDelivered(order) }}/{{ totalUnits(order) }} entregadas</span>
+              </div>
+              <!-- Barra de progreso de entrega -->
+              @if (totalUnits(order) > 0) {
+                <div class="mt-2.5 h-1 bg-gray-800 rounded-full overflow-hidden">
+                  <div class="h-full bg-green-500 rounded-full transition-all"
+                       [style.width.%]="(totalDelivered(order) / totalUnits(order)) * 100"></div>
+                </div>
+              }
+              <div class="flex items-center justify-between mt-2.5">
+                <span class="text-xs text-gray-500">{{ formatPrice(totalPaid(order)) }} pagado</span>
+                @if (pendingBalance(order) > 0) {
+                  <span class="text-xs font-semibold text-red-400">Saldo: {{ formatPrice(pendingBalance(order)) }}</span>
+                } @else {
+                  <span class="text-xs font-semibold text-green-400">Pagado completo</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Detalle del pedido -->
+  @if (selected(); as order) {
+    <div class="flex flex-col h-[calc(100vh-56px)] overflow-y-auto">
+
+      <!-- Header del pedido -->
+      <div class="bg-gray-900 border-b border-gray-800 px-4 py-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-white font-bold text-lg">#{{ order.orderNumber }}</p>
+            @if (order.customerName) {
+              <p class="text-gray-400 text-sm">{{ order.customerName }}@if (order.customerPhone) { · {{ order.customerPhone }}}</p>
+            }
+          </div>
+          <button (click)="closeOrder()" class="text-gray-400 hover:text-white p-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="flex items-center gap-3 mt-1.5 text-xs text-gray-500">
+          @if (order.deliveryDate) {
+            <span class="text-yellow-500 font-medium">Entrega: {{ formatDateShort(order.deliveryDate) }}</span>
+          }
+          <span class="border px-2 py-0.5 rounded-full {{ statusClass(order.status) }}">{{ statusLabels[order.status] }}</span>
+        </div>
+      </div>
+
+      <div class="p-4 space-y-5">
+
+        <!-- ── Resumen de saldo ── -->
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+          <div class="grid grid-cols-3 gap-3 text-center">
+            <div>
+              <p class="text-xs text-gray-500 mb-1">Total pedido</p>
+              <p class="text-sm font-semibold text-white">{{ formatPrice(order.total) }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 mb-1">Pagado</p>
+              <p class="text-sm font-semibold text-green-400">{{ formatPrice(totalPaid(order)) }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 mb-1">Saldo</p>
+              @if (pendingBalance(order) > 0) {
+                <p class="text-sm font-bold text-red-400">{{ formatPrice(pendingBalance(order)) }}</p>
+              } @else {
+                <p class="text-sm font-bold text-green-400">$0</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Entregas por ítem ── -->
+        <div>
+          <p class="text-xs text-gray-500 uppercase tracking-wider mb-3">Productos · Entrega</p>
+          <div class="space-y-2">
+            @for (item of order.items; track item.id) {
+              <div class="bg-gray-900 border border-gray-800 rounded-xl p-3">
+                <div class="flex items-start justify-between gap-3 mb-2">
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-white truncate">{{ item.productName }}</p>
+                    <p class="text-xs text-gray-500">Talla {{ item.size }}
+                      @if (item.note) { · <span class="text-yellow-500">{{ item.note }}</span>}
+                    </p>
+                  </div>
+                  <span class="text-xs text-gray-500 shrink-0">{{ formatPrice(item.price) }}</span>
+                </div>
+                <!-- Contador de entregados -->
+                <div class="flex items-center gap-3">
+                  <p class="text-xs text-gray-500 flex-1">
+                    Entregados:
+                    <span [class]="item.deliveredQty >= item.quantity ? 'text-green-400 font-semibold' : 'text-white font-semibold'">
+                      {{ deliveryQtyFor(item.id) }}
+                    </span>
+                    / {{ item.quantity }}
+                  </p>
+                  <div class="flex items-center gap-1">
+                    <button
+                      (click)="setDeliveryQty(item.id, deliveryQtyFor(item.id) - 1, item.quantity)"
+                      class="w-7 h-7 rounded-lg bg-gray-800 text-white flex items-center justify-center text-base leading-none hover:bg-gray-700 active:bg-gray-600"
+                    >−</button>
+                    <span class="w-6 text-center text-sm font-semibold">{{ deliveryQtyFor(item.id) }}</span>
+                    <button
+                      (click)="setDeliveryQty(item.id, deliveryQtyFor(item.id) + 1, item.quantity)"
+                      class="w-7 h-7 rounded-lg bg-gray-800 text-white flex items-center justify-center text-base leading-none hover:bg-gray-700 active:bg-gray-600"
+                    >+</button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+          @if (hasDeliveryChanges(order)) {
+            <button
+              (click)="saveDelivery()"
+              [disabled]="savingDelivery()"
+              class="mt-3 w-full py-3 rounded-2xl bg-yellow-500 text-gray-900 font-semibold text-sm disabled:opacity-50 hover:bg-yellow-400 transition-colors"
+            >
+              {{ savingDelivery() ? 'Guardando...' : 'Guardar entrega y generar comprobante' }}
+            </button>
+          }
+        </div>
+
+        <!-- ── Historial de abonos ── -->
+        <div>
+          <p class="text-xs text-gray-500 uppercase tracking-wider mb-3">Abonos</p>
+          @if (order.payments.length > 0) {
+            <div class="space-y-1.5 mb-3">
+              @for (p of order.payments; track p.id) {
+                <div class="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-3 py-2">
+                  <div>
+                    <p class="text-xs text-gray-400">{{ formatDate(p.createdAt) }}</p>
+                    @if (p.note) {
+                      <p class="text-xs text-gray-500 italic">{{ p.note }}</p>
+                    }
+                  </div>
+                  <span class="text-sm font-semibold text-green-400">{{ formatPrice(p.amount) }}</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="text-xs text-gray-600 mb-3">Sin abonos registrados.</p>
+          }
+
+          <!-- Formulario nuevo abono -->
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 space-y-2">
+            <p class="text-xs text-gray-400 font-medium">Registrar abono</p>
+            <div class="flex gap-2">
+              <input
+                type="text" inputmode="numeric"
+                placeholder="Monto"
+                [value]="paymentInput()"
+                (input)="onPaymentInput($any($event.target).value)"
+                class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 min-w-0"
+              />
+              <input
+                type="text"
+                placeholder="Nota (opcional)"
+                [value]="paymentNote()"
+                (input)="paymentNote.set($any($event.target).value)"
+                class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 min-w-0"
+              />
+            </div>
+            <button
+              (click)="savePayment()"
+              [disabled]="savingPayment() || !paymentInput()"
+              class="w-full py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-sm disabled:opacity-40 hover:bg-purple-500 transition-colors"
+            >
+              {{ savingPayment() ? 'Guardando...' : 'Registrar abono y generar comprobante' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- ── Cambiar estado ── -->
+        <div>
+          <p class="text-xs text-gray-500 uppercase tracking-wider mb-3">Estado del pedido</p>
+          <div class="grid grid-cols-2 gap-2">
+            @for (s of statuses; track s) {
+              <button
+                (click)="changeStatus(s)"
+                [disabled]="updatingStatus() || order.status === s"
+                class="py-2.5 px-3 rounded-xl border text-xs font-medium transition-colors disabled:opacity-40"
+                [class]="order.status === s
+                  ? statusClass(s) + ' cursor-default'
+                  : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-200'"
+              >{{ statusLabels[s] }}</button>
+            }
+          </div>
+          <button
+            (click)="changeStatus('CANCELLED')"
+            [disabled]="updatingStatus() || order.status === 'CANCELLED'"
+            class="mt-2 w-full py-2.5 rounded-xl border border-red-900 text-red-500 text-xs font-medium hover:bg-red-500/10 transition-colors disabled:opacity-40"
+          >Cancelar pedido</button>
+        </div>
+
+        <div class="h-6"></div>
+      </div>
+    </div>
+  }
+</div>

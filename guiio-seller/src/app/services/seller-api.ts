@@ -35,6 +35,41 @@ export interface Sale {
   items: SaleItemPayload[];
 }
 
+export interface FabricarItem {
+  id: string;
+  productId: string;
+  productName: string;
+  size: string;
+  quantity: number;
+  price: number;
+  note: string | null;
+  deliveredQty: number;
+}
+
+export interface SalePayment {
+  id: string;
+  amount: number;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface FabricarOrder {
+  id: string;
+  orderNumber: number;
+  type: 'FABRICAR';
+  status: string;
+  total: number;
+  customerName: string | null;
+  customerPhone: string | null;
+  notes: string | null;
+  deliveryDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items: FabricarItem[];
+  payments: SalePayment[];
+  sede: { id: string; name: string };
+}
+
 @Injectable({ providedIn: 'root' })
 export class SellerApiService {
   private readonly http = inject(HttpClient);
@@ -89,5 +124,21 @@ export class SellerApiService {
 
   createCustomer(phone: string, name: string) {
     return this.http.post<SellerCustomer>(`${API}/customers`, { phone, name }, { headers: this.headers });
+  }
+
+  getFabricarOrders() {
+    return this.http.get<FabricarOrder[]>(`${API}/fabricar`, { headers: this.headers });
+  }
+
+  addPayment(orderId: string, amount: number, note?: string) {
+    return this.http.post<SalePayment>(`${API}/fabricar/${orderId}/payment`, { amount, note }, { headers: this.headers });
+  }
+
+  updateDeliveredQty(orderId: string, items: { itemId: string; deliveredQty: number }[]) {
+    return this.http.patch<FabricarOrder>(`${API}/fabricar/${orderId}/items`, { items }, { headers: this.headers });
+  }
+
+  updateFabricarStatus(orderId: string, status: string) {
+    return this.http.patch<FabricarOrder>(`${API}/fabricar/${orderId}/status`, { status }, { headers: this.headers });
   }
 }

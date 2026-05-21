@@ -62,31 +62,44 @@ model Sede {
 }
 
 model Sale {
-  id           String     @id @default(cuid())
-  sedeId       String
-  type         SaleType   @default(STOCK)
-  status       SaleStatus @default(COMPLETED)
-  total        Float
+  id            String     @id @default(cuid())
+  orderNumber   Int        @default(autoincrement())
+  sedeId        String
+  type          SaleType   @default(STOCK)
+  status        SaleStatus @default(COMPLETED)
+  total         Float
   customerName  String?
   customerPhone String?
   notes         String?
   deliveryDate  DateTime?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
-  sede  Sede       @relation(fields: [sedeId], references: [id])
-  items SaleItem[]
+  sede     Sede         @relation(fields: [sedeId], references: [id])
+  items    SaleItem[]
+  payments SalePayment[]
 }
 
 model SaleItem {
-  id          String  @id @default(cuid())
-  saleId      String
-  productId   String
-  productName String
-  size        String
-  quantity    Int
-  price       Float
-  note        String?
+  id           String  @id @default(cuid())
+  saleId       String
+  productId    String
+  productName  String
+  size         String
+  quantity     Int
+  price        Float
+  note         String?
+  deliveredQty Int     @default(0)
+
+  sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
+}
+
+model SalePayment {
+  id        String   @id @default(cuid())
+  saleId    String
+  amount    Float
+  note      String?
+  createdAt DateTime @default(now())
 
   sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
 }

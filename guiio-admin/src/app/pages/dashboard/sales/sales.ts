@@ -90,6 +90,10 @@ export class Sales implements OnInit {
     return 'border-gray-800';
   }
 
+  totalPaid(sale: SellerSale): number {
+    return sale.payments.reduce((s, p) => s + p.amount, 0);
+  }
+
   formatPrice(v: number) {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v);
   }

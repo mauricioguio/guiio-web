@@ -13,10 +13,19 @@ export interface SaleItem {
   quantity: number;
   price: number;
   note: string | null;
+  deliveredQty: number;
+}
+
+export interface SalePayment {
+  id: string;
+  amount: number;
+  note: string | null;
+  createdAt: string;
 }
 
 export interface SellerSale {
   id: string;
+  orderNumber: number;
   type: 'STOCK' | 'FABRICAR';
   status: string;
   total: number;
@@ -25,6 +34,7 @@ export interface SellerSale {
   deliveryDate: string | null;
   createdAt: string;
   items: SaleItem[];
+  payments: SalePayment[];
   sede: { id: string; name: string };
 }
 
@@ -40,6 +50,22 @@ export class SellerSalesApiService {
     return this.http.patch<SellerSale>(
       `${API_URL}/seller/admin/sales/${saleId}/status`,
       { status },
+      { headers },
+    );
+  }
+
+  addPayment(saleId: string, amount: number, note?: string) {
+    return this.http.post<SalePayment>(
+      `${API_URL}/seller/admin/fabricar/${saleId}/payment`,
+      { amount, note },
+      { headers },
+    );
+  }
+
+  updateDeliveredQty(saleId: string, items: { itemId: string; deliveredQty: number }[]) {
+    return this.http.patch<SellerSale>(
+      `${API_URL}/seller/admin/fabricar/${saleId}/items`,
+      { items },
       { headers },
     );
   }

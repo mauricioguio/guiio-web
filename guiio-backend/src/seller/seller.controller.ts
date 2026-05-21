@@ -107,4 +107,63 @@ export class SellerController {
     return this.sellerService.updateSaleStatus(id, status);
   }
 
+  // ── Fabricar orders (seller) ──────────────────────────────────────────────
+
+  @Get('fabricar')
+  @UseGuards(SellerGuard)
+  getFabricarOrders(@Headers('x-sede-id') sedeId: string) {
+    return this.sellerService.getFabricarOrders(sedeId);
+  }
+
+  @Get('fabricar/:id')
+  @UseGuards(SellerGuard)
+  getFabricarOrder(@Param('id') id: string) {
+    return this.sellerService.getFabricarOrder(id);
+  }
+
+  @Post('fabricar/:id/payment')
+  @UseGuards(SellerGuard)
+  addPayment(
+    @Param('id') id: string,
+    @Body('amount') amount: number,
+    @Body('note') note?: string,
+  ) {
+    return this.sellerService.addPayment(id, amount, note);
+  }
+
+  @Patch('fabricar/:id/items')
+  @UseGuards(SellerGuard)
+  updateDeliveredQty(
+    @Param('id') id: string,
+    @Body('items') items: { itemId: string; deliveredQty: number }[],
+  ) {
+    return this.sellerService.updateDeliveredQty(id, items);
+  }
+
+  @Patch('fabricar/:id/status')
+  @UseGuards(SellerGuard)
+  updateFabricarStatus(@Param('id') id: string, @Body('status') status: string) {
+    return this.sellerService.updateSaleStatus(id, status);
+  }
+
+  // ── Fabricar orders (admin) ───────────────────────────────────────────────
+
+  @Post('admin/fabricar/:id/payment')
+  @UseGuards(AdminKeyGuard)
+  addPaymentAdmin(
+    @Param('id') id: string,
+    @Body('amount') amount: number,
+    @Body('note') note?: string,
+  ) {
+    return this.sellerService.addPayment(id, amount, note);
+  }
+
+  @Patch('admin/fabricar/:id/items')
+  @UseGuards(AdminKeyGuard)
+  updateDeliveredQtyAdmin(
+    @Param('id') id: string,
+    @Body('items') items: { itemId: string; deliveredQty: number }[],
+  ) {
+    return this.sellerService.updateDeliveredQty(id, items);
+  }
 }

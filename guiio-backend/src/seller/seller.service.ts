@@ -114,9 +114,37 @@ export class SellerService {
 
   async getAllSales() {
     return this.prisma.sale.findMany({
-      include: { items: true, sede: { select: { id: true, name: true } } },
+      include: { items: true, payments: { orderBy: { createdAt: 'asc' } }, sede: { select: { id: true, name: true } } },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async getFabricarOrders(sedeId: string) {
+    return this.prisma.sale.findMany({
+      where: { sedeId, type: 'FABRICAR', status: { notIn: ['COMPLETED', 'CANCELLED'] } },
+      include: { items: true, payments: { orderBy: { createdAt: 'asc' } }, sede: { select: { id: true, name: true } } },
+      orderBy: [{ deliveryDate: 'asc' }, { createdAt: 'asc' }],
+    });
+  }
+
+  async getFabricarOrder(id: string) {
+    return this.prisma.sale.findUnique({
+      where: { id },
+      include: { items: true, payments: { orderBy: { createdAt: 'asc' } }, sede: { select: { id: true, name: true } } },
+    });
+  }
+
+  async addPayment(saleId: string, amount: number, note?: string) {
+    return this.prisma.salePayment.create({
+      data: { saleId, amount, note: note || null },
+    });
+  }
+
+  async updateDeliveredQty(saleId: string, items: { itemId: string; deliveredQty: number }[]) {
+    await Promise.all(items.map(({ itemId, deliveredQty }) =>
+      this.prisma.saleItem.update({ where: { id: itemId }, data: { deliveredQty } }),
+    ));
+    return this.getFabricarOrder(saleId);
   }
 
   async updateSaleStatus(saleId: string, status: string) {
