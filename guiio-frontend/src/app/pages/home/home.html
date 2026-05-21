@@ -169,19 +169,40 @@
 }
 
 <!-- Galería -->
-@if (sections().galleryImages.length > 0) {
+@if (sections().galleryImages[0] || cycleImg(0)) {
   <section class="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <p class="text-sm uppercase tracking-widest text-gray-400 mb-2">Fotos</p>
     <h2 class="text-2xl font-bold text-gray-900 mb-8">Galería</h2>
     <div class="grid grid-cols-2 gap-4">
-      @for (img of sections().galleryImages; track $index; let i = $index) {
-        @if (img) {
-          <div class="overflow-hidden" [class]="i === 0 ? 'col-span-2 h-[325px] md:h-[500px] lg:h-[680px]' : 'h-[450px] md:h-[500px] lg:h-[680px]'">
-            <img [src]="cloudinaryUrl(img, i === 0 ? 1400 : 800)" alt="Galería Guiio"
-                 class="w-full h-full object-cover" loading="lazy" />
-          </div>
-        }
+
+      <!-- Foto principal (ancha) -->
+      @if (sections().galleryImages[0]) {
+        <div class="col-span-2 overflow-hidden h-[325px] md:h-[500px] lg:h-[680px]">
+          <img [src]="cloudinaryUrl(sections().galleryImages[0], 1400)" alt="Galería Guiio"
+               class="w-full h-full object-cover" loading="lazy" />
+        </div>
       }
+
+      <!-- Foto 2 — cicla entre todos los productos -->
+      <div class="overflow-hidden h-[450px] md:h-[500px] lg:h-[680px]"
+           [style.opacity]="fading() ? '0' : '1'"
+           style="transition: opacity 0.4s ease">
+        @if (cycleImg(0)) {
+          <img [src]="cloudinaryUrl(cycleImg(0), 800)" alt="Guiio Uniformes"
+               class="w-full h-full object-cover object-top" />
+        }
+      </div>
+
+      <!-- Foto 3 — cicla entre todos los productos -->
+      <div class="overflow-hidden h-[450px] md:h-[500px] lg:h-[680px]"
+           [style.opacity]="fading() ? '0' : '1'"
+           style="transition: opacity 0.4s ease">
+        @if (cycleImg(1)) {
+          <img [src]="cloudinaryUrl(cycleImg(1), 800)" alt="Guiio Uniformes"
+               class="w-full h-full object-cover object-top" />
+        }
+      </div>
+
     </div>
   </section>
 }
