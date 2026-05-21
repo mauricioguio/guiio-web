@@ -88,9 +88,9 @@ export class HomePage {
     if (!file) return;
     this.uploadingStory.set(true);
     this.cloudinary.uploadRaw(file).subscribe({
-      next: (res: any) => {
-        this.sections.update(s => ({ ...s, storyImage: res.secure_url }));
-        this.sectionsApi.update({ storyImage: res.secure_url }).subscribe();
+      next: (url: string) => {
+        this.sections.update(s => ({ ...s, storyImage: url }));
+        this.sectionsApi.update({ storyImage: url }).subscribe();
         this.uploadingStory.set(false);
       },
       error: () => this.uploadingStory.set(false),
@@ -109,8 +109,8 @@ export class HomePage {
     let done = 0;
     files.forEach(file => {
       this.cloudinary.uploadRaw(file).subscribe({
-        next: (res: any) => {
-          this.sections.update(s => ({ ...s, galleryImages: [...s.galleryImages, res.secure_url] }));
+        next: (url: string) => {
+          this.sections.update(s => ({ ...s, galleryImages: [...s.galleryImages, url] }));
           this.sectionsApi.update({ galleryImages: [...this.sections().galleryImages] }).subscribe();
           done++;
           if (done === files.length) this.uploadingGallery.set(false);
