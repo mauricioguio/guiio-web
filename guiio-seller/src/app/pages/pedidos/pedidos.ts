@@ -149,7 +149,6 @@ export class Pedidos implements OnInit {
         updated.items.forEach(i => qty.set(i.id, i.deliveredQty));
         this.deliveryQty.set(qty);
         this.savingDelivery.set(false);
-        this.showReceipt(updated, 'delivery', null);
       },
       error: () => this.savingDelivery.set(false),
     });

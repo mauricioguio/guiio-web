@@ -376,7 +376,7 @@
               class="w-full py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-sm disabled:opacity-40 hover:bg-purple-500 transition-colors"
             >
               @if (savingPayment() || savingDelivery()) { Guardando... }
-              @else if (!paymentInput() && hasDeliveryChanges(order)) { Guardar entrega y generar comprobante }
+              @else if (!paymentInput() && hasDeliveryChanges(order)) { Guardar entrega }
               @else if (paymentInput() && hasDeliveryChanges(order)) { Registrar entrega + abono y generar comprobante }
               @else { Registrar abono y generar comprobante }
             </button>
