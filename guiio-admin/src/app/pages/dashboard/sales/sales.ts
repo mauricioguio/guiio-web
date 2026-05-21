@@ -18,6 +18,7 @@ export class Sales implements OnInit {
   protected filterStatus = signal('ALL');
   protected expandedId = signal<string | null>(null);
   protected updatingId = signal<string | null>(null);
+  protected deletingId = signal<string | null>(null);
 
   protected readonly fabricarStatuses = FABRICAR_STATUSES;
   protected readonly allStatuses = ALL_STATUSES;
@@ -57,6 +58,18 @@ export class Sales implements OnInit {
         this.updatingId.set(null);
       },
       error: () => this.updatingId.set(null),
+    });
+  }
+
+  deleteSale(sale: SellerSale) {
+    if (!confirm(`¿Eliminar la venta de ${sale.sede.name}${sale.customerName ? ' — ' + sale.customerName : ''}? Esta acción no se puede deshacer.`)) return;
+    this.deletingId.set(sale.id);
+    this.api.deleteSale(sale.id).subscribe({
+      next: () => {
+        this.sales.update(list => list.filter(s => s.id !== sale.id));
+        this.deletingId.set(null);
+      },
+      error: () => this.deletingId.set(null),
     });
   }
 

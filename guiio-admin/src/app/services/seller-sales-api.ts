@@ -43,4 +43,11 @@ export class SellerSalesApiService {
       { headers },
     );
   }
+
+  deleteSale(saleId: string) {
+    return this.http.delete<{ deleted: boolean }>(
+      `${API_URL}/seller/admin/sales/${saleId}`,
+      { headers },
+    );
+  }
 }
