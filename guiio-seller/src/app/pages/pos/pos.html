@@ -219,13 +219,14 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 pb-28 lg:pb-4">
           @for (p of filtered(); track p.id) {
             <div
-              class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden cursor-pointer hover:border-gray-600 transition-colors active:scale-95"
+              class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden cursor-pointer hover:border-gray-600 transition-colors active:scale-95 mx-auto w-full"
+              style="max-width:270px"
               (click)="openProduct(p)"
             >
               @if (p.images?.[0]) {
-                <img [src]="p.images[0]" class="w-full h-44 object-cover bg-gray-800" />
+                <img [src]="p.images[0]" class="w-full object-cover bg-gray-800" style="height:22rem" />
               } @else {
-                <div class="w-full h-44 bg-gray-800 flex items-center justify-center">
+                <div class="w-full bg-gray-800 flex items-center justify-center" style="height:22rem">
                   <svg class="w-7 h-7 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                       d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14"/>
