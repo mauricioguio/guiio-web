@@ -64,6 +64,7 @@ export class Pos implements OnInit, OnDestroy {
   protected paymentMethod = signal('');
 
   protected discountEnabled = signal(false);
+  protected discountPanelOpen = signal(false);
   protected discountType = signal<'pct' | 'value'>('pct');
   protected discountValue = signal(0);
   protected discountedKeys = signal<Set<string>>(new Set());
@@ -356,6 +357,7 @@ export class Pos implements OnInit, OnDestroy {
         this.canceladoEnabled.set(false);
         this.paymentMethod.set('');
         this.discountEnabled.set(false);
+        this.discountPanelOpen.set(false);
         this.discountValue.set(0);
         this.discountedKeys.set(new Set());
         this.itemOverrides.set(new Map());
@@ -474,14 +476,14 @@ export class Pos implements OnInit, OnDestroy {
   }
 
   toggleDiscount() {
-    const next = !this.discountEnabled();
-    this.discountEnabled.set(next);
-    if (next) {
-      this.discountedKeys.set(new Set(this.cart().map(i => this.itemKey(i))));
+    if (this.discountPanelOpen()) {
+      this.discountPanelOpen.set(false);
     } else {
-      this.discountValue.set(0);
-      this.discountedKeys.set(new Set());
-      this.itemOverrides.set(new Map());
+      this.discountPanelOpen.set(true);
+      if (!this.discountEnabled()) {
+        this.discountEnabled.set(true);
+        this.discountedKeys.set(new Set(this.cart().map(i => this.itemKey(i))));
+      }
     }
   }
 

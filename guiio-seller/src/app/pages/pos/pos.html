@@ -513,7 +513,7 @@
         </button>
       </div>
       <!-- Descuento expansion -->
-      @if (discountEnabled()) {
+      @if (discountPanelOpen()) {
         <div class="space-y-2">
           <div class="flex gap-2">
             <button
@@ -883,7 +883,7 @@
           </button>
         </div>
         <!-- Descuento expansion -->
-        @if (discountEnabled()) {
+        @if (discountPanelOpen()) {
           <div class="space-y-2">
             <div class="flex gap-2">
               <button
