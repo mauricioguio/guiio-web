@@ -68,10 +68,11 @@ model Sale {
   type          SaleType   @default(STOCK)
   status        SaleStatus @default(COMPLETED)
   total         Float
-  customerName  String?
-  customerPhone String?
-  notes         String?
-  deliveryDate  DateTime?
+  customerName   String?
+  customerPhone  String?
+  notes          String?
+  deliveryDate   DateTime?
+  paymentMethod  String?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 

@@ -32,6 +32,7 @@ export interface SellerSale {
   customerName: string | null;
   notes: string | null;
   deliveryDate: string | null;
+  paymentMethod: string | null;
   createdAt: string;
   items: SaleItem[];
   payments: SalePayment[];

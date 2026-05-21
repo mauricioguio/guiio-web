@@ -60,6 +60,7 @@ export class Pos implements OnInit, OnDestroy {
   protected abonoEnabled = signal(false);
   protected abonoAmount = signal(0);
   protected canceladoEnabled = signal(false);
+  protected paymentMethod = signal('');
 
   protected discountEnabled = signal(false);
   protected discountType = signal<'pct' | 'value'>('pct');
@@ -316,6 +317,7 @@ export class Pos implements OnInit, OnDestroy {
       type: this.saleType(),
       customerName: this.customerName() || undefined,
       customerPhone: phone || undefined,
+      paymentMethod: this.paymentMethod() || undefined,
       notes: [
         this.notes(),
         this.abonoEnabled() && this.abonoAmount() > 0 ? `Abono: $${this.abonoAmount().toLocaleString('es-CO')}` : '',
@@ -350,6 +352,7 @@ export class Pos implements OnInit, OnDestroy {
         this.abonoEnabled.set(false);
         this.abonoAmount.set(0);
         this.canceladoEnabled.set(false);
+        this.paymentMethod.set('');
         this.discountEnabled.set(false);
         this.discountValue.set(0);
         this.discountedKeys.set(new Set());

@@ -604,9 +604,23 @@
           <span class="text-white font-bold text-xl">{{ formatPrice(cartTotal()) }}</span>
         </div>
       }
+      <select
+        [value]="paymentMethod()"
+        (change)="paymentMethod.set($any($event.target).value)"
+        class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-gray-500 transition-colors"
+        [class]="paymentMethod() ? 'text-white' : 'text-gray-500'"
+      >
+        <option value="" disabled>Método de pago</option>
+        <option value="EFECTIVO">Efectivo</option>
+        <option value="DATAFONO">Datáfono</option>
+        <option value="NEQUI">Nequi</option>
+        <option value="DAVIPLATA">Daviplata</option>
+        <option value="ADDI">ADDI</option>
+        <option value="SISTECREDITO">Sistecredito</option>
+      </select>
       <button
         (click)="confirmSale()"
-        [disabled]="cart().length === 0 || saving() || !customerPhone().trim() || !customerName().trim() || (!abonoEnabled() && !canceladoEnabled()) || (abonoEnabled() && abonoAmount() < 10000)"
+        [disabled]="cart().length === 0 || saving() || !customerPhone().trim() || !customerName().trim() || (!abonoEnabled() && !canceladoEnabled()) || (abonoEnabled() && abonoAmount() < 10000) || !paymentMethod()"
         class="w-full font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         [class]="saleType() === 'FABRICAR'
           ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'
@@ -958,9 +972,23 @@
             <span class="text-white font-bold text-xl">{{ formatPrice(cartTotal()) }}</span>
           </div>
         }
+        <select
+          [value]="paymentMethod()"
+          (change)="paymentMethod.set($any($event.target).value)"
+          class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-gray-500 transition-colors"
+          [class]="paymentMethod() ? 'text-white' : 'text-gray-500'"
+        >
+          <option value="" disabled>Método de pago</option>
+          <option value="EFECTIVO">Efectivo</option>
+          <option value="DATAFONO">Datáfono</option>
+          <option value="NEQUI">Nequi</option>
+          <option value="DAVIPLATA">Daviplata</option>
+          <option value="ADDI">ADDI</option>
+          <option value="SISTECREDITO">Sistecredito</option>
+        </select>
         <button
           (click)="confirmSale()"
-          [disabled]="cart().length === 0 || saving()"
+          [disabled]="cart().length === 0 || saving() || !paymentMethod()"
           class="w-full font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           [class]="saleType() === 'FABRICAR'
             ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'

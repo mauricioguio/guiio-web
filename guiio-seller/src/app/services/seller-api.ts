@@ -105,6 +105,7 @@ export class SellerApiService {
     customerPhone?: string;
     notes?: string;
     deliveryDate?: string;
+    paymentMethod?: string;
     items: SaleItemPayload[];
   }) {
     return this.http.post<Sale>(`${API}/sales`, data, { headers: this.headers });

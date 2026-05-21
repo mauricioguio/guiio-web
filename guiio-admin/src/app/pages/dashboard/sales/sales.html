@@ -139,8 +139,13 @@
                     <p class="text-gray-400 text-sm shrink-0">{{ formatPrice(item.price * item.quantity) }}</p>
                   </div>
                 }
+                @if (sale.paymentMethod) {
+                  <p class="text-gray-500 text-xs pt-2 border-t border-gray-800">
+                    Pago: <span class="text-gray-300 font-medium">{{ sale.paymentMethod }}</span>
+                  </p>
+                }
                 @if (sale.notes) {
-                  <p class="text-gray-500 text-xs pt-2 border-t border-gray-800">{{ sale.notes }}</p>
+                  <p class="text-gray-500 text-xs pt-1">{{ sale.notes }}</p>
                 }
               </div>
 
