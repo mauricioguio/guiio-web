@@ -110,10 +110,29 @@ export class Pedidos implements OnInit {
   setDeliveryQty(itemId: string, qty: number, max: number) {
     const clamped = Math.max(0, Math.min(qty, max));
     this.deliveryQty.update(m => { const n = new Map(m); n.set(itemId, clamped); return n; });
+    const order = this.selected();
+    if (order && this.hasDeliveryChanges(order)) {
+      const suggested = this.suggestedPayment(order);
+      this.paymentInput.set(suggested > 0 ? suggested.toLocaleString('es-CO') : '');
+    }
   }
 
   hasDeliveryChanges(order: FabricarOrder): boolean {
     return order.items.some(i => this.deliveryQtyFor(i.id) !== i.deliveredQty);
+  }
+
+  pickupValue(order: FabricarOrder): number {
+    return order.items.reduce((s, i) =>
+      s + Math.max(0, this.deliveryQtyFor(i.id) - i.deliveredQty) * i.price, 0);
+  }
+
+  remainingValue(order: FabricarOrder): number {
+    return order.items.reduce((s, i) =>
+      s + Math.max(0, i.quantity - this.deliveryQtyFor(i.id)) * i.price, 0);
+  }
+
+  suggestedPayment(order: FabricarOrder): number {
+    return Math.round(this.pickupValue(order) + 0.25 * this.remainingValue(order));
   }
 
   // ── Actions ──────────────────────────────────────────────────────────────

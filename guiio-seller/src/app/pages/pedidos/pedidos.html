@@ -297,6 +297,26 @@
             }
           </div>
           @if (hasDeliveryChanges(order)) {
+            <!-- Desglose del abono sugerido -->
+            @if (suggestedPayment(order) > 0) {
+              <div class="mt-3 bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 space-y-1.5 text-xs">
+                <p class="text-blue-300 font-semibold">Abono sugerido para esta entrega</p>
+                <div class="flex justify-between text-gray-400">
+                  <span>Valor a retirar ahora</span>
+                  <span class="text-white">{{ formatPrice(pickupValue(order)) }}</span>
+                </div>
+                @if (remainingValue(order) > 0) {
+                  <div class="flex justify-between text-gray-400">
+                    <span>25% de lo pendiente ({{ formatPrice(remainingValue(order)) }})</span>
+                    <span class="text-white">{{ formatPrice(remainingValue(order) * 0.25) }}</span>
+                  </div>
+                }
+                <div class="flex justify-between font-semibold text-blue-300 pt-1 border-t border-blue-500/20">
+                  <span>Total sugerido</span>
+                  <span>{{ formatPrice(suggestedPayment(order)) }}</span>
+                </div>
+              </div>
+            }
             <button
               (click)="saveDelivery()"
               [disabled]="savingDelivery()"
@@ -330,7 +350,14 @@
 
           <!-- Formulario nuevo abono -->
           <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 space-y-2">
-            <p class="text-xs text-gray-400 font-medium">Registrar abono</p>
+            <div class="flex items-center justify-between mb-0.5">
+              <p class="text-xs text-gray-400 font-medium">Registrar abono</p>
+              @if (selected(); as ord) {
+                @if (hasDeliveryChanges(ord) && suggestedPayment(ord) > 0) {
+                  <span class="text-[10px] text-blue-400">↑ Pre-llenado con sugerido — editable</span>
+                }
+              }
+            </div>
             <div class="flex gap-2">
               <input
                 type="text" inputmode="numeric"
