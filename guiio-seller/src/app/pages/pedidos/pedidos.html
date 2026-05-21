@@ -257,7 +257,8 @@
           </div>
         </div>
 
-        <!-- ── Entregas por ítem ── -->
+        <!-- ── Entregas por ítem (solo FABRICAR) ── -->
+        @if (order.type === 'FABRICAR') {
         <div>
           <p class="text-xs text-gray-500 uppercase tracking-wider mb-3">Productos · Entrega</p>
           <div class="space-y-2">
@@ -319,6 +320,8 @@
             }
           }
         </div>
+
+        } <!-- fin @if FABRICAR -->
 
         <!-- ── Historial de abonos ── -->
         <div>
@@ -383,18 +386,20 @@
         <!-- ── Cambiar estado ── -->
         <div>
           <p class="text-xs text-gray-500 uppercase tracking-wider mb-3">Estado del pedido</p>
-          <div class="grid grid-cols-2 gap-2">
-            @for (s of statuses; track s) {
-              <button
-                (click)="changeStatus(s)"
-                [disabled]="updatingStatus() || order.status === s"
-                class="py-2.5 px-3 rounded-xl border text-xs font-medium transition-colors disabled:opacity-40"
-                [class]="order.status === s
-                  ? statusClass(s) + ' cursor-default'
-                  : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-200'"
-              >{{ statusLabels[s] }}</button>
-            }
-          </div>
+          @if (order.type === 'FABRICAR') {
+            <div class="grid grid-cols-2 gap-2">
+              @for (s of statuses; track s) {
+                <button
+                  (click)="changeStatus(s)"
+                  [disabled]="updatingStatus() || order.status === s"
+                  class="py-2.5 px-3 rounded-xl border text-xs font-medium transition-colors disabled:opacity-40"
+                  [class]="order.status === s
+                    ? statusClass(s) + ' cursor-default'
+                    : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-200'"
+                >{{ statusLabels[s] }}</button>
+              }
+            </div>
+          }
           <button
             (click)="changeStatus('CANCELLED')"
             [disabled]="updatingStatus() || order.status === 'CANCELLED'"

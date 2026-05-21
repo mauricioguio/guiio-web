@@ -328,7 +328,7 @@ export class Pos implements OnInit, OnDestroy {
         this.canceladoEnabled() ? 'Cancelado' : '',
       ].filter(Boolean).join(' | ') || undefined,
       deliveryDate: this.saleType() === 'FABRICAR' ? this.deliveryDateInput() : undefined,
-      initialPayment: this.saleType() === 'FABRICAR' && this.abonoEnabled() && this.abonoAmount() > 0 ? this.abonoAmount() : undefined,
+      initialPayment: this.abonoEnabled() && this.abonoAmount() > 0 ? this.abonoAmount() : undefined,
       items: items.map(i => ({
         productId: i.product.id,
         productName: i.product.name,

@@ -59,7 +59,7 @@ export interface SalePayment {
 export interface FabricarOrder {
   id: string;
   orderNumber: number;
-  type: 'FABRICAR';
+  type: 'FABRICAR' | 'STOCK';
   status: string;
   total: number;
   customerName: string | null;

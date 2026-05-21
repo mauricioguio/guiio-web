@@ -67,19 +67,29 @@ export class SellerService {
     if (!data.items?.length) throw new BadRequestException('La venta debe tener al menos un producto');
 
     const total = data.items.reduce((s, i) => s + i.price * i.quantity, 0);
+    const hasAbono = data.initialPayment && data.initialPayment > 0;
+
+    // STOCK sin abono → COMPLETED inmediatamente; STOCK con abono o FABRICAR → PENDING
+    const status = data.type === 'STOCK' && !hasAbono ? 'COMPLETED' : 'PENDING';
+
+    // Items de STOCK se marcan como entregados al crear (salen del inventario en el momento)
+    const itemsData = data.items.map(item => ({
+      ...item,
+      deliveredQty: data.type === 'STOCK' ? item.quantity : 0,
+    }));
 
     const sale = await this.prisma.sale.create({
       data: {
         sedeId,
         type: data.type,
-        status: data.type === 'STOCK' ? 'COMPLETED' : 'PENDING',
+        status,
         total,
         customerName: data.customerName || null,
         customerPhone: data.customerPhone || null,
         notes: data.notes || null,
         deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
         paymentMethod: data.paymentMethod || null,
-        items: { create: data.items },
+        items: { create: itemsData },
       },
       include: { items: true, sede: { select: { id: true, name: true } } },
     });
@@ -93,9 +103,9 @@ export class SellerService {
       }
     }
 
-    if (data.type === 'FABRICAR' && data.initialPayment && data.initialPayment > 0) {
+    if (hasAbono) {
       await this.prisma.salePayment.create({
-        data: { saleId: sale.id, amount: data.initialPayment },
+        data: { saleId: sale.id, amount: data.initialPayment! },
       });
     }
 
@@ -130,7 +140,13 @@ export class SellerService {
 
   async getFabricarOrders(sedeId: string) {
     return this.prisma.sale.findMany({
-      where: { sedeId, type: 'FABRICAR', status: { notIn: ['COMPLETED', 'CANCELLED'] } },
+      where: {
+        sedeId,
+        OR: [
+          { type: 'FABRICAR', status: { notIn: ['COMPLETED', 'CANCELLED'] } },
+          { type: 'STOCK', status: 'PENDING' },
+        ],
+      },
       include: { items: true, payments: { orderBy: { createdAt: 'asc' } }, sede: { select: { id: true, name: true } } },
       orderBy: [{ deliveryDate: 'asc' }, { createdAt: 'asc' }],
     });
@@ -144,9 +160,21 @@ export class SellerService {
   }
 
   async addPayment(saleId: string, amount: number, note?: string) {
-    return this.prisma.salePayment.create({
+    const payment = await this.prisma.salePayment.create({
       data: { saleId, amount, note: note || null },
     });
+    // Auto-completar si el saldo queda en cero
+    const sale = await this.prisma.sale.findUnique({
+      where: { id: saleId },
+      include: { payments: true },
+    });
+    if (sale) {
+      const totalPaid = sale.payments.reduce((s, p) => s + p.amount, 0);
+      if (totalPaid >= sale.total) {
+        await this.prisma.sale.update({ where: { id: saleId }, data: { status: 'COMPLETED' } });
+      }
+    }
+    return payment;
   }
 
   async updateDeliveredQty(saleId: string, items: { itemId: string; deliveredQty: number }[]) {
