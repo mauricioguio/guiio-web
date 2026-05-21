@@ -191,3 +191,11 @@ model HeroSettings {
   buttons         Json     @default("[]")
   updatedAt       DateTime @updatedAt
 }
+
+model HomeSections {
+  id            String   @id @default("singleton")
+  storyText     String?
+  storyImage    String?
+  galleryImages Json     @default("[]")
+  updatedAt     DateTime @updatedAt
+}

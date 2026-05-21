@@ -4,8 +4,10 @@ import { NgClass } from '@angular/common';
 import { ProductService } from '../../services/product';
 import { CollectionService } from '../../services/collection';
 import { HeroService } from '../../services/hero';
+import { HomeSectionsService } from '../../services/home-sections';
 import { ProductCard } from '../../components/product-card/product-card';
 import { slugify } from '../../utils/slugify';
+import { cloudinaryUrl } from '../../utils/cloudinary';
 
 @Component({
   selector: 'app-home',
@@ -17,8 +19,10 @@ export class Home {
   private readonly productService = inject(ProductService);
   private readonly collectionService = inject(CollectionService);
   private readonly heroService = inject(HeroService);
+  private readonly homeSectionsService = inject(HomeSectionsService);
 
   protected readonly hero = this.heroService.getSettings();
+  protected readonly sections = this.homeSectionsService.get();
 
   protected readonly featured = computed(() =>
     this.productService.getAll()().filter(p => p.featured)
@@ -41,4 +45,5 @@ export class Home {
   );
 
   protected readonly slugify = slugify;
+  protected readonly cloudinaryUrl = cloudinaryUrl;
 }

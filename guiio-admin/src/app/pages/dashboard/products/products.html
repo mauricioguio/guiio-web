@@ -52,8 +52,11 @@
           @if (product.images[0]) {
             <img [src]="product.images[0]" class="w-full aspect-[2/3] md:aspect-auto md:h-[21rem] object-cover object-top bg-gray-800" />
           } @else {
-            <div class="w-full aspect-[2/3] md:aspect-auto md:h-[21rem] bg-gray-800 flex items-center justify-center">
-              <span class="text-gray-600 text-xs">Sin imagen</span>
+            <div class="w-full aspect-[2/3] md:aspect-auto md:h-[21rem] flex items-center justify-center"
+                 [style.background-color]="product.colors?.[0]?.hex ?? '#1f2937'">
+              @if (!product.colors?.[0]) {
+                <span class="text-gray-600 text-xs">Sin imagen</span>
+              }
             </div>
           }
           <div class="p-4">
@@ -299,6 +302,45 @@
                 }
               </div>
             }
+          </div>
+        </div>
+
+        <!-- Colores -->
+        <div>
+          <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3">Colores</p>
+          <div class="space-y-2 mb-3">
+            @for (color of draft().colors; track $index) {
+              <div class="flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-xl px-3 py-2">
+                <div class="w-6 h-6 rounded-full border border-gray-700 shrink-0"
+                     [style.background-color]="color.hex"></div>
+                <span class="text-sm text-white flex-1">{{ color.name }}</span>
+                <span class="text-xs text-gray-500">{{ color.hex }}</span>
+                <button type="button" (click)="removeColor($index)" class="text-gray-600 hover:text-red-400 transition-colors shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+            }
+          </div>
+          <div class="flex gap-2">
+            <div class="w-6 h-6 rounded-full border border-gray-700 shrink-0 self-center"
+                 [style.background-color]="selectedPreset()?.hex ?? 'transparent'"></div>
+            <select
+              [value]="selectedPresetName()"
+              (change)="selectedPresetName.set($any($event.target).value)"
+              class="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gray-600"
+            >
+              <option value="">Seleccionar color...</option>
+              @for (c of PREDEFINED_COLORS; track c.name) {
+                <option [value]="c.name" [selected]="selectedPresetName() === c.name">{{ c.name }} — {{ c.hex }}</option>
+              }
+            </select>
+            <button type="button" (click)="addColor()"
+              [disabled]="!selectedPreset()"
+              class="bg-white text-gray-900 text-sm font-medium px-4 rounded-xl hover:bg-gray-100 transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed">
+              Agregar
+            </button>
           </div>
         </div>
 

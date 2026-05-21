@@ -34,7 +34,7 @@
   </section>
 
   <!-- Grid de productos -->
-  <section class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
+  <section class="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
     <div class="flex items-end justify-between mb-10">
       <div>
         <p class="text-sm uppercase tracking-widest text-gray-400 mb-1">{{ products()?.length ?? 0 }} productos</p>
@@ -42,11 +42,24 @@
       </div>
     </div>
     @if ((products()?.length ?? 0) > 0) {
-      <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        @for (product of products()!; track product.id) {
-          <app-product-card [product]="product" />
-        }
-      </div>
+      @if (withPhotos().length > 0) {
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          @for (product of withPhotos(); track product.id) {
+            <app-product-card [product]="product" />
+          }
+        </div>
+      }
+      @if (withoutPhotos().length > 0) {
+        <div class="mt-14">
+          <p class="text-sm uppercase tracking-widest text-gray-400 mb-1">Disponibles</p>
+          <h3 class="text-xl font-bold text-gray-900 mb-8">Más colores disponibles en esta colección</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            @for (product of withoutPhotos(); track product.id) {
+              <app-product-card [product]="product" />
+            }
+          </div>
+        </div>
+      }
     } @else {
       <p class="text-gray-400 text-sm py-12 text-center">
         {{ products() === undefined ? 'Cargando productos...' : 'No hay productos en esta colección.' }}

@@ -1,9 +1,10 @@
 <!-- Hero -->
 <section class="relative bg-gray-900 text-white min-h-[85vh] flex items-center">
   @if (hero().backgroundImage) {
-    <img [src]="hero().backgroundImage" alt="Hero"
+    <img [src]="cloudinaryUrl(hero().backgroundImage, 1440)" alt="Hero"
          class="absolute inset-0 w-full h-full object-cover"
-         [style.object-position]="hero().imagePosition || 'center center'" />
+         [style.object-position]="hero().imagePosition || 'center center'"
+         fetchpriority="high" loading="eager" />
   }
   <div class="relative max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
     <div class="max-w-xl">
@@ -69,8 +70,9 @@
           <a [routerLink]="['/coleccion', slugify(col.name)]"
              class="group relative h-[40rem] rounded-2xl overflow-hidden bg-gray-200 flex items-center justify-center">
             @if (col.image) {
-              <img [src]="col.image" [alt]="col.name"
-                   class="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+              <img [src]="cloudinaryUrl(col.image, 800)" [alt]="col.name"
+                   class="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                   loading="lazy" />
             }
             <div class="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-gray-900/20 to-gray-900/10 group-hover:from-gray-900/70 transition-all"></div>
             <div class="relative text-white text-center px-8">
@@ -121,8 +123,8 @@
         <div class="w-full md:w-1/2 bg-gray-50 overflow-hidden flex items-center justify-center h-[24rem] md:h-full order-2"
              [ngClass]="{ 'md:order-1': i % 2 !== 0 }">
           @if (col.image) {
-            <img [src]="col.image" [alt]="col.name"
-                 class="w-full h-full object-cover object-top" />
+            <img [src]="cloudinaryUrl(col.image, 800)" [alt]="col.name"
+                 class="w-full h-full object-cover object-top" loading="lazy" />
           } @else {
             <div class="flex flex-col items-center justify-center gap-2 text-gray-300">
               <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,6 +152,35 @@
     }
   </div>
 </section>
+
+<!-- Bloque de marca -->
+@if (sections().storyText || sections().storyImage) {
+  <section class="max-w-[1024px] mx-auto border border-gray-100 rounded-2xl overflow-hidden my-16 grid grid-cols-1 md:grid-cols-2">
+    <div class="bg-[#212e51] flex items-center justify-center px-10 py-14">
+      <p class="text-white text-center leading-relaxed text-sm md:text-base">{{ sections().storyText }}</p>
+    </div>
+    @if (sections().storyImage) {
+      <div class="bg-gray-50 flex items-center justify-center overflow-hidden min-h-[280px]">
+        <img [src]="cloudinaryUrl(sections().storyImage, 600)" alt="Guiio Uniformes"
+             class="w-full h-full object-cover object-top" loading="lazy" />
+      </div>
+    }
+  </section>
+}
+
+<!-- Galería -->
+@if (sections().galleryImages.length > 0) {
+  <section class="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <p class="text-sm uppercase tracking-widest text-gray-400 mb-2">Fotos</p>
+    <h2 class="text-2xl font-bold text-gray-900 mb-8">Galería</h2>
+    <div class="columns-2 md:columns-3 gap-4 space-y-4">
+      @for (img of sections().galleryImages; track img) {
+        <img [src]="cloudinaryUrl(img, 600)" alt="Galería Guiio"
+             class="w-full rounded-2xl object-cover break-inside-avoid" loading="lazy" />
+      }
+    </div>
+  </section>
+}
 
 <!-- About -->
 <section class="bg-gray-900 text-white py-20">

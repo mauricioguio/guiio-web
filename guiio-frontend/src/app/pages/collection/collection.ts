@@ -35,4 +35,12 @@ export class Collection {
       )
     )
   );
+
+  protected readonly withPhotos = computed(() =>
+    (this.products() ?? []).filter(p => p.images.some(i => i))
+  );
+
+  protected readonly withoutPhotos = computed(() =>
+    (this.products() ?? []).filter(p => !p.images.some(i => i))
+  );
 }

@@ -8,6 +8,7 @@ import { SedesModule } from './sedes/sedes.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { SellerModule } from './seller/seller.module';
 import { HeroModule } from './hero/hero.module';
+import { HomeSectionsModule } from './home-sections/home-sections.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { HeroModule } from './hero/hero.module';
     InventoryModule,
     SellerModule,
     HeroModule,
+    HomeSectionsModule,
   ],
 })
 export class AppModule {}

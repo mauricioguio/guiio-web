@@ -5,6 +5,31 @@ import { CloudinaryService } from '../../../services/cloudinary';
 
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
+const PREDEFINED_COLORS: { name: string; hex: string }[] = [
+  { name: 'Palo Rosa',       hex: '#e8b5be' },
+  { name: 'Azul Rey',        hex: '#3554b7' },
+  { name: 'Vinotinto',       hex: '#7a1e2d' },
+  { name: 'Beige',           hex: '#e1d5d5' },
+  { name: 'Turquesa',        hex: '#378db6' },
+  { name: 'Verde Hoja Seca', hex: '#bdced6' },
+  { name: 'Gris Perla',      hex: '#d4d7e6' },
+  { name: 'Azul Oscuro',     hex: '#212e51' },
+  { name: 'Verde Petróleo',  hex: '#2e6d89' },
+  { name: 'Blanco',          hex: '#ffffff' },
+  { name: 'Negro',           hex: '#000000' },
+  { name: 'Lila',            hex: '#c1b3d4' },
+  { name: 'Verde Jade',      hex: '#1f5e70' },
+  { name: 'Rojo',            hex: '#c20423' },
+  { name: 'Berengena',       hex: '#470123' },
+  { name: 'Azul Cielo',      hex: '#70afe4' },
+  { name: 'Gris Ratón',      hex: '#463e49' },
+  { name: 'Verde Oliva',     hex: '#4a4726' },
+  { name: 'Verde Militar',   hex: '#4a4726' },
+  { name: 'Verde Menta',     hex: '#abd8dd' },
+  { name: 'Morado',          hex: '#b13bab' },
+  { name: 'Fucsia',          hex: '#ed0085' },
+];
+
 function defaultSizes(gender: string): string[] {
   return gender === 'hombre' ? ['XS', 'S', 'M', 'L', 'XL', 'XXL'] : ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
 }
@@ -22,6 +47,7 @@ interface Draft {
   topSizes: string[];
   bottomSizes: string[];
   images: string[];
+  colors: { name: string; hex: string }[];
 }
 
 const emptyDraft = (): Draft => {
@@ -33,6 +59,7 @@ const emptyDraft = (): Draft => {
     tagInput: '',
     topSizes: sizes, bottomSizes: sizes,
     images: [''],
+    colors: [],
   };
 };
 
@@ -58,6 +85,11 @@ export class Products {
   protected uploadingIndex = signal<number | null>(null);
   protected priceInput = signal('');
   protected collections = signal<Collection[]>([]);
+  protected readonly PREDEFINED_COLORS = PREDEFINED_COLORS;
+  protected selectedPresetName = signal('');
+  protected selectedPreset = computed(() =>
+    PREDEFINED_COLORS.find(c => c.name === this.selectedPresetName()) ?? null
+  );
 
   protected productCollections = computed(() => {
     const seen = new Set<string>();
@@ -141,7 +173,10 @@ export class Products {
       topSizes: sizes,
       bottomSizes: p.type === 'conjunto' && p.bottomSizes.length === 0 ? sizes : [...p.bottomSizes],
       images: p.images.length ? [...p.images] : [''],
+      colors: p.colors ? [...p.colors] : [],
     });
+    this.selectedPresetName.set('');
+    this.autoDetectColors();
     this.showForm.set(true);
   }
 
@@ -164,7 +199,7 @@ export class Products {
       tags: d.tagInput.split(',').map(t => t.trim()).filter(Boolean),
       topSizes: d.topSizes,
       bottomSizes: d.bottomSizes,
-      colors: [],
+      colors: d.colors,
       images: d.images.filter(i => i),
     };
     this.saving.set(true);
@@ -207,6 +242,15 @@ export class Products {
 
   patchDraft(patch: Partial<Draft>) {
     this.draft.update(d => ({ ...d, ...patch }));
+    if ('name' in patch) this.autoDetectColors();
+  }
+
+  private autoDetectColors() {
+    const nameLower = this.draft().name.toLowerCase();
+    const match = PREDEFINED_COLORS.find(c =>
+      nameLower.includes(c.name.toLowerCase())
+    );
+    if (match) this.selectedPresetName.set(match.name);
   }
 
   onTypeChange(type: string) {
@@ -251,6 +295,18 @@ export class Products {
         ? d.bottomSizes.filter(s => s !== size)
         : [...d.bottomSizes, size],
     }));
+  }
+
+  addColor() {
+    const preset = this.selectedPreset();
+    if (!preset) return;
+    if (this.draft().colors.some(c => c.name === preset.name)) return;
+    this.draft.update(d => ({ ...d, colors: [...d.colors, preset] }));
+    this.selectedPresetName.set('');
+  }
+
+  removeColor(i: number) {
+    this.draft.update(d => ({ ...d, colors: d.colors.filter((_, idx) => idx !== i) }));
   }
 
   addImage() {

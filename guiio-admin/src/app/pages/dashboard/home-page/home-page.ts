@@ -1,5 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CollectionsApiService, Collection } from '../../../services/collections-api';
+import { HomeSectionsApiService, HomeSectionsData } from '../../../services/home-sections-api';
+import { CloudinaryService } from '../../../services/cloudinary';
 
 @Component({
   selector: 'app-home-page',
@@ -7,6 +9,13 @@ import { CollectionsApiService, Collection } from '../../../services/collections
 })
 export class HomePage {
   private readonly api = inject(CollectionsApiService);
+  private readonly sectionsApi = inject(HomeSectionsApiService);
+  private readonly cloudinary = inject(CloudinaryService);
+
+  protected sections = signal<HomeSectionsData>({ storyText: null, storyImage: null, galleryImages: [] });
+  protected savingSections = signal(false);
+  protected uploadingStory = signal(false);
+  protected uploadingGallery = signal(false);
 
   protected collections = signal<Collection[]>([]);
   protected loading = signal(true);
@@ -21,7 +30,10 @@ export class HomePage {
     this.collections().filter(c => !c.featured).sort((a, b) => a.order - b.order)
   );
 
-  constructor() { this.load(); }
+  constructor() {
+    this.load();
+    this.sectionsApi.get().subscribe({ next: data => this.sections.set(data) });
+  }
 
   load() {
     this.loading.set(true);
@@ -69,6 +81,49 @@ export class HomePage {
     if (idx === list.length - 1) return;
     const next = list[idx + 1];
     this.swapOrder(col, next);
+  }
+
+  uploadStoryImage(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.uploadingStory.set(true);
+    this.cloudinary.uploadRaw(file).subscribe({
+      next: (res: any) => {
+        this.sections.update(s => ({ ...s, storyImage: res.secure_url }));
+        this.sectionsApi.update({ storyImage: res.secure_url }).subscribe();
+        this.uploadingStory.set(false);
+      },
+      error: () => this.uploadingStory.set(false),
+    });
+  }
+
+  updateStoryText(text: string) {
+    this.sections.update(s => ({ ...s, storyText: text }));
+    this.sectionsApi.update({ storyText: text }).subscribe();
+  }
+
+  uploadGalleryImage(event: Event) {
+    const files = Array.from((event.target as HTMLInputElement).files ?? []);
+    if (!files.length) return;
+    this.uploadingGallery.set(true);
+    let done = 0;
+    files.forEach(file => {
+      this.cloudinary.uploadRaw(file).subscribe({
+        next: (res: any) => {
+          this.sections.update(s => ({ ...s, galleryImages: [...s.galleryImages, res.secure_url] }));
+          this.sectionsApi.update({ galleryImages: [...this.sections().galleryImages] }).subscribe();
+          done++;
+          if (done === files.length) this.uploadingGallery.set(false);
+        },
+        error: () => { done++; if (done === files.length) this.uploadingGallery.set(false); },
+      });
+    });
+  }
+
+  removeGalleryImage(url: string) {
+    const updated = this.sections().galleryImages.filter(i => i !== url);
+    this.sections.update(s => ({ ...s, galleryImages: updated }));
+    this.sectionsApi.update({ galleryImages: updated }).subscribe();
   }
 
   private swapOrder(a: Collection, b: Collection) {
