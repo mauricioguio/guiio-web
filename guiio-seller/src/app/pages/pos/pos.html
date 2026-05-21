@@ -6,19 +6,26 @@
      class="bg-white text-gray-900 overflow-hidden shadow-2xl">
 
   <!-- Cabecera -->
-  <div class="bg-gray-900 px-6 py-5 flex flex-col items-center gap-2">
+  <div class="bg-gray-900 px-6 py-5 flex flex-col items-center gap-1">
     <img src="assets/logo-guiio.png" alt="Guiio" style="height:36px;width:auto" />
     @if (saleType() === 'STOCK') {
       <span style="color:#22c55e;font-size:13px;font-weight:500;margin-top:4px">Venta confirmada</span>
     } @else {
-      <span style="color:#facc15;font-size:13px;font-weight:600;margin-top:4px">
-        Pedido a fabricar
-      </span>
+      <span style="color:#facc15;font-size:13px;font-weight:600;margin-top:4px">Pedido a fabricar</span>
+    }
+    @if (savedOrderNumber()) {
+      <span style="color:#ffffff;font-size:22px;font-weight:800;letter-spacing:0.04em;margin-top:2px">#{{ savedOrderNumber() }}</span>
     }
   </div>
 
   <!-- Info del pedido -->
   <div class="px-6 py-4 border-b border-gray-100 space-y-1.5 text-sm">
+    @if (paymentMethod()) {
+      <div class="flex justify-between">
+        <span class="text-gray-500">Método de pago</span>
+        <span class="font-semibold">{{ paymentMethod() }}</span>
+      </div>
+    }
     @if (saleType() === 'STOCK') {
       <div class="flex justify-between">
         <span class="text-gray-500">Fecha</span>
@@ -604,30 +611,32 @@
           <span class="text-white font-bold text-xl">{{ formatPrice(cartTotal()) }}</span>
         </div>
       }
-      <select
-        [value]="paymentMethod()"
-        (change)="paymentMethod.set($any($event.target).value)"
-        class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-gray-500 transition-colors"
-        [class]="paymentMethod() ? 'text-white' : 'text-gray-500'"
-      >
-        <option value="" disabled>Método de pago</option>
-        <option value="EFECTIVO">Efectivo</option>
-        <option value="DATAFONO">Datáfono</option>
-        <option value="NEQUI">Nequi</option>
-        <option value="DAVIPLATA">Daviplata</option>
-        <option value="ADDI">ADDI</option>
-        <option value="SISTECREDITO">Sistecredito</option>
-      </select>
-      <button
-        (click)="confirmSale()"
-        [disabled]="cart().length === 0 || saving() || !customerPhone().trim() || !customerName().trim() || (!abonoEnabled() && !canceladoEnabled()) || (abonoEnabled() && abonoAmount() < 10000) || !paymentMethod()"
-        class="w-full font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        [class]="saleType() === 'FABRICAR'
-          ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'
-          : 'bg-white text-gray-900 hover:bg-gray-100'"
-      >
-        {{ saving() ? 'Registrando...' : (saleType() === 'FABRICAR' ? 'Enviar a fabricar' : 'Confirmar venta') }}
-      </button>
+      <div class="flex gap-2">
+        <select
+          [value]="paymentMethod()"
+          (change)="paymentMethod.set($any($event.target).value)"
+          class="shrink-0 w-[118px] bg-gray-800 border rounded-xl px-2 py-3 text-xs focus:outline-none focus:border-gray-500 transition-colors"
+          [class]="paymentMethod() ? 'text-white border-gray-600' : 'text-gray-500 border-gray-700'"
+        >
+          <option value="" disabled>Método pago</option>
+          <option value="EFECTIVO">Efectivo</option>
+          <option value="DATAFONO">Datáfono</option>
+          <option value="NEQUI">Nequi</option>
+          <option value="DAVIPLATA">Daviplata</option>
+          <option value="ADDI">ADDI</option>
+          <option value="SISTECREDITO">Sistecredito</option>
+        </select>
+        <button
+          (click)="confirmSale()"
+          [disabled]="cart().length === 0 || saving() || !customerPhone().trim() || !customerName().trim() || (!abonoEnabled() && !canceladoEnabled()) || (abonoEnabled() && abonoAmount() < 10000) || !paymentMethod()"
+          class="flex-1 font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          [class]="saleType() === 'FABRICAR'
+            ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'
+            : 'bg-white text-gray-900 hover:bg-gray-100'"
+        >
+          {{ saving() ? 'Registrando...' : (saleType() === 'FABRICAR' ? 'Enviar a fabricar' : 'Confirmar venta') }}
+        </button>
+      </div>
     </div>
   </div>
 
@@ -972,30 +981,32 @@
             <span class="text-white font-bold text-xl">{{ formatPrice(cartTotal()) }}</span>
           </div>
         }
-        <select
-          [value]="paymentMethod()"
-          (change)="paymentMethod.set($any($event.target).value)"
-          class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-gray-500 transition-colors"
-          [class]="paymentMethod() ? 'text-white' : 'text-gray-500'"
-        >
-          <option value="" disabled>Método de pago</option>
-          <option value="EFECTIVO">Efectivo</option>
-          <option value="DATAFONO">Datáfono</option>
-          <option value="NEQUI">Nequi</option>
-          <option value="DAVIPLATA">Daviplata</option>
-          <option value="ADDI">ADDI</option>
-          <option value="SISTECREDITO">Sistecredito</option>
-        </select>
-        <button
-          (click)="confirmSale()"
-          [disabled]="cart().length === 0 || saving() || !paymentMethod()"
-          class="w-full font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          [class]="saleType() === 'FABRICAR'
-            ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'
-            : 'bg-white text-gray-900 hover:bg-gray-100'"
-        >
-          {{ saving() ? 'Registrando...' : (saleType() === 'FABRICAR' ? 'Enviar a fabricar' : 'Confirmar venta') }}
-        </button>
+        <div class="flex gap-2">
+          <select
+            [value]="paymentMethod()"
+            (change)="paymentMethod.set($any($event.target).value)"
+            class="shrink-0 w-[118px] bg-gray-800 border rounded-xl px-2 py-3 text-xs focus:outline-none focus:border-gray-500 transition-colors"
+            [class]="paymentMethod() ? 'text-white border-gray-600' : 'text-gray-500 border-gray-700'"
+          >
+            <option value="" disabled>Método pago</option>
+            <option value="EFECTIVO">Efectivo</option>
+            <option value="DATAFONO">Datáfono</option>
+            <option value="NEQUI">Nequi</option>
+            <option value="DAVIPLATA">Daviplata</option>
+            <option value="ADDI">ADDI</option>
+            <option value="SISTECREDITO">Sistecredito</option>
+          </select>
+          <button
+            (click)="confirmSale()"
+            [disabled]="cart().length === 0 || saving() || !paymentMethod()"
+            class="flex-1 font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            [class]="saleType() === 'FABRICAR'
+              ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'
+              : 'bg-white text-gray-900 hover:bg-gray-100'"
+          >
+            {{ saving() ? 'Registrando...' : (saleType() === 'FABRICAR' ? 'Enviar a fabricar' : 'Confirmar venta') }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1205,10 +1216,10 @@
 @if (savedSale()) {
   <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
     <div class="bg-green-500 text-white text-sm font-medium px-5 py-3 rounded-2xl flex items-center gap-3 shadow-2xl">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
       </svg>
-      Venta registrada
+      <span>Venta registrada@if (savedOrderNumber()) { · <span class="font-bold">#{{ savedOrderNumber() }}</span>}</span>
       <button (click)="dismissSuccess()" class="ml-2 opacity-70 hover:opacity-100">✕</button>
     </div>
   </div>

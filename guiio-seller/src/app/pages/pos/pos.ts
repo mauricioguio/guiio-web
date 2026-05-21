@@ -45,6 +45,7 @@ export class Pos implements OnInit, OnDestroy {
   protected notes = signal('');
   protected saving = signal(false);
   protected savedSale = signal<string | null>(null);
+  protected savedOrderNumber = signal<number | null>(null);
   protected orderDate = signal(new Date());
   protected deliveryDate = signal<Date>(this.calcDeliveryDate(new Date()));
 
@@ -340,6 +341,7 @@ export class Pos implements OnInit, OnDestroy {
         const blob = await this.captureReceipt();
 
         this.savedSale.set(sale.id);
+        this.savedOrderNumber.set(sale.orderNumber);
         this.cart.set([]);
         this.customerName.set('');
         this.customerPhone.set('');
@@ -393,7 +395,7 @@ export class Pos implements OnInit, OnDestroy {
     this.receiptBlob = null;
   }
 
-  dismissSuccess() { this.savedSale.set(null); }
+  dismissSuccess() { this.savedSale.set(null); this.savedOrderNumber.set(null); }
 
   private async captureReceipt(): Promise<Blob | null> {
     const el = this.receiptEl?.nativeElement;

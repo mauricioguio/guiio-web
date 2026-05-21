@@ -29,8 +29,11 @@ export interface SellerCustomer {
 }
 
 export interface Sale {
-  id: string; type: string; status: string; total: number;
+  id: string;
+  orderNumber: number;
+  type: string; status: string; total: number;
   customerName: string | null; customerPhone: string | null; notes: string | null;
+  paymentMethod: string | null;
   createdAt: string;
   items: SaleItemPayload[];
 }
