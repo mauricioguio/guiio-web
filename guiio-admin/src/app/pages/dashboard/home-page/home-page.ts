@@ -120,10 +120,11 @@ export class HomePage {
     });
   }
 
-  removeGalleryImage(url: string) {
-    const updated = this.sections().galleryImages.filter(i => i !== url);
-    this.sections.update(s => ({ ...s, galleryImages: updated }));
-    this.sectionsApi.update({ galleryImages: updated }).subscribe();
+  clearGallerySlot(index: number) {
+    const imgs = [...this.sections().galleryImages] as any[];
+    imgs[index] = null;
+    this.sections.update(s => ({ ...s, galleryImages: imgs }));
+    this.sectionsApi.update({ galleryImages: imgs }).subscribe();
   }
 
   uploadGalleryAt(event: Event, index: number) {

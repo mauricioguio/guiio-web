@@ -16,7 +16,7 @@ export class HomeSectionsService {
 
   constructor() {
     this.http.get<HomeSectionsData>(`${API_URL}/home-sections`).subscribe({
-      next: d => this.data.set({ ...d, galleryImages: (d.galleryImages as any) ?? [] }),
+      next: d => this.data.set({ ...d, galleryImages: ((d.galleryImages as any) ?? []) }),
     });
   }
 

@@ -18,7 +18,7 @@ export class HomeSectionsApiService {
 
   get() {
     return this.http.get<HomeSectionsData>(`${API_URL}/home-sections`).pipe(
-      map(d => ({ ...d, galleryImages: (d.galleryImages ?? []).filter(Boolean) }))
+      map(d => ({ ...d, galleryImages: (d.galleryImages ?? []) as string[] }))
     );
   }
 
