@@ -176,7 +176,7 @@
     <div class="grid grid-cols-2 gap-4">
       @for (img of sections().galleryImages; track img; let i = $index) {
         <div class="overflow-hidden" [class]="i === 0 ? 'col-span-2 h-[325px] md:h-[500px] lg:h-[680px]' : 'h-[450px] md:h-[500px] lg:h-[680px]'">
-          <img [src]="cloudinaryUrl(img, 800)" alt="Galería Guiio"
+          <img [src]="cloudinaryUrl(img, i === 0 ? 1400 : 800)" alt="Galería Guiio"
                class="w-full h-full object-cover" loading="lazy" />
         </div>
       }
