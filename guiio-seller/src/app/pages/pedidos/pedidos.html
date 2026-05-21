@@ -379,7 +379,7 @@
               [disabled]="savingPayment() || !paymentInput()"
               class="w-full py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-sm disabled:opacity-40 hover:bg-purple-500 transition-colors"
             >
-              {{ savingPayment() ? 'Guardando...' : 'Registrar abono y generar comprobante' }}
+              {{ savingPayment() ? 'Guardando...' : (hasDeliveryChanges(order) ? 'Registrar entrega + abono y generar comprobante' : 'Registrar abono y generar comprobante') }}
             </button>
           </div>
         </div>

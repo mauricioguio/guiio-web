@@ -161,19 +161,39 @@ export class Pedidos implements OnInit {
     const amount = parseInt(raw, 10);
     if (!order || isNaN(amount) || amount <= 0 || this.savingPayment()) return;
     this.savingPayment.set(true);
-    this.api.addPayment(order.id, amount, this.paymentNote() || undefined).subscribe({
-      next: payment => {
-        this.orders.update(list => list.map(o =>
-          o.id === order.id ? { ...o, payments: [...o.payments, payment] } : o,
-        ));
-        this.paymentInput.set('');
-        this.paymentNote.set('');
-        this.savingPayment.set(false);
-        const updated = this.orders().find(o => o.id === order.id)!;
-        this.showReceipt(updated, 'payment', payment);
-      },
-      error: () => this.savingPayment.set(false),
-    });
+
+    const doSavePayment = (currentOrder: FabricarOrder) => {
+      this.api.addPayment(currentOrder.id, amount, this.paymentNote() || undefined).subscribe({
+        next: payment => {
+          this.orders.update(list => list.map(o =>
+            o.id === currentOrder.id ? { ...o, payments: [...o.payments, payment] } : o,
+          ));
+          this.paymentInput.set('');
+          this.paymentNote.set('');
+          this.savingPayment.set(false);
+          const updated = this.orders().find(o => o.id === currentOrder.id)!;
+          this.showReceipt(updated, 'payment', payment);
+        },
+        error: () => this.savingPayment.set(false),
+      });
+    };
+
+    // Si hay cambios de entrega pendientes, guardarlos primero
+    if (this.hasDeliveryChanges(order)) {
+      const items = order.items.map(i => ({ itemId: i.id, deliveredQty: this.deliveryQtyFor(i.id) }));
+      this.api.updateDeliveredQty(order.id, items).subscribe({
+        next: updatedOrder => {
+          this.orders.update(list => list.map(o => o.id === updatedOrder.id ? updatedOrder : o));
+          const qty = new Map<string, number>();
+          updatedOrder.items.forEach(i => qty.set(i.id, i.deliveredQty));
+          this.deliveryQty.set(qty);
+          doSavePayment(updatedOrder);
+        },
+        error: () => this.savingPayment.set(false),
+      });
+    } else {
+      doSavePayment(order);
+    }
   }
 
   changeStatus(status: string) {
