@@ -15,7 +15,7 @@
         <div class="flex flex-col gap-2">
           @for (img of p.images; track $index) {
             <button (click)="selectImage($index)"
-              class="w-16 h-20 rounded-lg overflow-hidden border-2 transition-all shrink-0"
+              class="w-16 h-20 overflow-hidden border-2 transition-all shrink-0"
               [class.border-gray-900]="selectedImageIndex() === $index"
               [class.border-transparent]="selectedImageIndex() !== $index">
               <img [src]="img" [alt]="p.name + ' foto ' + ($index + 1)"
@@ -23,7 +23,7 @@
             </button>
           }
         </div>
-        <div class="flex-1 aspect-[3/4] rounded-2xl overflow-hidden"
+        <div class="flex-1 aspect-[3/4] overflow-hidden"
              [style.background-color]="p.colors.length > 0 ? (selectedColor() ?? p.colors[0]).hex : '#f3f4f6'">
           <img [src]="p.images[selectedImageIndex()]" [alt]="p.name"
                class="w-full h-full object-contain transition-opacity duration-200"

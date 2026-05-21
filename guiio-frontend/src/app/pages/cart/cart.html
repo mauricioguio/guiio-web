@@ -42,11 +42,11 @@
 
         <div class="space-y-4">
           @for (item of cart.cartItems(); track $index) {
-            <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 flex gap-4 sm:gap-6">
+            <div class="bg-white border border-gray-100 p-4 sm:p-6 flex gap-4 sm:gap-6">
 
               <!-- Imagen -->
               <a [routerLink]="['/producto', item.product.id]"
-                 class="w-24 h-28 sm:w-28 sm:h-36 bg-gray-100 rounded-xl overflow-hidden shrink-0">
+                 class="w-24 h-28 sm:w-28 sm:h-36 bg-gray-100 overflow-hidden shrink-0">
                 <img [src]="item.product.images[0]" [alt]="item.product.name"
                      class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
               </a>
