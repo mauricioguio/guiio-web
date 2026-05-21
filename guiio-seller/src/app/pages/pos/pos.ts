@@ -457,8 +457,10 @@ export class Pos implements OnInit, OnDestroy {
   }
 
   onDiscountInput(value: string) {
-    const n = parseInt(value.replace(/\D/g, ''), 10);
-    this.discountValue.set(isNaN(n) ? 0 : n);
+    let n = parseInt(value.replace(/\D/g, ''), 10);
+    if (isNaN(n)) n = 0;
+    if (this.discountType() === 'pct') n = Math.min(n, 100);
+    this.discountValue.set(n);
   }
 
   discountInputValue(): string {
@@ -488,14 +490,16 @@ export class Pos implements OnInit, OnDestroy {
   }
 
   onItemOverrideInput(item: CartItem, raw: string) {
-    const n = parseInt(raw.replace(/\D/g, ''), 10);
+    let n = parseInt(raw.replace(/\D/g, ''), 10);
     const key = this.itemKey(item);
+    const type = this.itemOverrides().get(key)?.type ?? this.discountType();
+    if (!isNaN(n) && type === 'pct') n = Math.min(n, 100);
     this.itemOverrides.update(map => {
       const m = new Map(map);
       if (isNaN(n) || n === 0) {
         m.delete(key);
       } else {
-        m.set(key, { value: n, type: m.get(key)?.type ?? this.discountType() });
+        m.set(key, { value: n, type });
       }
       return m;
     });
