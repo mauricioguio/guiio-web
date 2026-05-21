@@ -175,10 +175,10 @@
     <h2 class="text-2xl font-bold text-gray-900 mb-8">Galería</h2>
     <div class="grid grid-cols-2 gap-4">
       @for (img of sections().galleryImages; track img; let i = $index) {
-        <img [src]="cloudinaryUrl(img, 800)" alt="Galería Guiio"
-             class="w-full h-[420px] object-cover"
-             [class.col-span-2]="i === 0"
-             loading="lazy" />
+        <div class="overflow-hidden h-[420px]" [class.col-span-2]="i === 0">
+          <img [src]="cloudinaryUrl(img, 800)" alt="Galería Guiio"
+               class="w-full h-full object-cover" loading="lazy" />
+        </div>
       }
     </div>
   </section>
