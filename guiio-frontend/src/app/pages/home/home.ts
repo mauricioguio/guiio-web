@@ -98,7 +98,9 @@ export class Home {
   }
 
   protected colImg(colName: string, offset = 0): string {
-    const imgs = this.imagesByCollection().get(colName.toLowerCase());
+    const name = colName.toLowerCase();
+    if (name === 'hombre' || name === 'mujer') return '';
+    const imgs = this.imagesByCollection().get(name);
     if (!imgs?.length) return '';
     return imgs[(this.colCycleIndex() + offset) % imgs.length];
   }
