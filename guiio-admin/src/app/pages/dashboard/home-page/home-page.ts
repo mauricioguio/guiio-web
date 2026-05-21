@@ -126,6 +126,22 @@ export class HomePage {
     this.sectionsApi.update({ galleryImages: updated }).subscribe();
   }
 
+  uploadGalleryAt(event: Event, index: number) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.uploadingGallery.set(true);
+    this.cloudinary.upload(file).subscribe({
+      next: (url: string) => {
+        const imgs = [...this.sections().galleryImages];
+        imgs[index] = url;
+        this.sections.update(s => ({ ...s, galleryImages: imgs }));
+        this.sectionsApi.update({ galleryImages: imgs }).subscribe();
+        this.uploadingGallery.set(false);
+      },
+      error: () => this.uploadingGallery.set(false),
+    });
+  }
+
   private swapOrder(a: Collection, b: Collection) {
     const orderA = a.order;
     const orderB = b.order;
