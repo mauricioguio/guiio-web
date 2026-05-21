@@ -71,14 +71,14 @@
             @if (item.note) {
               <p class="text-xs text-yellow-600 mt-0.5 italic">{{ item.note }}</p>
             }
-            @if (item.itemDiscount && item.itemDiscount > 0) {
+            @if (discountEnabled() && discountValue() > 0 && discountedKeys().has(itemKey(item))) {
               <p class="text-xs mt-0.5" style="color:#9333ea">
-                Desc. {{ item.itemDiscountType === 'pct' ? item.itemDiscount + '%' : formatPrice(item.itemDiscount) }}
+                Desc. {{ discountType() === 'pct' ? discountValue() + '%' : formatPrice(discountValue()) }}
               </p>
             }
           </div>
           <div class="text-right shrink-0">
-            @if (item.itemDiscount && item.itemDiscount > 0) {
+            @if (discountEnabled() && discountValue() > 0 && discountedKeys().has(itemKey(item))) {
               <span class="text-xs text-gray-400 line-through block">{{ formatPrice(itemPrice(item) * item.quantity) }}</span>
             }
             <span class="text-sm font-semibold text-gray-900 whitespace-nowrap">
@@ -92,15 +92,15 @@
 
   <!-- Total / Descuento / Abono -->
   <div class="bg-gray-50">
-    @if (orderDiscountAmount() > 0 || (abonoEnabled() && abonoAmount() > 0)) {
+    @if (discountAmount() > 0 || (abonoEnabled() && abonoAmount() > 0)) {
       <div class="px-6 pt-4 pb-1 flex items-center justify-between text-sm">
         <span class="text-gray-500">Subtotal</span>
-        <span class="text-gray-600">{{ formatPrice(cartTotal()) }}</span>
+        <span class="text-gray-600">{{ formatPrice(cartTotal() + discountAmount()) }}</span>
       </div>
-      @if (orderDiscountAmount() > 0) {
+      @if (discountAmount() > 0) {
         <div class="px-6 py-1 flex items-center justify-between text-sm">
-          <span style="color:#9333ea">Descuento {{ orderDiscountType() === 'pct' ? orderDiscountValue() + '%' : '' }}</span>
-          <span style="color:#9333ea">− {{ formatPrice(orderDiscountAmount()) }}</span>
+          <span style="color:#9333ea">Descuento {{ discountType() === 'pct' ? discountValue() + '%' : '' }}</span>
+          <span style="color:#9333ea">− {{ formatPrice(discountAmount()) }}</span>
         </div>
       }
       @if (abonoEnabled() && abonoAmount() > 0) {
@@ -111,12 +111,12 @@
       }
       <div class="px-6 pt-1 pb-4 flex items-center justify-between border-t border-gray-200 mt-1">
         <span class="font-semibold text-gray-600">{{ abonoEnabled() && abonoAmount() > 0 ? 'Por pagar' : 'Total' }}</span>
-        <span class="text-xl font-bold text-gray-900">{{ formatPrice(abonoEnabled() && abonoAmount() > 0 ? netTotal() : finalTotal()) }}</span>
+        <span class="text-xl font-bold text-gray-900">{{ formatPrice(abonoEnabled() && abonoAmount() > 0 ? netTotal() : cartTotal()) }}</span>
       </div>
     } @else {
       <div class="px-6 pt-4 flex items-center justify-between" [class.pb-4]="!canceladoEnabled()" [class.pb-2]="canceladoEnabled()">
         <span class="font-semibold text-gray-600">Total</span>
-        <span class="text-xl font-bold text-gray-900">{{ formatPrice(finalTotal()) }}</span>
+        <span class="text-xl font-bold text-gray-900">{{ formatPrice(cartTotal()) }}</span>
       </div>
       @if (canceladoEnabled()) {
         <div class="px-6 pb-4 flex items-center justify-between">
@@ -223,9 +223,9 @@
               (click)="openProduct(p)"
             >
               @if (p.images?.[0]) {
-                <img [src]="p.images[0]" class="w-full h-32 object-cover bg-gray-800" />
+                <img [src]="p.images[0]" class="w-full h-44 object-cover bg-gray-800" />
               } @else {
-                <div class="w-full h-32 bg-gray-800 flex items-center justify-center">
+                <div class="w-full h-44 bg-gray-800 flex items-center justify-center">
                   <svg class="w-7 h-7 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                       d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14"/>
@@ -435,7 +435,7 @@
             <div class="min-w-0">
               <p class="text-white text-xs font-medium truncate">{{ item.product.name }}</p>
               <div class="flex items-center gap-2 mt-0.5">
-                @if (item.itemDiscount && item.itemDiscount > 0) {
+                @if (discountEnabled() && discountValue() > 0 && discountedKeys().has(itemKey(item))) {
                   <span class="text-gray-500 text-xs line-through">{{ formatPrice(itemPrice(item)) }}</span>
                   <span class="text-purple-400 text-xs font-semibold">{{ formatPrice(itemEffectivePrice(item)) }}</span>
                 } @else {
@@ -450,33 +450,6 @@
               }
               @if (item.adjusted) {
                 <p class="text-red-400 text-xs mt-0.5">⚠ Ajustado al stock disponible</p>
-              }
-              <!-- Descuento por producto -->
-              @if (editingDiscountIdx() === idx) {
-                <div class="flex items-center gap-1 mt-1.5">
-                  <button (click)="toggleItemDiscountType(idx)"
-                    class="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-gray-700 border-purple-700 text-purple-300 min-w-[22px] text-center hover:bg-gray-600 transition-colors">
-                    {{ item.itemDiscountType === 'pct' ? '%' : '$' }}
-                  </button>
-                  <input type="text" inputmode="numeric" placeholder="0"
-                    [value]="item.itemDiscount && item.itemDiscount > 0 ? item.itemDiscount.toLocaleString('es-CO') : ''"
-                    (input)="onItemDiscountInput(idx, $any($event.target).value)"
-                    (keydown.enter)="editingDiscountIdx.set(null)"
-                    (keydown.escape)="editingDiscountIdx.set(null)"
-                    class="w-16 bg-gray-700 border border-purple-700 rounded px-1.5 py-0.5 text-xs text-white focus:outline-none" />
-                  <button (click)="removeItemDiscount(idx)" class="text-gray-600 hover:text-red-400 text-[10px] transition-colors">✕</button>
-                  <button (click)="editingDiscountIdx.set(null)" class="text-purple-400 text-[10px]">✓</button>
-                </div>
-              } @else if (item.itemDiscount && item.itemDiscount > 0) {
-                <button (click)="openItemDiscount(idx)"
-                  class="mt-1 text-[10px] text-purple-400 hover:text-purple-300 transition-colors">
-                  − {{ item.itemDiscountType === 'pct' ? item.itemDiscount + '%' : formatPrice(item.itemDiscount) }} · editar
-                </button>
-              } @else {
-                <button (click)="openItemDiscount(idx)"
-                  class="mt-1 text-[10px] text-gray-600 hover:text-purple-400 transition-colors">
-                  + desc. producto
-                </button>
               }
             </div>
             <div class="flex items-center gap-1">
@@ -503,46 +476,79 @@
       }
     </div>
 
-    <!-- Footer: descuento + abono + total + confirmar -->
+    <!-- Footer: opciones + total + confirmar -->
     <div class="p-5 border-t border-gray-800 shrink-0 space-y-3">
-      <!-- Descuento de factura -->
-      <div class="space-y-2">
-        <label class="flex items-center gap-3 cursor-pointer select-none">
-          <input type="checkbox" [checked]="orderDiscountEnabled()" (change)="orderDiscountEnabled.set($any($event.target).checked); orderDiscountValue.set(0)"
-            class="w-4 h-4 rounded accent-purple-500 cursor-pointer" />
-          <span class="text-sm text-white">Descuento</span>
-        </label>
-        @if (orderDiscountEnabled()) {
+      <!-- 3-button toggle row -->
+      <div class="flex gap-2">
+        <button
+          (click)="toggleDiscount()"
+          class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+          [class]="discountEnabled()
+            ? 'bg-purple-600/20 border-purple-600 text-purple-300'
+            : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-300'">
+          Descuento
+        </button>
+        <button
+          (click)="abonoEnabled.set(!abonoEnabled()); abonoAmount.set(0); canceladoEnabled.set(false)"
+          class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+          [class]="abonoEnabled()
+            ? 'bg-blue-600/20 border-blue-600 text-blue-300'
+            : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-300'">
+          Abono
+        </button>
+        <button
+          (click)="canceladoEnabled.set(!canceladoEnabled()); abonoEnabled.set(false); abonoAmount.set(0)"
+          class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+          [class]="canceladoEnabled()
+            ? 'bg-green-600/20 border-green-600 text-green-300'
+            : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-300'">
+          Cancelado
+        </button>
+      </div>
+      <!-- Descuento expansion -->
+      @if (discountEnabled()) {
+        <div class="space-y-2">
           <div class="flex gap-2">
             <button
-              (click)="orderDiscountType.set(orderDiscountType() === 'pct' ? 'value' : 'pct'); orderDiscountValue.set(0)"
+              (click)="discountType.set(discountType() === 'pct' ? 'value' : 'pct'); discountValue.set(0)"
               class="px-3 py-2.5 text-sm font-bold border rounded-xl transition-colors bg-gray-800 border-purple-700 text-purple-300 hover:bg-gray-700 min-w-[44px] text-center">
-              {{ orderDiscountType() === 'pct' ? '%' : '$' }}
+              {{ discountType() === 'pct' ? '%' : '$' }}
             </button>
             <div class="relative flex-1">
-              @if (orderDiscountType() === 'value') {
+              @if (discountType() === 'value') {
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
               }
               <input type="text" inputmode="numeric" placeholder="0"
-                [value]="orderDiscountInputValue()"
-                (input)="onOrderDiscountInput($any($event.target).value)"
+                [value]="discountInputValue()"
+                (input)="onDiscountInput($any($event.target).value)"
                 class="w-full bg-gray-800 border border-purple-700 rounded-xl py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
-                [class]="orderDiscountType() === 'value' ? 'pl-7 pr-3' : 'px-3'" />
+                [class]="discountType() === 'value' ? 'pl-7 pr-3' : 'px-3'" />
             </div>
           </div>
-          @if (orderDiscountAmount() > 0) {
-            <p class="text-purple-400 text-xs text-right">− {{ formatPrice(orderDiscountAmount()) }}</p>
+          @if (cart().length > 0) {
+            <div class="bg-gray-800/50 rounded-xl px-3 py-2 space-y-1.5">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" [checked]="allDiscounted()" (change)="toggleAllDiscounted($any($event.target).checked)"
+                  class="w-3.5 h-3.5 rounded accent-purple-500 cursor-pointer shrink-0" />
+                <span class="text-xs text-gray-300 font-medium">Todos los productos</span>
+              </label>
+              @for (item of cart(); track item.product.id + item.size) {
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" [checked]="discountedKeys().has(itemKey(item))" (change)="toggleItemDiscounted(item)"
+                    class="w-3.5 h-3.5 rounded accent-purple-500 cursor-pointer shrink-0" />
+                  <span class="text-xs text-gray-400 truncate">{{ item.product.name }} · T.{{ item.size }}</span>
+                </label>
+              }
+            </div>
           }
-        }
-      </div>
-      <!-- Abono / Cancelado -->
-      <div class="space-y-2">
-        <label class="flex items-center gap-3 cursor-pointer select-none">
-          <input type="checkbox" [checked]="abonoEnabled()" (change)="abonoEnabled.set($any($event.target).checked); abonoAmount.set(0); canceladoEnabled.set(false)"
-            class="w-4 h-4 rounded accent-blue-500 cursor-pointer" />
-          <span class="text-sm text-white">Abono</span>
-        </label>
-        @if (abonoEnabled()) {
+          @if (discountAmount() > 0) {
+            <p class="text-purple-400 text-xs text-right">− {{ formatPrice(discountAmount()) }}</p>
+          }
+        </div>
+      }
+      <!-- Abono expansion -->
+      @if (abonoEnabled()) {
+        <div class="space-y-2">
           <div class="relative">
             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
             <input type="text" inputmode="numeric" placeholder="0"
@@ -554,32 +560,18 @@
           @if (abonoAmount() > 0 && abonoAmount() < 10000) {
             <p class="text-red-400 text-xs">Mínimo $10.000</p>
           }
-        }
-        @if (!abonoEnabled()) {
-          <label
-            class="flex items-center gap-3 cursor-pointer select-none rounded-xl px-3 py-2.5 border transition-colors"
-            [class]="canceladoEnabled()
-              ? 'border-green-600 bg-green-500/10'
-              : 'border-yellow-600/60 bg-yellow-500/5'"
-          >
-            <input type="checkbox" [checked]="canceladoEnabled()" (change)="canceladoEnabled.set($any($event.target).checked)"
-              class="w-4 h-4 rounded accent-green-500 cursor-pointer shrink-0" />
-            <span class="text-sm font-medium" [class]="canceladoEnabled() ? 'text-green-400' : 'text-yellow-400'">
-              {{ canceladoEnabled() ? 'Cancelado' : 'Marcar como cancelado' }}
-            </span>
-          </label>
-        }
-      </div>
+        </div>
+      }
       <!-- Totales -->
-      @if (orderDiscountAmount() > 0 || (abonoEnabled() && abonoAmount() > 0)) {
+      @if (discountAmount() > 0 || (abonoEnabled() && abonoAmount() > 0)) {
         <div class="flex items-center justify-between text-sm">
           <span class="text-gray-500">Subtotal</span>
-          <span class="text-gray-400">{{ formatPrice(cartTotal()) }}</span>
+          <span class="text-gray-400">{{ formatPrice(cartTotal() + discountAmount()) }}</span>
         </div>
-        @if (orderDiscountAmount() > 0) {
+        @if (discountAmount() > 0) {
           <div class="flex items-center justify-between text-sm">
             <span class="text-purple-400">Descuento</span>
-            <span class="text-purple-400">− {{ formatPrice(orderDiscountAmount()) }}</span>
+            <span class="text-purple-400">− {{ formatPrice(discountAmount()) }}</span>
           </div>
         }
         @if (abonoEnabled() && abonoAmount() > 0) {
@@ -590,12 +582,12 @@
         }
         <div class="flex items-center justify-between border-t border-gray-800 pt-2">
           <span class="text-gray-400 text-sm">{{ abonoEnabled() && abonoAmount() > 0 ? 'Por pagar' : 'Total' }}</span>
-          <span class="text-white font-bold text-xl">{{ formatPrice(abonoEnabled() && abonoAmount() > 0 ? netTotal() : finalTotal()) }}</span>
+          <span class="text-white font-bold text-xl">{{ formatPrice(abonoEnabled() && abonoAmount() > 0 ? netTotal() : cartTotal()) }}</span>
         </div>
       } @else {
         <div class="flex items-center justify-between">
           <span class="text-gray-400 text-sm">Total</span>
-          <span class="text-white font-bold text-xl">{{ formatPrice(finalTotal()) }}</span>
+          <span class="text-white font-bold text-xl">{{ formatPrice(cartTotal()) }}</span>
         </div>
       }
       <button
@@ -769,7 +761,7 @@
             <div class="min-w-0">
               <p class="text-white text-xs font-medium truncate">{{ item.product.name }}</p>
               <div class="flex items-center gap-2 mt-0.5">
-                @if (item.itemDiscount && item.itemDiscount > 0) {
+                @if (discountEnabled() && discountValue() > 0 && discountedKeys().has(itemKey(item))) {
                   <span class="text-gray-500 text-xs line-through">{{ formatPrice(itemPrice(item)) }}</span>
                   <span class="text-purple-400 text-xs font-semibold">{{ formatPrice(itemEffectivePrice(item)) }}</span>
                 } @else {
@@ -784,32 +776,6 @@
               }
               @if (item.adjusted) {
                 <p class="text-red-400 text-xs mt-0.5">⚠ Ajustado al stock disponible</p>
-              }
-              <!-- Descuento por producto -->
-              @if (editingDiscountIdx() === idx) {
-                <div class="flex items-center gap-1 mt-1.5">
-                  <button (click)="toggleItemDiscountType(idx)"
-                    class="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-gray-700 border-purple-700 text-purple-300 min-w-[22px] text-center">
-                    {{ item.itemDiscountType === 'pct' ? '%' : '$' }}
-                  </button>
-                  <input type="text" inputmode="numeric" placeholder="0"
-                    [value]="item.itemDiscount && item.itemDiscount > 0 ? item.itemDiscount.toLocaleString('es-CO') : ''"
-                    (input)="onItemDiscountInput(idx, $any($event.target).value)"
-                    (keydown.enter)="editingDiscountIdx.set(null)"
-                    class="w-16 bg-gray-700 border border-purple-700 rounded px-1.5 py-0.5 text-xs text-white focus:outline-none" />
-                  <button (click)="removeItemDiscount(idx)" class="text-gray-600 hover:text-red-400 text-[10px] transition-colors">✕</button>
-                  <button (click)="editingDiscountIdx.set(null)" class="text-purple-400 text-[10px]">✓</button>
-                </div>
-              } @else if (item.itemDiscount && item.itemDiscount > 0) {
-                <button (click)="openItemDiscount(idx)"
-                  class="mt-1 text-[10px] text-purple-400 hover:text-purple-300 transition-colors">
-                  − {{ item.itemDiscountType === 'pct' ? item.itemDiscount + '%' : formatPrice(item.itemDiscount) }} · editar
-                </button>
-              } @else {
-                <button (click)="openItemDiscount(idx)"
-                  class="mt-1 text-[10px] text-gray-600 hover:text-purple-400 transition-colors">
-                  + desc. producto
-                </button>
               }
             </div>
             <div class="flex items-center gap-1">
@@ -847,44 +813,77 @@
             <p class="text-yellow-400 text-xs">Pedido a fabricar — se enviará a producción</p>
           </div>
         }
-        <!-- Descuento de factura -->
-        <div class="space-y-2">
-          <label class="flex items-center gap-3 cursor-pointer select-none">
-            <input type="checkbox" [checked]="orderDiscountEnabled()" (change)="orderDiscountEnabled.set($any($event.target).checked); orderDiscountValue.set(0)"
-              class="w-4 h-4 rounded accent-purple-500 cursor-pointer" />
-            <span class="text-sm text-white">Descuento</span>
-          </label>
-          @if (orderDiscountEnabled()) {
+        <!-- 3-button toggle row -->
+        <div class="flex gap-2">
+          <button
+            (click)="toggleDiscount()"
+            class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+            [class]="discountEnabled()
+              ? 'bg-purple-600/20 border-purple-600 text-purple-300'
+              : 'bg-gray-900 border-gray-800 text-gray-400 hover:text-gray-300'">
+            Descuento
+          </button>
+          <button
+            (click)="abonoEnabled.set(!abonoEnabled()); abonoAmount.set(0); canceladoEnabled.set(false)"
+            class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+            [class]="abonoEnabled()
+              ? 'bg-blue-600/20 border-blue-600 text-blue-300'
+              : 'bg-gray-900 border-gray-800 text-gray-400 hover:text-gray-300'">
+            Abono
+          </button>
+          <button
+            (click)="canceladoEnabled.set(!canceladoEnabled()); abonoEnabled.set(false); abonoAmount.set(0)"
+            class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+            [class]="canceladoEnabled()
+              ? 'bg-green-600/20 border-green-600 text-green-300'
+              : 'bg-gray-900 border-gray-800 text-gray-400 hover:text-gray-300'">
+            Cancelado
+          </button>
+        </div>
+        <!-- Descuento expansion -->
+        @if (discountEnabled()) {
+          <div class="space-y-2">
             <div class="flex gap-2">
               <button
-                (click)="orderDiscountType.set(orderDiscountType() === 'pct' ? 'value' : 'pct'); orderDiscountValue.set(0)"
-                class="px-3 py-2.5 text-sm font-bold border rounded-xl bg-gray-900 border-purple-700 text-purple-300 min-w-[44px] text-center">
-                {{ orderDiscountType() === 'pct' ? '%' : '$' }}
+                (click)="discountType.set(discountType() === 'pct' ? 'value' : 'pct'); discountValue.set(0)"
+                class="px-3 py-2.5 text-sm font-bold border rounded-xl transition-colors bg-gray-900 border-purple-700 text-purple-300 hover:bg-gray-800 min-w-[44px] text-center">
+                {{ discountType() === 'pct' ? '%' : '$' }}
               </button>
               <div class="relative flex-1">
-                @if (orderDiscountType() === 'value') {
+                @if (discountType() === 'value') {
                   <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
                 }
                 <input type="text" inputmode="numeric" placeholder="0"
-                  [value]="orderDiscountInputValue()"
-                  (input)="onOrderDiscountInput($any($event.target).value)"
-                  class="w-full bg-gray-900 border border-purple-700 rounded-xl py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none transition-colors"
-                  [class]="orderDiscountType() === 'value' ? 'pl-7 pr-3' : 'px-3'" />
+                  [value]="discountInputValue()"
+                  (input)="onDiscountInput($any($event.target).value)"
+                  class="w-full bg-gray-900 border border-purple-700 rounded-xl py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+                  [class]="discountType() === 'value' ? 'pl-7 pr-3' : 'px-3'" />
               </div>
             </div>
-            @if (orderDiscountAmount() > 0) {
-              <p class="text-purple-400 text-xs text-right">− {{ formatPrice(orderDiscountAmount()) }}</p>
+            @if (cart().length > 0) {
+              <div class="bg-gray-900/50 rounded-xl px-3 py-2 space-y-1.5">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" [checked]="allDiscounted()" (change)="toggleAllDiscounted($any($event.target).checked)"
+                    class="w-3.5 h-3.5 rounded accent-purple-500 cursor-pointer shrink-0" />
+                  <span class="text-xs text-gray-300 font-medium">Todos los productos</span>
+                </label>
+                @for (item of cart(); track item.product.id + item.size) {
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" [checked]="discountedKeys().has(itemKey(item))" (change)="toggleItemDiscounted(item)"
+                      class="w-3.5 h-3.5 rounded accent-purple-500 cursor-pointer shrink-0" />
+                    <span class="text-xs text-gray-400 truncate">{{ item.product.name }} · T.{{ item.size }}</span>
+                  </label>
+                }
+              </div>
             }
-          }
-        </div>
-        <!-- Abono / Cancelado -->
-        <div class="space-y-2">
-          <label class="flex items-center gap-3 cursor-pointer select-none">
-            <input type="checkbox" [checked]="abonoEnabled()" (change)="abonoEnabled.set($any($event.target).checked); abonoAmount.set(0); canceladoEnabled.set(false)"
-              class="w-4 h-4 rounded accent-blue-500 cursor-pointer" />
-            <span class="text-sm text-white">Abono</span>
-          </label>
-          @if (abonoEnabled()) {
+            @if (discountAmount() > 0) {
+              <p class="text-purple-400 text-xs text-right">− {{ formatPrice(discountAmount()) }}</p>
+            }
+          </div>
+        }
+        <!-- Abono expansion -->
+        @if (abonoEnabled()) {
+          <div class="space-y-2">
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
               <input type="text" inputmode="numeric" placeholder="0"
@@ -896,32 +895,18 @@
             @if (abonoAmount() > 0 && abonoAmount() < 10000) {
               <p class="text-red-400 text-xs">Mínimo $10.000</p>
             }
-          }
-          @if (!abonoEnabled()) {
-            <label
-              class="flex items-center gap-3 cursor-pointer select-none rounded-xl px-3 py-2.5 border transition-colors"
-              [class]="canceladoEnabled()
-                ? 'border-green-600 bg-green-500/10'
-                : 'border-yellow-600/60 bg-yellow-500/5'"
-            >
-              <input type="checkbox" [checked]="canceladoEnabled()" (change)="canceladoEnabled.set($any($event.target).checked)"
-                class="w-4 h-4 rounded accent-green-500 cursor-pointer shrink-0" />
-              <span class="text-sm font-medium" [class]="canceladoEnabled() ? 'text-green-400' : 'text-yellow-400'">
-                {{ canceladoEnabled() ? 'Cancelado' : 'Marcar como cancelado' }}
-              </span>
-            </label>
-          }
-        </div>
+          </div>
+        }
         <!-- Totales -->
-        @if (orderDiscountAmount() > 0 || (abonoEnabled() && abonoAmount() > 0)) {
+        @if (discountAmount() > 0 || (abonoEnabled() && abonoAmount() > 0)) {
           <div class="flex items-center justify-between text-sm">
             <span class="text-gray-500">Subtotal</span>
-            <span class="text-gray-400">{{ formatPrice(cartTotal()) }}</span>
+            <span class="text-gray-400">{{ formatPrice(cartTotal() + discountAmount()) }}</span>
           </div>
-          @if (orderDiscountAmount() > 0) {
+          @if (discountAmount() > 0) {
             <div class="flex items-center justify-between text-sm">
               <span class="text-purple-400">Descuento</span>
-              <span class="text-purple-400">− {{ formatPrice(orderDiscountAmount()) }}</span>
+              <span class="text-purple-400">− {{ formatPrice(discountAmount()) }}</span>
             </div>
           }
           @if (abonoEnabled() && abonoAmount() > 0) {
@@ -932,12 +917,12 @@
           }
           <div class="flex items-center justify-between border-t border-gray-800 pt-2">
             <span class="text-gray-400 text-sm">{{ abonoEnabled() && abonoAmount() > 0 ? 'Por pagar' : 'Total' }}</span>
-            <span class="text-white font-bold text-xl">{{ formatPrice(abonoEnabled() && abonoAmount() > 0 ? netTotal() : finalTotal()) }}</span>
+            <span class="text-white font-bold text-xl">{{ formatPrice(abonoEnabled() && abonoAmount() > 0 ? netTotal() : cartTotal()) }}</span>
           </div>
         } @else {
           <div class="flex items-center justify-between">
             <span class="text-gray-400 text-sm">Total</span>
-            <span class="text-white font-bold text-xl">{{ formatPrice(finalTotal()) }}</span>
+            <span class="text-white font-bold text-xl">{{ formatPrice(cartTotal()) }}</span>
           </div>
         }
         <button

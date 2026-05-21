@@ -14,8 +14,6 @@ export interface CartItem {
   adjusted?: boolean;
   bordado?: boolean;
   bordadoText?: string;
-  itemDiscount?: number;
-  itemDiscountType?: 'pct' | 'value';
 }
 
 function productSizes(p: Product): string[] {
@@ -63,10 +61,10 @@ export class Pos implements OnInit, OnDestroy {
   protected abonoAmount = signal(0);
   protected canceladoEnabled = signal(false);
 
-  protected orderDiscountEnabled = signal(false);
-  protected orderDiscountType = signal<'pct' | 'value'>('pct');
-  protected orderDiscountValue = signal(0);
-  protected editingDiscountIdx = signal<number | null>(null);
+  protected discountEnabled = signal(false);
+  protected discountType = signal<'pct' | 'value'>('pct');
+  protected discountValue = signal(0);
+  protected discountedKeys = signal<Set<string>>(new Set());
 
   protected customerSearchState = signal<'idle' | 'searching' | 'found' | 'notfound'>('idle');
   protected registering = signal(false);
@@ -105,31 +103,33 @@ export class Pos implements OnInit, OnDestroy {
     return i.product.price + (i.bordado ? 10000 : 0);
   }
 
+  itemKey(i: CartItem): string { return `${i.product.id}|${i.size}`; }
+
   itemEffectivePrice(i: CartItem): number {
     const base = this.itemPrice(i);
-    if (!i.itemDiscount || i.itemDiscount <= 0) return base;
-    if (i.itemDiscountType === 'value') return Math.max(0, base - i.itemDiscount);
-    return Math.max(0, Math.round(base * (1 - Math.min(i.itemDiscount, 100) / 100)));
+    if (!this.discountEnabled() || this.discountValue() <= 0) return base;
+    if (!this.discountedKeys().has(this.itemKey(i))) return base;
+    if (this.discountType() === 'value') return Math.max(0, base - this.discountValue());
+    return Math.max(0, Math.round(base * (1 - Math.min(this.discountValue(), 100) / 100)));
   }
 
   protected cartTotal = computed(() =>
     this.cart().reduce((s, i) => s + this.itemEffectivePrice(i) * i.quantity, 0)
   );
 
-  protected orderDiscountAmount = computed(() => {
-    if (!this.orderDiscountEnabled() || this.orderDiscountValue() <= 0) return 0;
-    const subtotal = this.cartTotal();
-    if (this.orderDiscountType() === 'pct') {
-      return Math.round(subtotal * Math.min(this.orderDiscountValue(), 100) / 100);
-    }
-    return Math.min(this.orderDiscountValue(), subtotal);
-  });
-
-  protected finalTotal = computed(() =>
-    Math.max(0, this.cartTotal() - this.orderDiscountAmount())
+  protected discountAmount = computed(() =>
+    this.cart().reduce((s, i) => {
+      const base = this.itemPrice(i) * i.quantity;
+      const eff = this.itemEffectivePrice(i) * i.quantity;
+      return s + (base - eff);
+    }, 0)
   );
 
-  protected netTotal = computed(() => Math.max(0, this.finalTotal() - this.abonoAmount()));
+  protected allDiscounted = computed(() =>
+    this.cart().length > 0 && this.cart().every(i => this.discountedKeys().has(this.itemKey(i)))
+  );
+
+  protected netTotal = computed(() => Math.max(0, this.cartTotal() - this.abonoAmount()));
 
   protected cartCount = computed(() =>
     this.cart().reduce((s, i) => s + i.quantity, 0)
@@ -249,21 +249,24 @@ export class Pos implements OnInit, OnDestroy {
     const note = this.selectedNote().trim();
     const bordado = this.selectedBordado();
     const bordadoText = bordado ? this.selectedBordadoText().trim() : '';
+    const newItem: CartItem = { product: p, size, quantity: 1, note, bordado, bordadoText };
     this.cart.update(items => {
       const idx = items.findIndex(i => i.product.id === p.id && i.size === size && i.note === note && !!i.bordado === bordado);
       if (idx >= 0) {
         return items.map((it, i) => i === idx ? { ...it, quantity: it.quantity + 1 } : it);
       }
-      return [...items, { product: p, size, quantity: 1, note, bordado, bordadoText }];
+      return [...items, newItem];
     });
+    if (this.discountEnabled()) {
+      this.discountedKeys.update(keys => new Set([...keys, this.itemKey(newItem)]));
+    }
     this.selectedProduct.set(null);
   }
 
   removeFromCart(idx: number) {
+    const item = this.cart()[idx];
+    if (item) this.discountedKeys.update(keys => { const s = new Set(keys); s.delete(this.itemKey(item)); return s; });
     this.cart.update(items => items.filter((_, i) => i !== idx));
-    const editing = this.editingDiscountIdx();
-    if (editing === idx) this.editingDiscountIdx.set(null);
-    else if (editing !== null && editing > idx) this.editingDiscountIdx.update(i => i! - 1);
   }
 
   updateQty(idx: number, qty: number) {
@@ -299,8 +302,8 @@ export class Pos implements OnInit, OnDestroy {
       notes: [
         this.notes(),
         this.abonoEnabled() && this.abonoAmount() > 0 ? `Abono: $${this.abonoAmount().toLocaleString('es-CO')}` : '',
-        this.orderDiscountEnabled() && this.orderDiscountAmount() > 0
-          ? `Descuento: ${this.orderDiscountType() === 'pct' ? this.orderDiscountValue() + '%' : '$' + this.orderDiscountValue().toLocaleString('es-CO')}`
+        this.discountEnabled() && this.discountAmount() > 0
+          ? `Descuento: ${this.discountType() === 'pct' ? this.discountValue() + '%' : '$' + this.discountValue().toLocaleString('es-CO')}`
           : '',
         this.canceladoEnabled() ? 'Cancelado' : '',
       ].filter(Boolean).join(' | ') || undefined,
@@ -330,9 +333,9 @@ export class Pos implements OnInit, OnDestroy {
         this.abonoEnabled.set(false);
         this.abonoAmount.set(0);
         this.canceladoEnabled.set(false);
-        this.orderDiscountEnabled.set(false);
-        this.orderDiscountValue.set(0);
-        this.editingDiscountIdx.set(null);
+        this.discountEnabled.set(false);
+        this.discountValue.set(0);
+        this.discountedKeys.set(new Set());
         this.loadData();
 
         if (blob && phone) {
@@ -435,44 +438,38 @@ export class Pos implements OnInit, OnDestroy {
     return v > 0 ? v.toLocaleString('es-CO') : '';
   }
 
-  onOrderDiscountInput(value: string) {
+  onDiscountInput(value: string) {
     const n = parseInt(value.replace(/\D/g, ''), 10);
-    this.orderDiscountValue.set(isNaN(n) ? 0 : n);
+    this.discountValue.set(isNaN(n) ? 0 : n);
   }
 
-  orderDiscountInputValue(): string {
-    const v = this.orderDiscountValue();
+  discountInputValue(): string {
+    const v = this.discountValue();
     return v > 0 ? v.toLocaleString('es-CO') : '';
   }
 
-  openItemDiscount(idx: number) {
-    const item = this.cart()[idx];
-    if (!item.itemDiscountType) {
-      this.cart.update(items => items.map((it, i) =>
-        i === idx ? { ...it, itemDiscountType: 'pct' as const, itemDiscount: it.itemDiscount ?? 0 } : it
-      ));
+  toggleDiscount() {
+    const next = !this.discountEnabled();
+    this.discountEnabled.set(next);
+    if (next) {
+      this.discountedKeys.set(new Set(this.cart().map(i => this.itemKey(i))));
+    } else {
+      this.discountValue.set(0);
+      this.discountedKeys.set(new Set());
     }
-    this.editingDiscountIdx.set(idx);
   }
 
-  toggleItemDiscountType(idx: number) {
-    this.cart.update(items => items.map((it, i) =>
-      i === idx ? { ...it, itemDiscountType: it.itemDiscountType === 'pct' ? 'value' as const : 'pct' as const, itemDiscount: 0 } : it
-    ));
+  toggleAllDiscounted(checked: boolean) {
+    this.discountedKeys.set(checked ? new Set(this.cart().map(i => this.itemKey(i))) : new Set());
   }
 
-  onItemDiscountInput(idx: number, value: string) {
-    const n = parseInt(value.replace(/\D/g, ''), 10);
-    this.cart.update(items => items.map((it, i) =>
-      i === idx ? { ...it, itemDiscount: Math.max(0, isNaN(n) ? 0 : n) } : it
-    ));
-  }
-
-  removeItemDiscount(idx: number) {
-    this.cart.update(items => items.map((it, i) =>
-      i === idx ? { ...it, itemDiscount: 0, itemDiscountType: undefined } : it
-    ));
-    this.editingDiscountIdx.set(null);
+  toggleItemDiscounted(item: CartItem) {
+    const key = this.itemKey(item);
+    this.discountedKeys.update(keys => {
+      const s = new Set(keys);
+      s.has(key) ? s.delete(key) : s.add(key);
+      return s;
+    });
   }
 
   formatPrice(v: number) {
