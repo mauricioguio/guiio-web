@@ -322,13 +322,13 @@ export class Pos implements OnInit, OnDestroy {
       paymentMethod: this.paymentMethod() || undefined,
       notes: [
         this.notes(),
-        this.abonoEnabled() && this.abonoAmount() > 0 ? `Abono: $${this.abonoAmount().toLocaleString('es-CO')}` : '',
         this.discountEnabled() && this.discountAmount() > 0
           ? `Descuento: ${this.discountType() === 'pct' ? this.discountValue() + '%' : '$' + this.discountValue().toLocaleString('es-CO')}`
           : '',
         this.canceladoEnabled() ? 'Cancelado' : '',
       ].filter(Boolean).join(' | ') || undefined,
       deliveryDate: this.saleType() === 'FABRICAR' ? this.deliveryDateInput() : undefined,
+      initialPayment: this.saleType() === 'FABRICAR' && this.abonoEnabled() && this.abonoAmount() > 0 ? this.abonoAmount() : undefined,
       items: items.map(i => ({
         productId: i.product.id,
         productName: i.product.name,

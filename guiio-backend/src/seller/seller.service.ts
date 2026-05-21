@@ -61,6 +61,7 @@ export class SellerService {
     notes?: string;
     deliveryDate?: string;
     paymentMethod?: string;
+    initialPayment?: number;
     items: { productId: string; productName: string; size: string; quantity: number; price: number; note?: string }[];
   }) {
     if (!data.items?.length) throw new BadRequestException('La venta debe tener al menos un producto');
@@ -90,6 +91,12 @@ export class SellerService {
           data: { quantity: { decrement: item.quantity } },
         });
       }
+    }
+
+    if (data.type === 'FABRICAR' && data.initialPayment && data.initialPayment > 0) {
+      await this.prisma.salePayment.create({
+        data: { saleId: sale.id, amount: data.initialPayment },
+      });
     }
 
     return sale;
