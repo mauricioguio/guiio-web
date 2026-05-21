@@ -108,7 +108,7 @@ export class HomePage {
     this.uploadingGallery.set(true);
     let done = 0;
     files.forEach(file => {
-      this.cloudinary.upload(file).subscribe({
+      this.cloudinary.uploadGallery(file).subscribe({
         next: (url: string) => {
           this.sections.update(s => ({ ...s, galleryImages: [...s.galleryImages, url] }));
           this.sectionsApi.update({ galleryImages: [...this.sections().galleryImages] }).subscribe();
@@ -130,7 +130,7 @@ export class HomePage {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     this.uploadingGallery.set(true);
-    this.cloudinary.upload(file).subscribe({
+    this.cloudinary.uploadGallery(file).subscribe({
       next: (url: string) => {
         const imgs = [...this.sections().galleryImages];
         imgs[index] = url;
