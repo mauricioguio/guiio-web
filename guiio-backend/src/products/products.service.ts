@@ -8,7 +8,7 @@ export class ProductsService {
   async findAll(onlyActive = true) {
     const list = await this.prisma.product.findMany({
       where: onlyActive ? ({ active: true } as any) : undefined,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { name: 'asc' },
     });
     return list.map(p => ({ ...p, type: p.type.toLowerCase() }));
   }

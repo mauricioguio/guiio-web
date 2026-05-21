@@ -35,7 +35,9 @@ export class CollectionsService {
       include: { product: true },
     });
     const filtered = onlyActive ? links.filter(l => l.product.active) : links;
-    return filtered.map(({ product }) => this.serialize(product));
+    return filtered
+      .map(({ product }) => this.serialize(product))
+      .sort((a, b) => a.name.localeCompare(b.name, 'es'));
   }
 
   async getProductsByName(name: string) {
@@ -54,7 +56,8 @@ export class CollectionsService {
     const byJoin = col ? await this.getProducts(col.id, true) : [];
     const seenIds = new Set(byField.map(p => p.id));
 
-    return [...byField, ...byJoin.filter(p => !seenIds.has(p.id))];
+    return [...byField, ...byJoin.filter(p => !seenIds.has(p.id))]
+      .sort((a, b) => a.name.localeCompare(b.name, 'es'));
   }
 
   async addProduct(collectionId: string, productId: string) {
