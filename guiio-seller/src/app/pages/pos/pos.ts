@@ -490,10 +490,9 @@ export class Pos implements OnInit, OnDestroy {
   }
 
   onItemOverrideInput(item: CartItem, raw: string) {
-    let n = parseInt(raw.replace(/\D/g, ''), 10);
+    const n = parseInt(raw.replace(/\D/g, ''), 10);
     const key = this.itemKey(item);
     const type = this.itemOverrides().get(key)?.type ?? this.discountType();
-    if (!isNaN(n) && type === 'pct') n = Math.min(n, 100);
     this.itemOverrides.update(map => {
       const m = new Map(map);
       if (isNaN(n) || n === 0) {
