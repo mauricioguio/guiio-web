@@ -273,27 +273,33 @@
                   </div>
                   <span class="text-xs text-gray-500 shrink-0">{{ formatPrice(item.price) }}</span>
                 </div>
-                <!-- Contador de entregados -->
-                <div class="flex items-center gap-3">
-                  <p class="text-xs text-gray-500 flex-1">
-                    Entregados:
-                    <span [class]="item.deliveredQty >= item.quantity ? 'text-green-400 font-semibold' : 'text-white font-semibold'">
-                      {{ deliveryQtyFor(item.id) }}
-                    </span>
-                    / {{ item.quantity }}
-                  </p>
-                  <div class="flex items-center gap-1">
-                    <button
-                      (click)="setDeliveryQty(item.id, deliveryQtyFor(item.id) - 1, item.quantity)"
-                      class="w-7 h-7 rounded-lg bg-gray-800 text-white flex items-center justify-center text-base leading-none hover:bg-gray-700 active:bg-gray-600"
-                    >−</button>
-                    <span class="w-6 text-center text-sm font-semibold">{{ deliveryQtyFor(item.id) }}</span>
-                    <button
-                      (click)="setDeliveryQty(item.id, deliveryQtyFor(item.id) + 1, item.quantity)"
-                      class="w-7 h-7 rounded-lg bg-gray-800 text-white flex items-center justify-center text-base leading-none hover:bg-gray-700 active:bg-gray-600"
-                    >+</button>
+                <!-- Estado de entrega -->
+                @if (item.deliveredQty >= item.quantity) {
+                  <p class="text-xs font-semibold text-green-400">✓ Entregado</p>
+                } @else {
+                  <div class="flex items-center gap-3">
+                    <p class="text-xs text-gray-500 flex-1">
+                      Entregados:
+                      <span [class]="deliveryQtyFor(item.id) >= item.quantity ? 'text-green-400 font-semibold' : 'text-white font-semibold'">
+                        {{ deliveryQtyFor(item.id) }}
+                      </span>
+                      / {{ item.quantity }}
+                    </p>
+                    <div class="flex items-center gap-1">
+                      <button
+                        (click)="setDeliveryQty(item.id, deliveryQtyFor(item.id) - 1, item.quantity, item.deliveredQty)"
+                        [disabled]="deliveryQtyFor(item.id) <= item.deliveredQty"
+                        class="w-7 h-7 rounded-lg bg-gray-800 text-white flex items-center justify-center text-base leading-none hover:bg-gray-700 active:bg-gray-600 disabled:opacity-30"
+                      >−</button>
+                      <span class="w-6 text-center text-sm font-semibold">{{ deliveryQtyFor(item.id) }}</span>
+                      <button
+                        (click)="setDeliveryQty(item.id, deliveryQtyFor(item.id) + 1, item.quantity, item.deliveredQty)"
+                        [disabled]="deliveryQtyFor(item.id) >= item.quantity"
+                        class="w-7 h-7 rounded-lg bg-gray-800 text-white flex items-center justify-center text-base leading-none hover:bg-gray-700 active:bg-gray-600 disabled:opacity-30"
+                      >+</button>
+                    </div>
                   </div>
-                </div>
+                }
               </div>
             }
           </div>

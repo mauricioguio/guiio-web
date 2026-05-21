@@ -107,8 +107,8 @@ export class Pedidos implements OnInit {
     return this.deliveryQty().get(itemId) ?? 0;
   }
 
-  setDeliveryQty(itemId: string, qty: number, max: number) {
-    const clamped = Math.max(0, Math.min(qty, max));
+  setDeliveryQty(itemId: string, qty: number, max: number, min = 0) {
+    const clamped = Math.max(min, Math.min(qty, max));
     this.deliveryQty.update(m => { const n = new Map(m); n.set(itemId, clamped); return n; });
     const order = this.selected();
     if (order && this.hasDeliveryChanges(order)) {
@@ -132,6 +132,8 @@ export class Pedidos implements OnInit {
   }
 
   suggestedPayment(order: FabricarOrder): number {
+    const allWillBeDelivered = order.items.every(i => this.deliveryQtyFor(i.id) >= i.quantity);
+    if (allWillBeDelivered) return this.pendingBalance(order);
     return Math.round(this.pickupValue(order) + 0.25 * this.remainingValue(order));
   }
 
