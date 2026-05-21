@@ -65,6 +65,7 @@ export class Pos implements OnInit, OnDestroy {
   protected discountType = signal<'pct' | 'value'>('pct');
   protected discountValue = signal(0);
   protected discountedKeys = signal<Set<string>>(new Set());
+  protected itemOverrides = signal<Map<string, { value: number; type: 'pct' | 'value' }>>(new Map());
 
   protected customerSearchState = signal<'idle' | 'searching' | 'found' | 'notfound'>('idle');
   protected registering = signal(false);
@@ -107,10 +108,22 @@ export class Pos implements OnInit, OnDestroy {
 
   itemEffectivePrice(i: CartItem): number {
     const base = this.itemPrice(i);
-    if (!this.discountEnabled() || this.discountValue() <= 0) return base;
-    if (!this.discountedKeys().has(this.itemKey(i))) return base;
-    if (this.discountType() === 'value') return Math.max(0, base - this.discountValue());
-    return Math.max(0, Math.round(base * (1 - Math.min(this.discountValue(), 100) / 100)));
+    if (!this.discountEnabled() || !this.discountedKeys().has(this.itemKey(i))) return base;
+    const override = this.itemOverrides().get(this.itemKey(i));
+    const dType = override?.type ?? this.discountType();
+    const dValue = override?.value ?? this.discountValue();
+    if (dValue <= 0) return base;
+    if (dType === 'value') return Math.max(0, base - dValue);
+    return Math.max(0, Math.round(base * (1 - Math.min(dValue, 100) / 100)));
+  }
+
+  itemDiscountLabel(i: CartItem): string {
+    if (!this.discountEnabled() || !this.discountedKeys().has(this.itemKey(i))) return '';
+    const override = this.itemOverrides().get(this.itemKey(i));
+    const dType = override?.type ?? this.discountType();
+    const dValue = override?.value ?? this.discountValue();
+    if (dValue <= 0) return '';
+    return dType === 'pct' ? `${dValue}%` : this.formatPrice(dValue);
   }
 
   protected cartTotal = computed(() =>
@@ -265,7 +278,11 @@ export class Pos implements OnInit, OnDestroy {
 
   removeFromCart(idx: number) {
     const item = this.cart()[idx];
-    if (item) this.discountedKeys.update(keys => { const s = new Set(keys); s.delete(this.itemKey(item)); return s; });
+    if (item) {
+      const key = this.itemKey(item);
+      this.discountedKeys.update(keys => { const s = new Set(keys); s.delete(key); return s; });
+      this.itemOverrides.update(m => { const nm = new Map(m); nm.delete(key); return nm; });
+    }
     this.cart.update(items => items.filter((_, i) => i !== idx));
   }
 
@@ -336,6 +353,7 @@ export class Pos implements OnInit, OnDestroy {
         this.discountEnabled.set(false);
         this.discountValue.set(0);
         this.discountedKeys.set(new Set());
+        this.itemOverrides.set(new Map());
         this.loadData();
 
         if (blob && phone) {
@@ -456,7 +474,42 @@ export class Pos implements OnInit, OnDestroy {
     } else {
       this.discountValue.set(0);
       this.discountedKeys.set(new Set());
+      this.itemOverrides.set(new Map());
     }
+  }
+
+  itemOverrideType(i: CartItem): 'pct' | 'value' {
+    return this.itemOverrides().get(this.itemKey(i))?.type ?? this.discountType();
+  }
+
+  itemOverrideInputValue(i: CartItem): string {
+    const v = this.itemOverrides().get(this.itemKey(i))?.value ?? 0;
+    return v > 0 ? v.toLocaleString('es-CO') : '';
+  }
+
+  onItemOverrideInput(item: CartItem, raw: string) {
+    const n = parseInt(raw.replace(/\D/g, ''), 10);
+    const key = this.itemKey(item);
+    this.itemOverrides.update(map => {
+      const m = new Map(map);
+      if (isNaN(n) || n === 0) {
+        m.delete(key);
+      } else {
+        m.set(key, { value: n, type: m.get(key)?.type ?? this.discountType() });
+      }
+      return m;
+    });
+  }
+
+  toggleItemOverrideType(item: CartItem) {
+    const key = this.itemKey(item);
+    this.itemOverrides.update(map => {
+      const m = new Map(map);
+      const existing = m.get(key);
+      const cur = existing?.type ?? this.discountType();
+      m.set(key, { value: existing?.value ?? 0, type: cur === 'pct' ? 'value' : 'pct' });
+      return m;
+    });
   }
 
   toggleAllDiscounted(checked: boolean) {

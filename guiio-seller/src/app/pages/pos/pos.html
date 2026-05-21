@@ -71,14 +71,12 @@
             @if (item.note) {
               <p class="text-xs text-yellow-600 mt-0.5 italic">{{ item.note }}</p>
             }
-            @if (discountEnabled() && discountValue() > 0 && discountedKeys().has(itemKey(item))) {
-              <p class="text-xs mt-0.5" style="color:#9333ea">
-                Desc. {{ discountType() === 'pct' ? discountValue() + '%' : formatPrice(discountValue()) }}
-              </p>
+            @if (discountEnabled() && itemEffectivePrice(item) < itemPrice(item)) {
+              <p class="text-xs mt-0.5" style="color:#9333ea">Desc. {{ itemDiscountLabel(item) }}</p>
             }
           </div>
           <div class="text-right shrink-0">
-            @if (discountEnabled() && discountValue() > 0 && discountedKeys().has(itemKey(item))) {
+            @if (discountEnabled() && itemEffectivePrice(item) < itemPrice(item)) {
               <span class="text-xs text-gray-400 line-through block">{{ formatPrice(itemPrice(item) * item.quantity) }}</span>
             }
             <span class="text-sm font-semibold text-gray-900 whitespace-nowrap">
@@ -436,7 +434,7 @@
             <div class="min-w-0">
               <p class="text-white text-xs font-medium truncate">{{ item.product.name }}</p>
               <div class="flex items-center gap-2 mt-0.5">
-                @if (discountEnabled() && discountValue() > 0 && discountedKeys().has(itemKey(item))) {
+                @if (discountEnabled() && itemEffectivePrice(item) < itemPrice(item)) {
                   <span class="text-gray-500 text-xs line-through">{{ formatPrice(itemPrice(item)) }}</span>
                   <span class="text-purple-400 text-xs font-semibold">{{ formatPrice(itemEffectivePrice(item)) }}</span>
                 } @else {
@@ -767,7 +765,7 @@
             <div class="min-w-0">
               <p class="text-white text-xs font-medium truncate">{{ item.product.name }}</p>
               <div class="flex items-center gap-2 mt-0.5">
-                @if (discountEnabled() && discountValue() > 0 && discountedKeys().has(itemKey(item))) {
+                @if (discountEnabled() && itemEffectivePrice(item) < itemPrice(item)) {
                   <span class="text-gray-500 text-xs line-through">{{ formatPrice(itemPrice(item)) }}</span>
                   <span class="text-purple-400 text-xs font-semibold">{{ formatPrice(itemEffectivePrice(item)) }}</span>
                 } @else {
@@ -874,11 +872,29 @@
                   <span class="text-xs text-gray-300 font-medium">Todos los productos</span>
                 </label>
                 @for (item of cart(); track item.product.id + item.size) {
-                  <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" [checked]="discountedKeys().has(itemKey(item))" (change)="toggleItemDiscounted(item)"
-                      class="w-3.5 h-3.5 rounded accent-purple-500 cursor-pointer shrink-0" />
-                    <span class="text-xs text-gray-400 truncate">{{ item.product.name }} · T.{{ item.size }}</span>
-                  </label>
+                  <div class="space-y-1">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" [checked]="discountedKeys().has(itemKey(item))" (change)="toggleItemDiscounted(item)"
+                        class="w-3.5 h-3.5 rounded accent-purple-500 cursor-pointer shrink-0" />
+                      <span class="text-xs text-gray-400 truncate flex-1 min-w-0">{{ item.product.name }} · T.{{ item.size }}</span>
+                    </label>
+                    @if (discountedKeys().has(itemKey(item))) {
+                      <div class="flex items-center gap-1.5 pl-5">
+                        <button (click)="toggleItemOverrideType(item)"
+                          class="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-gray-700 border-purple-800 text-purple-400 min-w-[20px] text-center shrink-0">
+                          {{ itemOverrideType(item) === 'pct' ? '%' : '$' }}
+                        </button>
+                        <input type="text" inputmode="numeric"
+                          [placeholder]="discountInputValue() || '0'"
+                          [value]="itemOverrideInputValue(item)"
+                          (input)="onItemOverrideInput(item, $any($event.target).value)"
+                          class="flex-1 bg-gray-700 border border-purple-800 rounded px-2 py-0.5 text-xs text-white placeholder-gray-600 focus:outline-none" />
+                        @if (itemEffectivePrice(item) < itemPrice(item)) {
+                          <span class="text-purple-400 text-[10px] shrink-0 whitespace-nowrap">−{{ formatPrice(itemPrice(item) - itemEffectivePrice(item)) }}</span>
+                        }
+                      </div>
+                    }
+                  </div>
                 }
               </div>
             }
