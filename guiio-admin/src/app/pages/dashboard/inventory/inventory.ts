@@ -305,6 +305,37 @@ export class Inventory {
     return sizes.reduce((sum, size) => sum + (draft[productId]?.[size] ?? 0), 0);
   }
 
+  protected batchSizeTotals = computed((): { size: string; total: number }[] => {
+    const draft = this.batchDraft();
+    const totalsMap: Record<string, number> = {};
+    const order: string[] = [];
+    for (const row of this.batchRows()) {
+      for (const size of row.sizes) {
+        if (!(size in totalsMap)) { totalsMap[size] = 0; order.push(size); }
+        totalsMap[size] += draft[row.product.id]?.[size] ?? 0;
+      }
+    }
+    return order.map(size => ({ size, total: totalsMap[size] }));
+  });
+
+  protected batchGrandTotal = computed(() =>
+    this.batchSizeTotals().reduce((sum, e) => sum + e.total, 0)
+  );
+
+  protected expandedSizeTotals = computed((): Record<string, number> => {
+    const draft = this.draftQuantities();
+    const sedes = this.sedes();
+    const result: Record<string, number> = {};
+    for (const size of this.expandedSizes()) {
+      result[size] = sedes.reduce((s, sede) => s + (draft[size]?.[sede.id] ?? 0), 0);
+    }
+    return result;
+  });
+
+  protected expandedGrandTotal = computed(() =>
+    Object.values(this.expandedSizeTotals()).reduce((sum, v) => sum + v, 0)
+  );
+
   saveBatch() {
     const sedeId = this.selectedSedeId();
     if (!sedeId) return;
