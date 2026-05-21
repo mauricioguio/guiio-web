@@ -173,10 +173,12 @@
   <section class="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <p class="text-sm uppercase tracking-widest text-gray-400 mb-2">Fotos</p>
     <h2 class="text-2xl font-bold text-gray-900 mb-8">Galería</h2>
-    <div class="columns-2 md:columns-3 gap-4 space-y-4">
-      @for (img of sections().galleryImages; track img) {
-        <img [src]="cloudinaryUrl(img, 600)" alt="Galería Guiio"
-             class="w-full rounded-2xl object-cover break-inside-avoid" loading="lazy" />
+    <div class="grid grid-cols-2 gap-4">
+      @for (img of sections().galleryImages; track img; let i = $index) {
+        <img [src]="cloudinaryUrl(img, 800)" alt="Galería Guiio"
+             class="w-full h-[420px] object-cover"
+             [class.col-span-2]="i === 0"
+             loading="lazy" />
       }
     </div>
   </section>
