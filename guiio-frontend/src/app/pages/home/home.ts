@@ -51,8 +51,22 @@ export class Home {
       .flatMap(p => p.images as string[])
   );
 
+  private readonly imagesByCollection = computed(() => {
+    const map = new Map<string, string[]>();
+    for (const p of this.productService.getAll()()) {
+      if (p.images?.length) {
+        const key = p.collection.toLowerCase();
+        if (!map.has(key)) map.set(key, []);
+        map.get(key)!.push(...(p.images as string[]));
+      }
+    }
+    return map;
+  });
+
   protected readonly cycleIndex = signal(0);
   protected readonly fading = signal(false);
+  protected readonly colCycleIndex = signal(0);
+  protected readonly colFading = signal(false);
 
   constructor() {
     const id = setInterval(() => {
@@ -65,13 +79,28 @@ export class Home {
         this.fading.set(false);
       }, 400);
     }, 4000);
-    this.destroyRef.onDestroy(() => clearInterval(id));
+
+    const colId = setInterval(() => {
+      this.colFading.set(true);
+      setTimeout(() => {
+        this.colCycleIndex.update(i => i + 1);
+        this.colFading.set(false);
+      }, 400);
+    }, 3500);
+
+    this.destroyRef.onDestroy(() => { clearInterval(id); clearInterval(colId); });
   }
 
   protected cycleImg(offset: number): string {
     const imgs = this.allProductImages();
     if (!imgs.length) return '';
     return imgs[(this.cycleIndex() + offset) % imgs.length];
+  }
+
+  protected colImg(colName: string, offset = 0): string {
+    const imgs = this.imagesByCollection().get(colName.toLowerCase());
+    if (!imgs?.length) return '';
+    return imgs[(this.colCycleIndex() + offset) % imgs.length];
   }
 
   protected readonly slugify = slugify;

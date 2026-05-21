@@ -69,9 +69,11 @@
         @for (col of featuredCollections(); track col.id) {
           <a [routerLink]="['/coleccion', slugify(col.name)]"
              class="group relative h-[40rem] rounded-2xl overflow-hidden bg-gray-200 flex items-center justify-center">
-            @if (col.image) {
-              <img [src]="cloudinaryUrl(col.image, 800)" [alt]="col.name"
+            @if (colImg(col.name) || col.image) {
+              <img [src]="cloudinaryUrl(colImg(col.name) || col.image, 800)" [alt]="col.name"
                    class="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                   [style.opacity]="colFading() ? '0' : '1'"
+                   style="transition: opacity 0.4s ease, transform 0.5s ease"
                    loading="lazy" />
             }
             <div class="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-gray-900/20 to-gray-900/10 group-hover:from-gray-900/70 transition-all"></div>
@@ -122,9 +124,12 @@
         <!-- Imagen -->
         <div class="w-full md:w-1/2 bg-gray-50 overflow-hidden flex items-center justify-center h-[24rem] md:h-full order-2"
              [ngClass]="{ 'md:order-1': i % 2 !== 0 }">
-          @if (col.image) {
-            <img [src]="cloudinaryUrl(col.image, 800)" [alt]="col.name"
-                 class="w-full h-full object-cover object-top" loading="lazy" />
+          @if (colImg(col.name) || col.image) {
+            <img [src]="cloudinaryUrl(colImg(col.name) || col.image, 800)" [alt]="col.name"
+                 class="w-full h-full object-cover object-top"
+                 [style.opacity]="colFading() ? '0' : '1'"
+                 style="transition: opacity 0.4s ease"
+                 loading="lazy" />
           } @else {
             <div class="flex flex-col items-center justify-center gap-2 text-gray-300">
               <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
