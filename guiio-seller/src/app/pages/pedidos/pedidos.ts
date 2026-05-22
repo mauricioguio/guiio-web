@@ -143,7 +143,9 @@ export class Pedidos implements OnInit {
   suggestedPayment(order: FabricarOrder): number {
     const allWillBeDelivered = order.items.every(i => this.deliveryQtyFor(i.id) >= i.quantity);
     if (allWillBeDelivered) return this.pendingBalance(order);
-    const raw = this.pickupValue(order) + 0.25 * this.remainingValue(order) - this.totalPaid(order);
+    // Valor de lo que se lleva ahora + 25% de depósito sobre lo que queda pendiente.
+    // Se usa pendingBalance como techo (no se puede sugerir más de lo que se debe).
+    const raw = this.pickupValue(order) + 0.25 * this.remainingValue(order);
     return Math.max(0, Math.min(Math.round(raw), this.pendingBalance(order)));
   }
 
