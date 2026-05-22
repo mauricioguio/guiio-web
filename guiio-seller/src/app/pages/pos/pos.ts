@@ -133,11 +133,7 @@ export class Pos implements OnInit, OnDestroy {
     this.cart().reduce((s, i) => s + this.itemEffectivePrice(i) * i.quantity, 0)
   );
 
-  // Re-capear abono si el total baja (p.ej. al aplicar descuento después de poner el abono)
-  private _abonoCapEffect = effect(() => {
-    const max = this.cartTotal();
-    if (this.abonoAmount() > max) this.abonoAmount.set(max);
-  });
+  protected abonoExceedsTotal = computed(() => this.abonoEnabled() && this.abonoAmount() > this.cartTotal());
 
   protected discountAmount = computed(() =>
     this.cart().reduce((s, i) => {
@@ -461,7 +457,7 @@ export class Pos implements OnInit, OnDestroy {
 
   onAbonoInput(value: string) {
     const n = parseInt(value.replace(/\D/g, ''), 10);
-    this.abonoAmount.set(isNaN(n) ? 0 : Math.min(n, this.cartTotal()));
+    this.abonoAmount.set(isNaN(n) ? 0 : n);
   }
 
   abonoInputValue(): string {
