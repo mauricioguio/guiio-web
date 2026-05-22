@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import html2canvas from 'html2canvas';
 import { Router, RouterLink } from '@angular/router';
 import { of } from 'rxjs';
@@ -132,6 +132,12 @@ export class Pos implements OnInit, OnDestroy {
   protected cartTotal = computed(() =>
     this.cart().reduce((s, i) => s + this.itemEffectivePrice(i) * i.quantity, 0)
   );
+
+  // Re-capear abono si el total baja (p.ej. al aplicar descuento después de poner el abono)
+  private _abonoCapEffect = effect(() => {
+    const max = this.cartTotal();
+    if (this.abonoAmount() > max) this.abonoAmount.set(max);
+  });
 
   protected discountAmount = computed(() =>
     this.cart().reduce((s, i) => {
@@ -328,7 +334,7 @@ export class Pos implements OnInit, OnDestroy {
         this.canceladoEnabled() ? 'Cancelado' : '',
       ].filter(Boolean).join(' | ') || undefined,
       deliveryDate: this.saleType() === 'FABRICAR' ? this.deliveryDateInput() : undefined,
-      initialPayment: this.abonoEnabled() && this.abonoAmount() > 0 ? this.abonoAmount() : undefined,
+      initialPayment: this.abonoEnabled() && this.abonoAmount() > 0 ? Math.min(this.abonoAmount(), this.cartTotal()) : undefined,
       items: items.map(i => ({
         productId: i.product.id,
         productName: i.product.name,
