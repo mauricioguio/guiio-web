@@ -455,7 +455,7 @@ export class Pos implements OnInit, OnDestroy {
 
   onAbonoInput(value: string) {
     const n = parseInt(value.replace(/\D/g, ''), 10);
-    this.abonoAmount.set(isNaN(n) ? 0 : n);
+    this.abonoAmount.set(isNaN(n) ? 0 : Math.min(n, this.cartTotal()));
   }
 
   abonoInputValue(): string {
