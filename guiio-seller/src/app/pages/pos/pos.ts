@@ -54,6 +54,7 @@ export class Pos implements OnInit, OnDestroy {
   protected selectedSize = signal('');
   protected selectedNote = signal('');
   protected tallaCompleta = signal(true);
+  protected selectedPiezas = signal<'conjunto' | 'top' | 'bottom'>('conjunto');
   protected selectedTopSize = signal('');
   protected selectedBottomSize = signal('');
   protected selectedBordado = signal(false);
@@ -251,6 +252,7 @@ export class Pos implements OnInit, OnDestroy {
     this.selectedSize.set(sizes[0] ?? '');
     this.selectedNote.set('');
     this.tallaCompleta.set(true);
+    this.selectedPiezas.set('conjunto');
     this.selectedTopSize.set('');
     this.selectedBottomSize.set('');
     this.selectedBordado.set(false);
@@ -262,10 +264,19 @@ export class Pos implements OnInit, OnDestroy {
     if (!p) return;
     let size: string;
     if (this.saleType() === 'FABRICAR' && !this.tallaCompleta()) {
+      const piezas = this.selectedPiezas();
       const top = this.selectedTopSize().trim();
       const bottom = this.selectedBottomSize().trim();
-      if (!top || !bottom) return;
-      size = `Blusa ${top} / Pantalón ${bottom}`;
+      if (piezas === 'conjunto') {
+        if (!top || !bottom) return;
+        size = `Blusa ${top} / Pantalón ${bottom}`;
+      } else if (piezas === 'top') {
+        if (!top) return;
+        size = `Blusa ${top}`;
+      } else {
+        if (!bottom) return;
+        size = `Pantalón ${bottom}`;
+      }
     } else {
       size = this.selectedSize();
       if (!size) return;

@@ -1081,8 +1081,27 @@
 
         <!-- Tallas separadas (solo FABRICAR) -->
         @if (saleType() === 'FABRICAR' && !tallaCompleta()) {
+          <!-- Qué piezas se van a fabricar -->
+          <div class="flex gap-2 mb-4">
+            <button
+              (click)="selectedPiezas.set('conjunto')"
+              class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+              [class]="selectedPiezas() === 'conjunto' ? 'bg-white text-gray-900 border-white' : 'bg-gray-800 text-gray-400 border-gray-700'"
+            >Conjunto</button>
+            <button
+              (click)="selectedPiezas.set('top'); selectedBottomSize.set('')"
+              class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+              [class]="selectedPiezas() === 'top' ? 'bg-white text-gray-900 border-white' : 'bg-gray-800 text-gray-400 border-gray-700'"
+            >Solo blusa</button>
+            <button
+              (click)="selectedPiezas.set('bottom'); selectedTopSize.set('')"
+              class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+              [class]="selectedPiezas() === 'bottom' ? 'bg-white text-gray-900 border-white' : 'bg-gray-800 text-gray-400 border-gray-700'"
+            >Solo pantalón</button>
+          </div>
           <div class="space-y-4 mb-5">
             <!-- Blusa -->
+            @if (selectedPiezas() !== 'bottom') {
             <div>
               <p class="text-gray-400 text-xs uppercase tracking-wider mb-2">Talla de blusa</p>
               <div class="flex flex-wrap gap-2 mb-2">
@@ -1104,7 +1123,9 @@
                 class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
               />
             </div>
+            }
             <!-- Pantalón -->
+            @if (selectedPiezas() !== 'top') {
             <div>
               <p class="text-gray-400 text-xs uppercase tracking-wider mb-2">Talla de pantalón</p>
               <div class="flex flex-wrap gap-2 mb-2">
@@ -1126,6 +1147,7 @@
                 class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
               />
             </div>
+            }
           </div>
         }
 
@@ -1166,7 +1188,9 @@
         <button
           (click)="addToCart()"
           [disabled]="saleType() === 'FABRICAR' && !tallaCompleta()
-            ? (!selectedTopSize().trim() || !selectedBottomSize().trim())
+            ? (selectedPiezas() === 'conjunto'
+                ? (!selectedTopSize().trim() || !selectedBottomSize().trim())
+                : selectedPiezas() === 'top' ? !selectedTopSize().trim() : !selectedBottomSize().trim())
             : !selectedSize()"
           class="w-full bg-white text-gray-900 font-semibold rounded-xl py-3 text-sm hover:bg-gray-100 transition-colors disabled:opacity-40"
         >
