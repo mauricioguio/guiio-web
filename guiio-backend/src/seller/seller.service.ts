@@ -187,6 +187,14 @@ export class SellerService {
     return this.getFabricarOrder(saleId);
   }
 
+  async getNextOrderNumber(): Promise<{ nextOrderNumber: number }> {
+    const last = await this.prisma.sale.findFirst({
+      orderBy: { orderNumber: 'desc' },
+      select: { orderNumber: true },
+    });
+    return { nextOrderNumber: (last?.orderNumber ?? 0) + 1 };
+  }
+
   async updateSaleStatus(saleId: string, status: string) {
     return this.prisma.sale.update({
       where: { id: saleId },

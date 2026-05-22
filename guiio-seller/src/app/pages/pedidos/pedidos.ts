@@ -245,30 +245,36 @@ export class Pedidos implements OnInit {
   }
 
   private async captureToCanvas(): Promise<HTMLCanvasElement> {
-    const el = this.receiptEl.nativeElement as HTMLElement;
-    // Capture the full document as rendered (receipt is visible & styled at z-9999)
-    // then crop to the receipt's exact bounding rect (accounts for transforms).
-    const rect = el.getBoundingClientRect();
-    const scale = 2;
-    const full = await html2canvas(document.body, {
-      scale,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      scrollX: 0,
-      scrollY: 0,
-      windowWidth: window.innerWidth,
-      windowHeight: window.innerHeight,
-    });
-    const out = document.createElement('canvas');
-    out.width  = Math.round(rect.width  * scale);
-    out.height = Math.round(rect.height * scale);
-    out.getContext('2d')!.drawImage(
-      full,
-      Math.round(rect.left * scale), Math.round(rect.top  * scale),
-      Math.round(rect.width * scale), Math.round(rect.height * scale),
-      0, 0, out.width, out.height,
-    );
-    return out;
+    const source = this.receiptEl.nativeElement as HTMLElement;
+    const clone = source.cloneNode(true) as HTMLElement;
+    clone.style.cssText = 'position:absolute;left:0;top:0;width:360px;font-family:sans-serif;z-index:-1;';
+    document.body.appendChild(clone);
+    await new Promise<void>(r => requestAnimationFrame(() => r()));
+    try {
+      const scale = 2;
+      const canvas = await html2canvas(clone, {
+        scale,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+      // Pintar el número de factura directamente sobre el canvas como garantía,
+      // independientemente de cómo html2canvas haya procesado el texto del header.
+      const order = this.receiptOrder();
+      if (order?.orderNumber != null) {
+        const headerEl = clone.firstElementChild as HTMLElement;
+        const headerH = (headerEl?.offsetHeight ?? 100) * scale;
+        const text = `Factura N° ${order.orderNumber.toString().padStart(4, '0')}`;
+        const ctx = canvas.getContext('2d')!;
+        ctx.font = `bold ${16 * scale}px sans-serif`;
+        ctx.fillStyle = '#facc15';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(text, canvas.width / 2, headerH - 10 * scale);
+      }
+      return canvas;
+    } finally {
+      document.body.removeChild(clone);
+    }
   }
 
   showCurrentReceipt(order: FabricarOrder) {

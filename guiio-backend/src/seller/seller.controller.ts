@@ -107,6 +107,12 @@ export class SellerController {
     return this.sellerService.updateSaleStatus(id, status);
   }
 
+  @Get('next-order-number')
+  @UseGuards(SellerGuard)
+  getNextOrderNumber() {
+    return this.sellerService.getNextOrderNumber();
+  }
+
   // ── Fabricar orders (seller) ──────────────────────────────────────────────
 
   @Get('fabricar')

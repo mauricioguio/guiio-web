@@ -46,6 +46,7 @@ export class Pos implements OnInit, OnDestroy {
   protected saving = signal(false);
   protected savedSale = signal<string | null>(null);
   protected savedOrderNumber = signal<number | null>(null);
+  protected predictedOrderNumber = signal<number | null>(null);
   protected orderDate = signal(new Date());
   protected deliveryDate = signal<Date>(this.calcDeliveryDate(new Date()));
 
@@ -167,6 +168,12 @@ export class Pos implements OnInit, OnDestroy {
     this.api.getInventory(sedeId).subscribe({
       next: ({ items }) => { this.inventory.set(items); done(); },
       error: done,
+    });
+    // Fallback local: si el API aún no está desplegado, usar el último número guardado
+    const localLast = localStorage.getItem('lastOrderNumber');
+    if (localLast) this.predictedOrderNumber.set(parseInt(localLast, 10) + 1);
+    this.api.getNextOrderNumber().subscribe({
+      next: ({ nextOrderNumber }) => this.predictedOrderNumber.set(nextOrderNumber),
     });
   }
 
@@ -341,10 +348,11 @@ export class Pos implements OnInit, OnDestroy {
       })),
     }).subscribe({
       next: async sale => {
+        this.savedOrderNumber.set(sale.orderNumber);
+        localStorage.setItem('lastOrderNumber', sale.orderNumber.toString());
         const blob = await this.captureReceipt();
 
         this.savedSale.set(sale.id);
-        this.savedOrderNumber.set(sale.orderNumber);
         this.cart.set([]);
         this.customerName.set('');
         this.customerPhone.set('');
@@ -363,11 +371,14 @@ export class Pos implements OnInit, OnDestroy {
         this.discountValue.set(0);
         this.discountedKeys.set(new Set());
         this.itemOverrides.set(new Map());
+        this.predictedOrderNumber.set(null);
         this.loadData();
 
-        if (blob && phone) {
+        if (blob) {
           this.receiptBlob = blob;
-          this.receiptWaUrl.set(`https://web.whatsapp.com/send?phone=${wa}&text=${encodeURIComponent(waText)}`);
+          if (phone && wa.length >= 10) {
+            this.receiptWaUrl.set(`https://web.whatsapp.com/send?phone=${wa}&text=${encodeURIComponent(waText)}`);
+          }
           this.receiptImageUrl.set(URL.createObjectURL(blob));
         }
       },
@@ -396,46 +407,51 @@ export class Pos implements OnInit, OnDestroy {
   closeReceiptOverlay() {
     if (this.receiptImageUrl()) URL.revokeObjectURL(this.receiptImageUrl()!);
     this.receiptImageUrl.set(null);
+    this.receiptWaUrl.set('');
     this.receiptBlob = null;
   }
 
   dismissSuccess() { this.savedSale.set(null); this.savedOrderNumber.set(null); }
 
+  openCheckout() {
+    this.showReceipt.set(true);
+  }
+
   private async captureReceipt(): Promise<Blob | null> {
     const el = this.receiptEl?.nativeElement;
     if (!el) return null;
     this.generatingImage.set(true);
-    const saved = el.getAttribute('style') ?? '';
-    // Bring element on-screen (it's off at left:-9999px); use high z-index so it
-    // sits above all page content during capture.
-    el.setAttribute('style', 'position:fixed;left:0;top:0;width:360px;font-family:sans-serif;z-index:99999;');
+    // Primer rAF: deja que Angular pinte savedOrderNumber en el DOM antes de clonar.
+    await new Promise<void>(r => requestAnimationFrame(() => r()));
+    const clone = el.cloneNode(true) as HTMLElement;
+    clone.style.cssText = 'position:absolute;left:0;top:0;width:360px;font-family:sans-serif;z-index:-1;';
+    document.body.appendChild(clone);
     await new Promise<void>(r => requestAnimationFrame(() => r()));
     try {
-      const rect = el.getBoundingClientRect();
       const scale = 2;
-      const full = await html2canvas(document.body, {
+      const canvas = await html2canvas(clone, {
         scale,
         useCORS: true,
         backgroundColor: '#ffffff',
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: window.innerWidth,
-        windowHeight: window.innerHeight,
       });
-      const out = document.createElement('canvas');
-      out.width  = Math.round(rect.width  * scale);
-      out.height = Math.round(rect.height * scale);
-      out.getContext('2d')!.drawImage(
-        full,
-        Math.round(rect.left * scale), Math.round(rect.top  * scale),
-        Math.round(rect.width * scale), Math.round(rect.height * scale),
-        0, 0, out.width, out.height,
-      );
-      return await new Promise<Blob | null>(res => out.toBlob(res, 'image/png'));
+      // Pintar el número de factura directamente sobre el canvas como garantía.
+      const orderNum = this.savedOrderNumber() ?? this.predictedOrderNumber();
+      if (orderNum != null) {
+        const headerEl = clone.firstElementChild as HTMLElement;
+        const headerH = (headerEl?.offsetHeight ?? 100) * scale;
+        const text = `Factura N° ${orderNum.toString().padStart(4, '0')}`;
+        const ctx = canvas.getContext('2d')!;
+        ctx.font = `bold ${16 * scale}px sans-serif`;
+        ctx.fillStyle = '#facc15';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(text, canvas.width / 2, headerH - 10 * scale);
+      }
+      return await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'));
     } catch {
       return null;
     } finally {
-      el.setAttribute('style', saved);
+      document.body.removeChild(clone);
       this.generatingImage.set(false);
     }
   }

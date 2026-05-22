@@ -146,4 +146,8 @@ export class SellerApiService {
   updateFabricarStatus(orderId: string, status: string) {
     return this.http.patch<FabricarOrder>(`${API}/fabricar/${orderId}/status`, { status }, { headers: this.headers });
   }
+
+  getNextOrderNumber() {
+    return this.http.get<{ nextOrderNumber: number }>(`${API}/next-order-number`, { headers: this.headers });
+  }
 }
