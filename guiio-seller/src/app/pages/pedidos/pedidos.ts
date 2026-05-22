@@ -136,7 +136,8 @@ export class Pedidos implements OnInit {
   suggestedPayment(order: FabricarOrder): number {
     const allWillBeDelivered = order.items.every(i => this.deliveryQtyFor(i.id) >= i.quantity);
     if (allWillBeDelivered) return this.pendingBalance(order);
-    return Math.round(this.pickupValue(order) + 0.25 * this.remainingValue(order));
+    const raw = this.pickupValue(order) + 0.25 * this.remainingValue(order) - this.totalPaid(order);
+    return Math.max(0, Math.min(Math.round(raw), this.pendingBalance(order)));
   }
 
   // ── Actions ──────────────────────────────────────────────────────────────
@@ -153,6 +154,7 @@ export class Pedidos implements OnInit {
         updated.items.forEach(i => qty.set(i.id, i.deliveredQty));
         this.deliveryQty.set(qty);
         this.savingDelivery.set(false);
+        if (this.pendingBalance(updated) === 0) this.showReceipt(updated, 'delivery', null);
       },
       error: () => this.savingDelivery.set(false),
     });

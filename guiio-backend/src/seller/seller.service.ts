@@ -160,19 +160,21 @@ export class SellerService {
   }
 
   async addPayment(saleId: string, amount: number, note?: string) {
-    const payment = await this.prisma.salePayment.create({
-      data: { saleId, amount, note: note || null },
-    });
-    // Auto-completar si el saldo queda en cero
     const sale = await this.prisma.sale.findUnique({
       where: { id: saleId },
       include: { payments: true },
     });
-    if (sale) {
-      const totalPaid = sale.payments.reduce((s, p) => s + p.amount, 0);
-      if (totalPaid >= sale.total) {
-        await this.prisma.sale.update({ where: { id: saleId }, data: { status: 'COMPLETED' } });
-      }
+    if (!sale) throw new BadRequestException('Pedido no encontrado');
+    const totalPaid = sale.payments.reduce((s, p) => s + p.amount, 0);
+    const maxAllowed = sale.total - totalPaid;
+    if (amount <= 0) throw new BadRequestException('El monto debe ser mayor a cero');
+    if (amount > maxAllowed) throw new BadRequestException(`El abono no puede exceder el saldo pendiente`);
+
+    const payment = await this.prisma.salePayment.create({
+      data: { saleId, amount, note: note || null },
+    });
+    if (totalPaid + amount >= sale.total) {
+      await this.prisma.sale.update({ where: { id: saleId }, data: { status: 'COMPLETED' } });
     }
     return payment;
   }
