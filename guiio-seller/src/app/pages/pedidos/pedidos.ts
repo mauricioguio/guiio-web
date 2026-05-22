@@ -48,6 +48,8 @@ export class Pedidos implements OnInit {
   protected receiptPayment  = signal<SalePayment | null>(null);
   protected receiptPreview  = signal(false);
   protected capturingReceipt = signal(false);
+  protected clipboardCopied  = signal(false);
+  private receiptBlob: Blob | null = null;
 
   protected readonly statusLabels = STATUS_LABELS;
   protected readonly statuses     = STATUSES;
@@ -236,11 +238,41 @@ export class Pedidos implements OnInit {
     this.capturingReceipt.set(true);
     try {
       const canvas = await html2canvas(this.receiptEl.nativeElement, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      const link = document.createElement('a');
       const order = this.receiptOrder();
+      const link = document.createElement('a');
       link.download = `factura-${order?.orderNumber?.toString().padStart(4, '0') ?? ''}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
+    } finally {
+      this.capturingReceipt.set(false);
+    }
+  }
+
+  async copyAndOpenWhatsApp() {
+    if (this.capturingReceipt()) return;
+    this.capturingReceipt.set(true);
+    try {
+      const canvas = await html2canvas(this.receiptEl.nativeElement, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      this.receiptBlob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'));
+      if (this.receiptBlob) {
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': this.receiptBlob })]);
+          this.clipboardCopied.set(true);
+          setTimeout(() => this.clipboardCopied.set(false), 6000);
+        } catch {
+          const url = URL.createObjectURL(this.receiptBlob);
+          const a = document.createElement('a');
+          const order = this.receiptOrder();
+          a.href = url; a.download = `factura-${order?.orderNumber?.toString().padStart(4, '0') ?? ''}.png`; a.click();
+          URL.revokeObjectURL(url);
+        }
+      }
+      const phone = this.receiptOrder()?.customerPhone ?? '';
+      const digits = phone.replace(/\D/g, '');
+      const wa = digits.startsWith('57') ? digits : `57${digits}`;
+      const firstName = this.receiptOrder()?.customerName?.split(' ')[0] ?? '';
+      const text = firstName ? `Hola ${firstName}, aquí está tu comprobante de Guiio 🛍️` : 'Hola, aquí está tu comprobante de Guiio 🛍️';
+      if (wa.length >= 10) window.open(`https://web.whatsapp.com/send?phone=${wa}&text=${encodeURIComponent(text)}`, '_blank');
     } finally {
       this.capturingReceipt.set(false);
     }
