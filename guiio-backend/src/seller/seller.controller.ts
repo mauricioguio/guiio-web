@@ -113,6 +113,12 @@ export class SellerController {
     return this.sellerService.getNextOrderNumber();
   }
 
+  @Post('admin/delete-orders-by-range')
+  @UseGuards(AdminKeyGuard)
+  deleteOrdersByRange(@Body('from') from: number, @Body('to') to: number) {
+    return this.sellerService.deleteOrdersByRange(from, to);
+  }
+
 // ── Fabricar orders (seller) ──────────────────────────────────────────────
 
   @Get('fabricar')

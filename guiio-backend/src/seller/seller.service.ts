@@ -187,7 +187,20 @@ export class SellerService {
     return this.getFabricarOrder(saleId);
   }
 
-async getNextOrderNumber(): Promise<{ nextOrderNumber: number }> {
+  async deleteOrdersByRange(from: number, to: number) {
+    const orders = await this.prisma.sale.findMany({
+      where: { orderNumber: { gte: from, lte: to } },
+      select: { id: true, orderNumber: true },
+    });
+    const ids = orders.map(o => o.id);
+    if (ids.length === 0) return { deleted: 0 };
+    await this.prisma.salePayment.deleteMany({ where: { saleId: { in: ids } } });
+    await this.prisma.saleItem.deleteMany({ where: { saleId: { in: ids } } });
+    const result = await this.prisma.sale.deleteMany({ where: { id: { in: ids } } });
+    return { deleted: result.count, orderNumbers: orders.map(o => o.orderNumber) };
+  }
+
+  async getNextOrderNumber(): Promise<{ nextOrderNumber: number }> {
     const last = await this.prisma.sale.findFirst({
       orderBy: { orderNumber: 'desc' },
       select: { orderNumber: true },
