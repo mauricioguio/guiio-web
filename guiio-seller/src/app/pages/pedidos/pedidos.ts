@@ -243,16 +243,21 @@ export class Pedidos implements OnInit {
   }
 
   private async captureToCanvas(): Promise<HTMLCanvasElement> {
-    const src = this.receiptEl.nativeElement as HTMLElement;
-    const clone = src.cloneNode(true) as HTMLElement;
-    clone.setAttribute('style', 'position:fixed;left:0;top:0;width:360px;font-family:sans-serif;z-index:-1;');
-    document.body.appendChild(clone);
-    await new Promise<void>(r => requestAnimationFrame(() => r()));
-    try {
-      return await html2canvas(clone, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-    } finally {
-      document.body.removeChild(clone);
-    }
+    const el = this.receiptEl.nativeElement as HTMLElement;
+    const saved = el.getAttribute('style') ?? '';
+    // Move to top-left with no transform; html2canvas reads position synchronously
+    // before Angular can restore the binding (Angular won't re-apply since the
+    // bound expression value hasn't changed).
+    el.setAttribute('style', 'position:fixed;left:0;top:0;width:360px;font-family:sans-serif;');
+    const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    el.setAttribute('style', saved);
+    return canvas;
+  }
+
+  showCurrentReceipt(order: FabricarOrder) {
+    const lastPayment = order.payments.length > 0 ? order.payments[order.payments.length - 1] : null;
+    const event = lastPayment ? 'payment' : 'delivery';
+    this.showReceipt(order, event, lastPayment);
   }
 
   async captureReceipt() {
