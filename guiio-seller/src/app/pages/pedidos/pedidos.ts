@@ -238,7 +238,7 @@ export class Pedidos implements OnInit {
       const canvas = await html2canvas(this.receiptEl.nativeElement, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
       const link = document.createElement('a');
       const order = this.receiptOrder();
-      link.download = `pedido-${order?.orderNumber ?? ''}.png`;
+      link.download = `factura-${order?.orderNumber?.toString().padStart(4, '0') ?? ''}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     } finally {
