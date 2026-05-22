@@ -262,7 +262,11 @@ export class Pedidos implements OnInit {
 
   onPaymentInput(raw: string) {
     const n = raw.replace(/\D/g, '');
-    this.paymentInput.set(n ? parseInt(n, 10).toLocaleString('es-CO') : '');
+    if (!n) { this.paymentInput.set(''); return; }
+    const order = this.selected();
+    const max = order ? this.pendingBalance(order) : Infinity;
+    const clamped = Math.min(parseInt(n, 10), max);
+    this.paymentInput.set(clamped.toLocaleString('es-CO'));
   }
 
   statusClass(s: string) {
