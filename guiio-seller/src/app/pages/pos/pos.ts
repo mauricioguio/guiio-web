@@ -405,16 +405,17 @@ export class Pos implements OnInit, OnDestroy {
     const el = this.receiptEl?.nativeElement;
     if (!el) return null;
     this.generatingImage.set(true);
-    const saved = el.getAttribute('style') ?? '';
-    el.setAttribute('style', 'position:absolute;top:0;left:0;width:360px;font-family:sans-serif;');
-    await new Promise<void>(r => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+    const clone = (el as HTMLElement).cloneNode(true) as HTMLElement;
+    clone.setAttribute('style', 'position:fixed;left:0;top:0;width:360px;font-family:sans-serif;z-index:-1;');
+    document.body.appendChild(clone);
+    await new Promise<void>(r => requestAnimationFrame(() => r()));
     try {
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const canvas = await html2canvas(clone, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
       return await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'));
     } catch {
       return null;
     } finally {
-      el.setAttribute('style', saved);
+      document.body.removeChild(clone);
       this.generatingImage.set(false);
     }
   }
