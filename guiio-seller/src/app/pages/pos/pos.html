@@ -1084,17 +1084,17 @@
           <!-- Qué piezas se van a fabricar -->
           <div class="flex gap-2 mb-4">
             <button
-              (click)="selectedPiezas.set('conjunto')"
+              (click)="selectedPiezas.set('conjunto'); selectedPriceOverride.set(null)"
               class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
               [class]="selectedPiezas() === 'conjunto' ? 'bg-white text-gray-900 border-white' : 'bg-gray-800 text-gray-400 border-gray-700'"
             >Conjunto</button>
             <button
-              (click)="selectedPiezas.set('top'); selectedBottomSize.set('')"
+              (click)="selectedPiezas.set('top'); selectedBottomSize.set(''); selectedPriceOverride.set(null)"
               class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
               [class]="selectedPiezas() === 'top' ? 'bg-white text-gray-900 border-white' : 'bg-gray-800 text-gray-400 border-gray-700'"
             >Solo blusa</button>
             <button
-              (click)="selectedPiezas.set('bottom'); selectedTopSize.set('')"
+              (click)="selectedPiezas.set('bottom'); selectedTopSize.set(''); selectedPriceOverride.set(null)"
               class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
               [class]="selectedPiezas() === 'bottom' ? 'bg-white text-gray-900 border-white' : 'bg-gray-800 text-gray-400 border-gray-700'"
             >Solo pantalón</button>
@@ -1149,6 +1149,21 @@
             </div>
             }
           </div>
+          <!-- Precio de la pieza -->
+          @if (selectedPiezas() !== 'conjunto') {
+            <div class="mb-1">
+              <p class="text-gray-400 text-xs uppercase tracking-wider mb-2">Precio de la pieza</p>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                <input
+                  type="text" inputmode="numeric"
+                  [value]="priceOverrideInputValue()"
+                  (input)="onPriceOverrideInput($any($event.target).value)"
+                  class="w-full bg-gray-800 border border-yellow-600 rounded-xl pl-7 pr-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                />
+              </div>
+            </div>
+          }
         }
 
         <!-- Bordado -->

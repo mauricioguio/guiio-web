@@ -14,6 +14,7 @@ export interface CartItem {
   adjusted?: boolean;
   bordado?: boolean;
   bordadoText?: string;
+  priceOverride?: number;
 }
 
 function productSizes(p: Product): string[] {
@@ -55,6 +56,7 @@ export class Pos implements OnInit, OnDestroy {
   protected selectedNote = signal('');
   protected tallaCompleta = signal(true);
   protected selectedPiezas = signal<'conjunto' | 'top' | 'bottom'>('conjunto');
+  protected selectedPriceOverride = signal<number | null>(null);
   protected selectedTopSize = signal('');
   protected selectedBottomSize = signal('');
   protected selectedBordado = signal(false);
@@ -106,7 +108,8 @@ export class Pos implements OnInit, OnDestroy {
   });
 
   itemPrice(i: CartItem): number {
-    return i.product.price + (i.bordado ? 10000 : 0);
+    const base = i.priceOverride ?? i.product.price;
+    return base + (i.bordado ? 10000 : 0);
   }
 
   itemKey(i: CartItem): string { return `${i.product.id}|${i.size}`; }
@@ -253,6 +256,7 @@ export class Pos implements OnInit, OnDestroy {
     this.selectedNote.set('');
     this.tallaCompleta.set(true);
     this.selectedPiezas.set('conjunto');
+    this.selectedPriceOverride.set(null);
     this.selectedTopSize.set('');
     this.selectedBottomSize.set('');
     this.selectedBordado.set(false);
@@ -285,7 +289,8 @@ export class Pos implements OnInit, OnDestroy {
     const note = this.selectedNote().trim();
     const bordado = this.selectedBordado();
     const bordadoText = bordado ? this.selectedBordadoText().trim() : '';
-    const newItem: CartItem = { product: p, size, quantity: 1, note, bordado, bordadoText };
+    const priceOverride = this.selectedPriceOverride();
+    const newItem: CartItem = { product: p, size, quantity: 1, note, bordado, bordadoText, ...(priceOverride != null ? { priceOverride } : {}) };
     this.cart.update(items => {
       const idx = items.findIndex(i => i.product.id === p.id && i.size === size && i.note === note && !!i.bordado === bordado);
       if (idx >= 0) {
@@ -494,6 +499,18 @@ export class Pos implements OnInit, OnDestroy {
         this.customerSearchState.set('notfound');
       }
     });
+  }
+
+  priceOverrideInputValue(): string {
+    const v = this.selectedPriceOverride();
+    if (v != null) return v.toLocaleString('es-CO');
+    const p = this.selectedProduct();
+    return p ? p.price.toLocaleString('es-CO') : '';
+  }
+
+  onPriceOverrideInput(raw: string) {
+    const n = parseInt(raw.replace(/\D/g, ''), 10);
+    this.selectedPriceOverride.set(isNaN(n) ? null : n);
   }
 
   registerCustomer() {
