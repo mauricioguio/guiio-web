@@ -235,11 +235,23 @@ export class Pedidos implements OnInit {
     this.receiptPayment.set(null);
   }
 
+  private async captureToCanvas(): Promise<HTMLCanvasElement> {
+    const el = this.receiptEl.nativeElement as HTMLElement;
+    const saved = el.getAttribute('style') ?? '';
+    el.setAttribute('style', 'position:absolute;top:0;left:0;width:360px;font-family:sans-serif;');
+    await new Promise<void>(r => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+    try {
+      return await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    } finally {
+      el.setAttribute('style', saved);
+    }
+  }
+
   async captureReceipt() {
     if (this.capturingReceipt()) return;
     this.capturingReceipt.set(true);
     try {
-      const canvas = await html2canvas(this.receiptEl.nativeElement, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const canvas = await this.captureToCanvas();
       const order = this.receiptOrder();
       const link = document.createElement('a');
       link.download = `factura-${order?.orderNumber?.toString().padStart(4, '0') ?? ''}.png`;
@@ -254,7 +266,7 @@ export class Pedidos implements OnInit {
     if (this.capturingReceipt()) return;
     this.capturingReceipt.set(true);
     try {
-      const canvas = await html2canvas(this.receiptEl.nativeElement, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const canvas = await this.captureToCanvas();
       this.receiptBlob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'));
       if (this.receiptBlob) {
         try {
