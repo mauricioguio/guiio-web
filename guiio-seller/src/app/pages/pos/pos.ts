@@ -503,9 +503,7 @@ export class Pos implements OnInit, OnDestroy {
 
   priceOverrideInputValue(): string {
     const v = this.selectedPriceOverride();
-    if (v != null) return v.toLocaleString('es-CO');
-    const p = this.selectedProduct();
-    return p ? p.price.toLocaleString('es-CO') : '';
+    return v != null && v > 0 ? v.toLocaleString('es-CO') : '';
   }
 
   onPriceOverrideInput(raw: string) {

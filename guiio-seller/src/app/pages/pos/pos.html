@@ -1205,7 +1205,9 @@
           [disabled]="saleType() === 'FABRICAR' && !tallaCompleta()
             ? (selectedPiezas() === 'conjunto'
                 ? (!selectedTopSize().trim() || !selectedBottomSize().trim())
-                : selectedPiezas() === 'top' ? !selectedTopSize().trim() : !selectedBottomSize().trim())
+                : selectedPiezas() === 'top'
+                  ? (!selectedTopSize().trim() || (selectedPriceOverride() ?? 0) < 10000)
+                  : (!selectedBottomSize().trim() || (selectedPriceOverride() ?? 0) < 10000))
             : !selectedSize()"
           class="w-full bg-white text-gray-900 font-semibold rounded-xl py-3 text-sm hover:bg-gray-100 transition-colors disabled:opacity-40"
         >
