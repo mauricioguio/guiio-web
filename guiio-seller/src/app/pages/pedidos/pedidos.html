@@ -399,7 +399,7 @@
                   placeholder="Monto"
                   [value]="paymentInput()"
                   (input)="onPaymentInput($any($event.target).value)"
-                  class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 min-w-0"
+                  [class]="'flex-1 bg-gray-800 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none min-w-0 border ' + (paymentExceedsBalance() ? 'border-red-500 focus:border-red-500' : 'border-gray-700 focus:border-purple-500')"
                 />
                 <input
                   type="text"
@@ -409,9 +409,12 @@
                   class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 min-w-0"
                 />
               </div>
+              @if (paymentExceedsBalance()) {
+                <p class="text-xs text-red-400 font-medium">El abono no puede superar el saldo pendiente ({{ formatPrice(pendingBalance(order)) }})</p>
+              }
               <button
                 (click)="savePayment()"
-                [disabled]="savingPayment() || savingDelivery() || !paymentInput()"
+                [disabled]="savingPayment() || savingDelivery() || !paymentInput() || paymentExceedsBalance()"
                 class="w-full py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-sm disabled:opacity-40 hover:bg-purple-500 transition-colors"
               >
                 @if (savingPayment() || savingDelivery()) { Guardando... }

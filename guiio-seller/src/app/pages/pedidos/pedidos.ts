@@ -35,6 +35,13 @@ export class Pedidos implements OnInit {
   protected paymentNote   = signal('');
   protected savingPayment = signal(false);
 
+  protected paymentExceedsBalance = computed(() => {
+    const order = this.selected();
+    if (!order || !this.paymentInput()) return false;
+    const amount = parseInt(this.paymentInput().replace(/\D/g, ''), 10);
+    return !isNaN(amount) && amount > this.pendingBalance(order);
+  });
+
   // Delivery form — Map<itemId, qty>
   protected deliveryQty   = signal<Map<string, number>>(new Map());
   protected savingDelivery = signal(false);
@@ -310,10 +317,7 @@ export class Pedidos implements OnInit {
   onPaymentInput(raw: string) {
     const n = raw.replace(/\D/g, '');
     if (!n) { this.paymentInput.set(''); return; }
-    const order = this.selected();
-    const max = order ? this.pendingBalance(order) : Infinity;
-    const clamped = Math.min(parseInt(n, 10), max);
-    this.paymentInput.set(clamped.toLocaleString('es-CO'));
+    this.paymentInput.set(parseInt(n, 10).toLocaleString('es-CO'));
   }
 
   statusClass(s: string) {
