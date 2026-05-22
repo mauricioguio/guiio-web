@@ -450,19 +450,6 @@ export class Pos implements OnInit, OnDestroy {
         useCORS: true,
         backgroundColor: '#ffffff',
       });
-      // Pintar el número de factura directamente sobre el canvas como garantía.
-      const orderNum = this.savedOrderNumber() ?? this.predictedOrderNumber();
-      if (orderNum != null) {
-        const headerEl = clone.firstElementChild as HTMLElement;
-        const headerH = (headerEl?.offsetHeight ?? 100) * scale;
-        const text = `Factura N° ${orderNum.toString().padStart(4, '0')}`;
-        const ctx = canvas.getContext('2d')!;
-        ctx.font = `bold ${16 * scale}px sans-serif`;
-        ctx.fillStyle = '#facc15';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        ctx.fillText(text, canvas.width / 2, headerH - 10 * scale);
-      }
       return await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'));
     } catch {
       return null;

@@ -257,20 +257,6 @@ export class Pedidos implements OnInit {
         useCORS: true,
         backgroundColor: '#ffffff',
       });
-      // Pintar el número de factura directamente sobre el canvas como garantía,
-      // independientemente de cómo html2canvas haya procesado el texto del header.
-      const order = this.receiptOrder();
-      if (order?.orderNumber != null) {
-        const headerEl = clone.firstElementChild as HTMLElement;
-        const headerH = (headerEl?.offsetHeight ?? 100) * scale;
-        const text = `Factura N° ${order.orderNumber.toString().padStart(4, '0')}`;
-        const ctx = canvas.getContext('2d')!;
-        ctx.font = `bold ${16 * scale}px sans-serif`;
-        ctx.fillStyle = '#facc15';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        ctx.fillText(text, canvas.width / 2, headerH - 10 * scale);
-      }
       return canvas;
     } finally {
       document.body.removeChild(clone);
