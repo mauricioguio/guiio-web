@@ -244,14 +244,29 @@ export class Pedidos implements OnInit {
 
   private async captureToCanvas(): Promise<HTMLCanvasElement> {
     const el = this.receiptEl.nativeElement as HTMLElement;
-    const saved = el.getAttribute('style') ?? '';
-    // Move to top-left with no transform; html2canvas reads position synchronously
-    // before Angular can restore the binding (Angular won't re-apply since the
-    // bound expression value hasn't changed).
-    el.setAttribute('style', 'position:fixed;left:0;top:0;width:360px;font-family:sans-serif;');
-    const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-    el.setAttribute('style', saved);
-    return canvas;
+    // Capture the full document as rendered (receipt is visible & styled at z-9999)
+    // then crop to the receipt's exact bounding rect (accounts for transforms).
+    const rect = el.getBoundingClientRect();
+    const scale = 2;
+    const full = await html2canvas(document.body, {
+      scale,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: window.innerWidth,
+      windowHeight: window.innerHeight,
+    });
+    const out = document.createElement('canvas');
+    out.width  = Math.round(rect.width  * scale);
+    out.height = Math.round(rect.height * scale);
+    out.getContext('2d')!.drawImage(
+      full,
+      Math.round(rect.left * scale), Math.round(rect.top  * scale),
+      Math.round(rect.width * scale), Math.round(rect.height * scale),
+      0, 0, out.width, out.height,
+    );
+    return out;
   }
 
   showCurrentReceipt(order: FabricarOrder) {

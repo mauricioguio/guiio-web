@@ -406,10 +406,32 @@ export class Pos implements OnInit, OnDestroy {
     if (!el) return null;
     this.generatingImage.set(true);
     const saved = el.getAttribute('style') ?? '';
-    el.setAttribute('style', 'position:fixed;left:0;top:0;width:360px;font-family:sans-serif;');
+    // Bring element on-screen (it's off at left:-9999px); use high z-index so it
+    // sits above all page content during capture.
+    el.setAttribute('style', 'position:fixed;left:0;top:0;width:360px;font-family:sans-serif;z-index:99999;');
+    await new Promise<void>(r => requestAnimationFrame(() => r()));
     try {
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      return await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'));
+      const rect = el.getBoundingClientRect();
+      const scale = 2;
+      const full = await html2canvas(document.body, {
+        scale,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: window.innerWidth,
+        windowHeight: window.innerHeight,
+      });
+      const out = document.createElement('canvas');
+      out.width  = Math.round(rect.width  * scale);
+      out.height = Math.round(rect.height * scale);
+      out.getContext('2d')!.drawImage(
+        full,
+        Math.round(rect.left * scale), Math.round(rect.top  * scale),
+        Math.round(rect.width * scale), Math.round(rect.height * scale),
+        0, 0, out.width, out.height,
+      );
+      return await new Promise<Blob | null>(res => out.toBlob(res, 'image/png'));
     } catch {
       return null;
     } finally {
