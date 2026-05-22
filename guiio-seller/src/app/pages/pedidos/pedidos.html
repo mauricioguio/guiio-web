@@ -22,10 +22,6 @@
     <!-- Info del pedido -->
     <div class="px-6 py-4 border-b border-gray-100 space-y-1.5 text-sm">
       <div class="flex justify-between">
-        <span class="text-gray-500">Pedido</span>
-        <span class="font-bold">Factura N° {{ order.orderNumber.toString().padStart(4, '0') }}</span>
-      </div>
-      <div class="flex justify-between">
         <span class="text-gray-500">Estado</span>
         <span class="font-medium">{{ statusLabels[order.status] }}</span>
       </div>
