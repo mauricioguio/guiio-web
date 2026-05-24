@@ -159,6 +159,28 @@ export class ProductDetail {
     { value: 'suelto'   as const, label: '😌 Suelto'   },
   ];
 
+  // Collections that offer all 3 fit options
+  private readonly ALL_FIT_COLLECTIONS  = ['sofia', 'valentina', 'antonella'];
+  // Collections that are always fitted (ajustado only)
+  private readonly FITTED_COLLECTIONS   = ['luciana', 'isabella'];
+
+  protected readonly availableFitOptions = computed(() => {
+    const p = this.product();
+    if (!p) return this.fitOptions;
+    const col = (p.collection ?? '').toLowerCase();
+    if (p.gender === 'hombre') {
+      return [{ value: 'normal' as const, label: '👌 Normal' }];
+    }
+    if (this.FITTED_COLLECTIONS.some(c => col.includes(c))) {
+      return [{ value: 'ajustado' as const, label: '😊 Ajustado' }];
+    }
+    if (this.ALL_FIT_COLLECTIONS.some(c => col.includes(c))) {
+      return this.fitOptions;
+    }
+    // Default for other women's collections: all options
+    return this.fitOptions;
+  });
+
   private prefTimer: any    = null;
   private measureTimer: any = null;
   protected readonly aiErrored = signal(false);
@@ -242,7 +264,9 @@ export class ProductDetail {
     this.calcWaist.set(null);
     this.chatHistory.set([]);
     this.chatInputValue = '';
-    this.fitPreference.set(null);
+    this.aiErrored.set(false);
+    const opts = this.availableFitOptions();
+    this.fitPreference.set(opts.length === 1 ? opts[0].value : null);
     this.showSizeCalc.set(true);
   }
 

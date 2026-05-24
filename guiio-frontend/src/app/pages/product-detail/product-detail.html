@@ -565,23 +565,25 @@
       @if (calcBust() || calcWaist() || calcHip()) {
         <div class="px-6 pb-2">
 
-          <!-- Preferencia: siempre visible cuando hay medidas -->
-          <div class="mb-3">
-            <p class="text-xs font-medium text-gray-600 mb-2">¿Cómo prefieres que te quede?</p>
-            <div class="flex gap-2">
-              @for (opt of fitOptions; track opt.value) {
-                <button (click)="fitPreference.set(opt.value)"
-                  class="flex-1 py-1.5 rounded-xl border text-xs font-medium transition-all"
-                  [class.bg-gray-900]="fitPreference() === opt.value"
-                  [class.text-white]="fitPreference() === opt.value"
-                  [class.border-gray-900]="fitPreference() === opt.value"
-                  [class.text-gray-600]="fitPreference() !== opt.value"
-                  [class.border-gray-200]="fitPreference() !== opt.value">
-                  {{ opt.label }}
-                </button>
-              }
+          <!-- Preferencia: solo visible si hay más de una opción -->
+          @if (availableFitOptions().length > 1) {
+            <div class="mb-3">
+              <p class="text-xs font-medium text-gray-600 mb-2">¿Cómo prefieres que te quede?</p>
+              <div class="flex gap-2">
+                @for (opt of availableFitOptions(); track opt.value) {
+                  <button (click)="fitPreference.set(opt.value)"
+                    class="flex-1 py-1.5 rounded-xl border text-xs font-medium transition-all"
+                    [class.bg-gray-900]="fitPreference() === opt.value"
+                    [class.text-white]="fitPreference() === opt.value"
+                    [class.border-gray-900]="fitPreference() === opt.value"
+                    [class.text-gray-600]="fitPreference() !== opt.value"
+                    [class.border-gray-200]="fitPreference() !== opt.value">
+                    {{ opt.label }}
+                  </button>
+                }
+              </div>
             </div>
-          </div>
+          }
 
           <!-- Botón inicial (solo antes del primer AI call) -->
           @if (chatHistory().length === 0 && !chatLoading()) {
