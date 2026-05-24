@@ -546,25 +546,29 @@
       <!-- Chat IA -->
       @if (calcBust() || calcWaist() || calcHip()) {
         <div class="px-6 pb-2">
-          @if (chatHistory().length === 0 && !chatLoading()) {
-            <div class="mb-3">
-              <p class="text-xs font-medium text-gray-600 mb-2">¿Cómo prefieres que te quede la ropa?</p>
-              <div class="flex gap-2">
-                @for (opt of fitOptions; track opt.value) {
-                  <button (click)="fitPreference.set(opt.value)"
-                    class="flex-1 py-2 rounded-xl border text-xs font-medium transition-all"
-                    [class.bg-gray-900]="fitPreference() === opt.value"
-                    [class.text-white]="fitPreference() === opt.value"
-                    [class.border-gray-900]="fitPreference() === opt.value"
-                    [class.text-gray-600]="fitPreference() !== opt.value"
-                    [class.border-gray-200]="fitPreference() !== opt.value">
-                    {{ opt.label }}
-                  </button>
-                }
-              </div>
+
+          <!-- Preferencia: siempre visible cuando hay medidas -->
+          <div class="mb-3">
+            <p class="text-xs font-medium text-gray-600 mb-2">¿Cómo prefieres que te quede?</p>
+            <div class="flex gap-2">
+              @for (opt of fitOptions; track opt.value) {
+                <button (click)="fitPreference.set(opt.value)"
+                  class="flex-1 py-1.5 rounded-xl border text-xs font-medium transition-all"
+                  [class.bg-gray-900]="fitPreference() === opt.value"
+                  [class.text-white]="fitPreference() === opt.value"
+                  [class.border-gray-900]="fitPreference() === opt.value"
+                  [class.text-gray-600]="fitPreference() !== opt.value"
+                  [class.border-gray-200]="fitPreference() !== opt.value">
+                  {{ opt.label }}
+                </button>
+              }
             </div>
+          </div>
+
+          <!-- Botón inicial (solo antes del primer AI call) -->
+          @if (chatHistory().length === 0 && !chatLoading()) {
             <button (click)="requestAiAdvice()" [disabled]="!fitPreference()"
-              class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border text-sm font-medium transition-colors"
+              class="w-full flex items-center justify-center gap-2 py-2 rounded-xl border text-sm font-medium transition-colors mb-2"
               [class.border-gray-200]="!fitPreference()"
               [class.text-gray-300]="!fitPreference()"
               [class.cursor-not-allowed]="!fitPreference()"
@@ -575,8 +579,10 @@
               Obtener sugerencia con IA
             </button>
           }
+
+          <!-- Mensajes del chat -->
           @if (chatHistory().length > 0) {
-            <div class="space-y-2 max-h-52 overflow-y-auto mb-3 pr-1">
+            <div class="space-y-2 max-h-36 overflow-y-auto mb-2 pr-1">
               @for (msg of chatHistory(); track $index) {
                 @if (msg.role === 'model') {
                   <div class="bg-blue-50 border border-blue-100 rounded-xl p-3">
@@ -587,12 +593,6 @@
                     <p class="text-sm text-gray-700">{{ msg.text }}</p>
                   </div>
                 }
-              }
-              @if (chatLoading()) {
-                <div class="flex items-center gap-2 py-1 text-sm text-gray-400">
-                  <div class="w-3.5 h-3.5 border-2 border-gray-200 border-t-gray-400 rounded-full animate-spin shrink-0"></div>
-                  Analizando...
-                </div>
               }
             </div>
             <div class="flex gap-2">
@@ -609,10 +609,12 @@
               </button>
             </div>
           }
-          @if (chatHistory().length === 0 && chatLoading()) {
-            <div class="flex items-center gap-2 py-2.5 text-sm text-gray-400">
+
+          <!-- Spinner de carga -->
+          @if (chatLoading()) {
+            <div class="flex items-center gap-2 py-2 text-sm text-gray-400">
               <div class="w-4 h-4 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin shrink-0"></div>
-              Analizando tus medidas...
+              Actualizando sugerencia...
             </div>
           }
         </div>

@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect, untracked } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -158,6 +158,35 @@ export class ProductDetail {
     { value: 'normal'   as const, label: '👌 Normal'   },
     { value: 'suelto'   as const, label: '😌 Suelto'   },
   ];
+
+  private prefTimer: any    = null;
+  private measureTimer: any = null;
+
+  constructor() {
+    // Re-call AI when fit preference changes (if advice already shown)
+    effect(() => {
+      const fit = this.fitPreference();
+      const hasHistory = untracked(() => this.chatHistory().length > 0);
+      const loading    = untracked(() => this.chatLoading());
+      const hasMeasure = untracked(() => !!(this.calcBust() || this.calcWaist() || this.calcHip()));
+      if (!fit || !hasHistory || loading || !hasMeasure) return;
+      clearTimeout(this.prefTimer);
+      this.prefTimer = setTimeout(() => this.requestAiAdvice(), 400);
+    });
+
+    // Re-call AI when measurements change (debounced, only if advice already shown)
+    effect(() => {
+      const bust  = this.calcBust();
+      const waist = this.calcWaist();
+      const hip   = this.calcHip();
+      const fit     = untracked(() => this.fitPreference());
+      const hasHistory = untracked(() => this.chatHistory().length > 0);
+      const loading    = untracked(() => this.chatLoading());
+      if (!fit || !hasHistory || loading || (!bust && !waist && !hip)) return;
+      clearTimeout(this.measureTimer);
+      this.measureTimer = setTimeout(() => this.requestAiAdvice(), 1500);
+    });
+  }
 
   private get isMale() { return this.product()?.gender === 'hombre'; }
 
