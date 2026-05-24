@@ -7,30 +7,87 @@ import { map } from 'rxjs';
 import { ProductService } from '../../services/product';
 import { CartService } from '../../services/cart';
 import { ProductColor } from '../../models/product';
+import { ProductCard } from '../../components/product-card/product-card';
 
-// Bust → top size (cm ranges)
-const TOP_CHART: { max: number; size: string }[] = [
-  { max: 82,  size: 'XS' },
+type SizeChart = { max: number; size: string }[];
+
+// ── MUJER ──
+// Blusa: intervalos de 8cm entre tallas
+const TOP_CHART_F: SizeChart = [
+  { max: 87,  size: 'XS' },
+  { max: 95,  size: 'S'  },
+  { max: 103, size: 'M'  },
+  { max: 111, size: 'L'  },
+  { max: 119, size: 'XL' },
+  { max: 127, size: 'XXL'},
+  { max: 9999,size: 'XXXL'},
+];
+// Cintura blusa: pecho - 8cm (corte semi-entallado)
+const WAIST_TOP_CHART_F: SizeChart = [
+  { max: 79,  size: 'XS' },
   { max: 87,  size: 'S'  },
-  { max: 92,  size: 'M'  },
-  { max: 97,  size: 'L'  },
-  { max: 102, size: 'XL' },
+  { max: 95,  size: 'M'  },
+  { max: 103, size: 'L'  },
+  { max: 111, size: 'XL' },
+  { max: 119, size: 'XXL'},
+  { max: 9999,size: 'XXXL'},
+];
+// Cintura pantalón: intervalos de 5cm
+const WAIST_CHART_F: SizeChart = [
+  { max: 77,  size: 'XS' },
+  { max: 83,  size: 'S'  },
+  { max: 89,  size: 'M'  },
+  { max: 95,  size: 'L'  },
+  { max: 101, size: 'XL' },
   { max: 107, size: 'XXL'},
   { max: 9999,size: 'XXXL'},
 ];
-
-// Hip → bottom size (cm ranges)
-const BOTTOM_CHART: { max: number; size: string }[] = [
-  { max: 88,  size: 'XS' },
-  { max: 93,  size: 'S'  },
-  { max: 98,  size: 'M'  },
-  { max: 103, size: 'L'  },
-  { max: 108, size: 'XL' },
+const BOTTOM_CHART_F: SizeChart = [
+  { max: 93,  size: 'XS' },
+  { max: 97,  size: 'S'  },
+  { max: 101, size: 'M'  },
+  { max: 105, size: 'L'  },
+  { max: 109, size: 'XL' },
   { max: 113, size: 'XXL'},
   { max: 9999,size: 'XXXL'},
 ];
 
-function measurementToSize(cm: number, chart: typeof TOP_CHART): string {
+// ── HOMBRE ──
+const TOP_CHART_M: SizeChart = [
+  { max: 88,  size: 'XS' },
+  { max: 94,  size: 'S'  },
+  { max: 100, size: 'M'  },
+  { max: 106, size: 'L'  },
+  { max: 112, size: 'XL' },
+  { max: 118, size: 'XXL'},
+  { max: 9999,size: 'XXXL'},
+];
+const WAIST_CHART_M: SizeChart = [
+  { max: 76,  size: 'XS' },
+  { max: 82,  size: 'S'  },
+  { max: 88,  size: 'M'  },
+  { max: 94,  size: 'L'  },
+  { max: 100, size: 'XL' },
+  { max: 106, size: 'XXL'},
+  { max: 9999,size: 'XXXL'},
+];
+const BOTTOM_CHART_M: SizeChart = [
+  { max: 88,  size: 'XS' },
+  { max: 94,  size: 'S'  },
+  { max: 100, size: 'M'  },
+  { max: 106, size: 'L'  },
+  { max: 112, size: 'XL' },
+  { max: 118, size: 'XXL'},
+  { max: 9999,size: 'XXXL'},
+];
+
+const SIZE_ORDER = ['XS','S','M','L','XL','XXL','XXXL'];
+
+function largerSize(a: string, b: string): string {
+  return SIZE_ORDER.indexOf(a.toUpperCase()) >= SIZE_ORDER.indexOf(b.toUpperCase()) ? a : b;
+}
+
+function measurementToSize(cm: number, chart: SizeChart): string {
   return chart.find(r => cm <= r.max)?.size ?? chart[chart.length - 1].size;
 }
 
@@ -39,7 +96,7 @@ function findClosest(recommended: string, available: string[]): string | null {
   const upper = recommended.toUpperCase();
   const exact = available.find(s => s.toUpperCase() === upper);
   if (exact) return exact;
-  const order = ['XS','S','M','L','XL','XXL','XXXL'];
+  const order = SIZE_ORDER;
   const idx = order.indexOf(upper);
   if (idx === -1) return available[0];
   // search outward from recommended index
@@ -54,7 +111,7 @@ function findClosest(recommended: string, available: string[]): string | null {
 
 @Component({
   selector: 'app-product-detail',
-  imports: [CurrencyPipe, RouterLink, FormsModule],
+  imports: [CurrencyPipe, RouterLink, FormsModule, ProductCard],
   templateUrl: './product-detail.html',
   styleUrl: './product-detail.scss',
 })
@@ -66,6 +123,32 @@ export class ProductDetail {
   private readonly productId = toSignal(this.route.params.pipe(map(p => p['id'] as string)));
   protected readonly product = computed(() => this.productService.getById(this.productId() ?? '')());
 
+  protected readonly sameCollectionWithPhotos = computed(() => {
+    const p = this.product();
+    if (!p) return [];
+    return this.productService.getAll()()
+      .filter(x => x.id !== p.id && x.collection === p.collection && x.images?.length > 0);
+  });
+
+  protected readonly sameCollectionWithoutPhotos = computed(() => {
+    const p = this.product();
+    if (!p) return [];
+    return this.productService.getAll()()
+      .filter(x => x.id !== p.id && x.collection === p.collection && !(x.images?.length > 0));
+  });
+
+  protected readonly otherReferences = computed(() => {
+    const p = this.product();
+    if (!p) return [];
+    return this.productService.getAll()()
+      .filter(x =>
+        x.id !== p.id &&
+        x.collection !== p.collection &&
+        x.images?.length > 0 &&
+        (p.gender === 'unisex' || x.gender === p.gender || x.gender === 'unisex')
+      );
+  });
+
   protected readonly selectedColor = signal<ProductColor | null>(null);
   protected readonly selectedTopSize = signal<string | null>(null);
   protected readonly selectedBottomSize = signal<string | null>(null);
@@ -74,26 +157,41 @@ export class ProductDetail {
 
   // Size calculator
   protected showSizeCalc = signal(false);
-  protected calcBust = signal<number | null>(null);
-  protected calcHip  = signal<number | null>(null);
+  protected calcBust  = signal<number | null>(null);
+  protected calcHip   = signal<number | null>(null);
+  protected calcWaist = signal<number | null>(null);
+
+  private get isMale() { return this.product()?.gender === 'hombre'; }
 
   protected readonly calcTopResult = computed(() => {
-    const bust = this.calcBust();
+    const bust  = this.calcBust();
+    const waist = this.calcWaist();
     const p = this.product();
-    if (!bust || bust < 50 || bust > 200 || !p?.topSizes.length) return null;
-    return findClosest(measurementToSize(bust, TOP_CHART), p.topSizes);
+    if (!p?.topSizes.length) return null;
+    const bustChart  = this.isMale ? TOP_CHART_M    : TOP_CHART_F;
+    const waistChart = this.isMale ? TOP_CHART_M    : WAIST_TOP_CHART_F;
+    const bustSize  = bust  && bust  > 50 && bust  < 200 ? measurementToSize(bust,  bustChart)  : null;
+    const waistSize = waist && waist > 50 && waist < 200 ? measurementToSize(waist, waistChart) : null;
+    if (!bustSize && !waistSize) return null;
+    const recommended = bustSize && waistSize ? largerSize(bustSize, waistSize) : (bustSize ?? waistSize!);
+    return findClosest(recommended, p.topSizes);
   });
 
   protected readonly calcBottomResult = computed(() => {
-    const hip = this.calcHip();
+    const hip   = this.calcHip();
+    const waist = this.calcWaist();
     const p = this.product();
-    if (!hip || hip < 50 || hip > 200 || !p?.bottomSizes.length) return null;
-    return findClosest(measurementToSize(hip, BOTTOM_CHART), p.bottomSizes);
+    if (!p?.bottomSizes.length) return null;
+    // Tanto hombre como mujer: el pantalón se basa solo en cadera
+    const chart = this.isMale ? BOTTOM_CHART_M : BOTTOM_CHART_F;
+    if (!hip || hip < 50 || hip > 200) return null;
+    return findClosest(measurementToSize(hip, chart), p.bottomSizes);
   });
 
   openCalc() {
     this.calcBust.set(null);
     this.calcHip.set(null);
+    this.calcWaist.set(null);
     this.showSizeCalc.set(true);
   }
 

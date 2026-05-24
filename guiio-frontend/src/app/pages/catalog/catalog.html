@@ -7,7 +7,9 @@
       @else if (activeGender() === 'hombre') { Colección Hombre }
       @else { Todos los productos }
     </h1>
-    <p class="text-sm text-gray-500 mt-1">{{ filteredProducts().length }} productos</p>
+    @if (!loading()) {
+      <p class="text-sm text-gray-500 mt-1">{{ filteredProducts().length }} productos</p>
+    }
   </div>
 
   <!-- Filters -->
@@ -42,8 +44,21 @@
   </div>
 
   <!-- Grid -->
-  @if (filteredProducts().length > 0) {
-    <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+  @if (loading()) {
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="animate-pulse">
+          <div class="bg-gray-100 aspect-[7/11] w-full rounded-sm"></div>
+          <div class="p-4 space-y-2">
+            <div class="h-3 bg-gray-100 rounded w-1/3"></div>
+            <div class="h-4 bg-gray-100 rounded w-2/3"></div>
+            <div class="h-4 bg-gray-100 rounded w-1/4 mt-3"></div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (filteredProducts().length > 0) {
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
       @for (product of filteredProducts(); track product.id) {
         <app-product-card [product]="product" />
       }

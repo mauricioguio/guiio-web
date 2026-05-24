@@ -19,15 +19,18 @@
               [class.border-gray-900]="selectedImageIndex() === $index"
               [class.border-transparent]="selectedImageIndex() !== $index">
               <img [src]="img" [alt]="p.name + ' foto ' + ($index + 1)"
-                   class="w-full h-full object-contain hover:opacity-80 transition-opacity">
+                   class="w-full h-auto block hover:opacity-80 transition-opacity">
             </button>
           }
         </div>
-        <div class="flex-1 aspect-[3/4] overflow-hidden"
-             [style.background-color]="p.colors.length > 0 ? (selectedColor() ?? p.colors[0]).hex : '#f3f4f6'">
-          <img [src]="p.images[selectedImageIndex()]" [alt]="p.name"
-               class="w-full h-full object-contain transition-opacity duration-200"
-               onerror="this.style.display='none'">
+        <div class="flex-1 overflow-hidden"
+             [class.aspect-[3/4]]="!p.images?.length"
+             [style.background-color]="!p.images?.length ? (p.colors.length > 0 ? (selectedColor() ?? p.colors[0]).hex : '#f3f4f6') : null">
+          @if (p.images?.length) {
+            <img [src]="p.images[selectedImageIndex()]" [alt]="p.name"
+                 class="w-full h-auto block transition-opacity duration-200"
+                 onerror="this.style.display='none'">
+          }
         </div>
       </div>
 
@@ -264,6 +267,104 @@
   </div>
 }
 
+<!-- Carruseles de sugerencias -->
+@if (product()) {
+
+  <!-- 1. Misma colección con fotos -->
+  @if (sameCollectionWithPhotos().length > 0) {
+    <section class="border-t border-gray-100 py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <p class="text-xs uppercase tracking-widest text-gray-400 mb-1">{{ product()!.collection }}</p>
+            <h3 class="text-xl font-bold text-gray-900">Más colores con foto</h3>
+          </div>
+          <div class="flex gap-2">
+            <button (click)="c1.scrollLeft -= 320"
+              class="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-gray-900 hover:text-gray-900 transition-colors text-lg">
+              ‹
+            </button>
+            <button (click)="c1.scrollLeft += 320"
+              class="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-gray-900 hover:text-gray-900 transition-colors text-lg">
+              ›
+            </button>
+          </div>
+        </div>
+        <div #c1 class="carousel-scroll flex gap-4 overflow-x-auto scroll-smooth pb-2">
+          @for (p of sameCollectionWithPhotos(); track p.id) {
+            <div class="flex-none w-44 sm:w-52">
+              <app-product-card [product]="p" />
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- 2. Misma colección sin fotos (solo colores) -->
+  @if (sameCollectionWithoutPhotos().length > 0) {
+    <section class="border-t border-gray-100 py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <p class="text-xs uppercase tracking-widest text-gray-400 mb-1">{{ product()!.collection }}</p>
+            <h3 class="text-xl font-bold text-gray-900">Más colores disponibles</h3>
+          </div>
+          <div class="flex gap-2">
+            <button (click)="c2.scrollLeft -= 320"
+              class="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-gray-900 hover:text-gray-900 transition-colors text-lg">
+              ‹
+            </button>
+            <button (click)="c2.scrollLeft += 320"
+              class="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-gray-900 hover:text-gray-900 transition-colors text-lg">
+              ›
+            </button>
+          </div>
+        </div>
+        <div #c2 class="carousel-scroll flex gap-4 overflow-x-auto scroll-smooth pb-2">
+          @for (p of sameCollectionWithoutPhotos(); track p.id) {
+            <div class="flex-none w-44 sm:w-52">
+              <app-product-card [product]="p" />
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- 3. Otras referencias del mismo género -->
+  @if (otherReferences().length > 0) {
+    <section class="border-t border-gray-100 py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <p class="text-xs uppercase tracking-widest text-gray-400 mb-1">También te puede gustar</p>
+            <h3 class="text-xl font-bold text-gray-900">Otras referencias</h3>
+          </div>
+          <div class="flex gap-2">
+            <button (click)="c3.scrollLeft -= 320"
+              class="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-gray-900 hover:text-gray-900 transition-colors text-lg">
+              ‹
+            </button>
+            <button (click)="c3.scrollLeft += 320"
+              class="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-gray-900 hover:text-gray-900 transition-colors text-lg">
+              ›
+            </button>
+          </div>
+        </div>
+        <div #c3 class="carousel-scroll flex gap-4 overflow-x-auto scroll-smooth pb-2">
+          @for (p of otherReferences(); track p.id) {
+            <div class="flex-none w-44 sm:w-52">
+              <app-product-card [product]="p" />
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
+}
+
 <!-- Modal calculadora de tallas -->
 @if (showSizeCalc()) {
   <div class="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4"
@@ -291,7 +392,7 @@
         @if (product()?.type === 'top' || product()?.type === 'conjunto') {
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1.5">
-              Contorno de busto / pecho
+              {{ product()?.gender === 'hombre' ? 'Contorno de pecho' : 'Contorno de busto' }}
               <span class="text-gray-400 font-normal">(cm)</span>
             </label>
             <div class="relative">
@@ -299,7 +400,7 @@
                 type="number"
                 [ngModel]="calcBust()"
                 (ngModelChange)="calcBust.set($event ? +$event : null)"
-                placeholder="Ej: 90"
+                [placeholder]="product()?.gender === 'hombre' ? 'Ej: 98' : 'Ej: 90'"
                 min="60" max="160"
                 class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 transition-colors">
               <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">cm</span>
@@ -309,6 +410,23 @@
         }
 
         @if (product()?.type === 'bottom' || product()?.type === 'conjunto') {
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+              Contorno de cintura
+              <span class="text-gray-400 font-normal">(cm)</span>
+            </label>
+            <div class="relative">
+              <input
+                type="number"
+                [ngModel]="calcWaist()"
+                (ngModelChange)="calcWaist.set($event ? +$event : null)"
+                placeholder="Ej: 78"
+                min="50" max="160"
+                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 transition-colors">
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">cm</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">Mide alrededor de la parte más estrecha de tu cintura</p>
+          </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1.5">
               Contorno de cadera
@@ -332,26 +450,51 @@
         <div class="bg-gray-50 rounded-xl p-4">
           <p class="text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide">Tabla de referencia</p>
           @if (product()?.type === 'top' || product()?.type === 'conjunto') {
-            <p class="text-xs text-gray-500 font-medium mb-1">Busto → Blusa</p>
-            <div class="grid grid-cols-7 gap-1 text-center text-xs mb-3">
-              @for (row of [['XS','≤82'],['S','83-87'],['M','88-92'],['L','93-97'],['XL','98-102'],['XXL','103+']]; track $index) {
-                <div class="flex flex-col">
-                  <span class="font-semibold text-gray-800">{{ row[0] }}</span>
-                  <span class="text-gray-400 text-[10px] leading-tight">{{ row[1] }}</span>
-                </div>
-              }
-            </div>
+            @if (product()?.gender === 'hombre') {
+              <p class="text-xs text-gray-500 font-medium mb-1">Pecho / Cintura → Camisa (corte recto)</p>
+              <div class="grid grid-cols-7 gap-1 text-center text-xs mb-1">
+                @for (row of [['XS','≤88'],['S','89-94'],['M','95-100'],['L','101-106'],['XL','107-112'],['XXL','113+']]; track $index) {
+                  <div class="flex flex-col">
+                    <span class="font-semibold text-gray-800">{{ row[0] }}</span>
+                    <span class="text-gray-400 text-[10px] leading-tight">{{ row[1] }}</span>
+                  </div>
+                }
+              </div>
+              <p class="text-[10px] text-gray-400 mb-3">Corte recto: se usa la medida mayor entre pecho y cintura.</p>
+            } @else {
+              <p class="text-xs text-gray-500 font-medium mb-1">Busto → Blusa</p>
+              <div class="grid grid-cols-7 gap-1 text-center text-xs mb-3">
+                @for (row of [['XS','≤87'],['S','88-95'],['M','96-103'],['L','104-111'],['XL','112-119'],['XXL','120+']]; track $index) {
+                  <div class="flex flex-col">
+                    <span class="font-semibold text-gray-800">{{ row[0] }}</span>
+                    <span class="text-gray-400 text-[10px] leading-tight">{{ row[1] }}</span>
+                  </div>
+                }
+              </div>
+            }
           }
           @if (product()?.type === 'bottom' || product()?.type === 'conjunto') {
-            <p class="text-xs text-gray-500 font-medium mb-1">Cadera → Pantalón</p>
-            <div class="grid grid-cols-7 gap-1 text-center text-xs">
-              @for (row of [['XS','≤88'],['S','89-93'],['M','94-98'],['L','99-103'],['XL','104-108'],['XXL','109+']]; track $index) {
-                <div class="flex flex-col">
-                  <span class="font-semibold text-gray-800">{{ row[0] }}</span>
-                  <span class="text-gray-400 text-[10px] leading-tight">{{ row[1] }}</span>
-                </div>
-              }
-            </div>
+            @if (product()?.gender === 'hombre') {
+              <p class="text-xs text-gray-500 font-medium mb-1">Cadera → Pantalón</p>
+              <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                @for (row of [['XS','≤88'],['S','89-94'],['M','95-100'],['L','101-106'],['XL','107-112'],['XXL','113+']]; track $index) {
+                  <div class="flex flex-col">
+                    <span class="font-semibold text-gray-800">{{ row[0] }}</span>
+                    <span class="text-gray-400 text-[10px] leading-tight">{{ row[1] }}</span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="text-xs text-gray-500 font-medium mb-1">Cadera → Pantalón</p>
+              <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                @for (row of [['XS','≤93'],['S','94-97'],['M','98-101'],['L','102-105'],['XL','106-109'],['XXL','110+']]; track $index) {
+                  <div class="flex flex-col">
+                    <span class="font-semibold text-gray-800">{{ row[0] }}</span>
+                    <span class="text-gray-400 text-[10px] leading-tight">{{ row[1] }}</span>
+                  </div>
+                }
+              </div>
+            }
           }
         </div>
       </div>

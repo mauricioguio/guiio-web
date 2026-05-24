@@ -8,15 +8,21 @@ const API_URL = 'https://guiio-web-production.up.railway.app/api';
 export class ProductService {
   private readonly http = inject(HttpClient);
   private readonly products = signal<Product[]>([]);
+  private readonly _loading = signal(true);
 
   constructor() {
     this.http.get<Product[]>(`${API_URL}/products`).subscribe({
-      next: list => { this.products.set(list); },
+      next: list => { this.products.set(list); this._loading.set(false); },
+      error: () => { this._loading.set(false); },
     });
   }
 
   getAll() {
     return this.products.asReadonly();
+  }
+
+  getLoading() {
+    return this._loading.asReadonly();
   }
 
   getFeatured() {

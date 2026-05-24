@@ -1,36 +1,11 @@
 <!-- Hero -->
-<section class="relative bg-gray-900 text-white min-h-[85vh] flex items-center">
+<section class="relative bg-gray-900 text-white min-h-[49vh] md:min-h-[85vh] flex items-center">
   @if (hero().backgroundImage) {
     <img [src]="cloudinaryUrl(hero().backgroundImage, 1440)" alt="Hero"
          class="absolute inset-0 w-full h-full object-cover"
          [style.object-position]="hero().imagePosition || 'center center'"
          fetchpriority="high" loading="eager" />
   }
-  <div class="relative max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
-    <div class="max-w-xl">
-      @if (hero().badge) {
-        <p class="text-sm uppercase tracking-widest text-gray-300 mb-4">{{ hero().badge }}</p>
-      }
-      @if (hero().title) {
-        <h1 class="text-5xl sm:text-6xl font-bold leading-tight mb-6">{{ hero().title }}</h1>
-      }
-      @if (hero().subtitle) {
-        <p class="text-lg text-gray-300 mb-8">{{ hero().subtitle }}</p>
-      }
-      @if (hero().buttons && hero().buttons.length > 0) {
-        <div class="flex flex-wrap gap-4">
-          @for (btn of hero().buttons; track btn.label) {
-            <a [routerLink]="btn.link"
-               [class]="btn.variant === 'primary'
-                 ? 'bg-white text-gray-900 px-8 py-3 rounded-full text-sm font-semibold hover:bg-gray-100 transition-colors'
-                 : 'border border-white text-white px-8 py-3 rounded-full text-sm font-semibold hover:bg-white/10 transition-colors'">
-              {{ btn.label }}
-            </a>
-          }
-        </div>
-      }
-    </div>
-  </div>
 </section>
 
 <!-- Promo banner -->
@@ -69,20 +44,14 @@
         @for (col of featuredCollections(); track col.id) {
           <a [routerLink]="['/coleccion', slugify(col.name)]"
              class="group relative h-[40rem] rounded-2xl overflow-hidden bg-gray-200 flex items-center justify-center">
-            @if (colImg(col.name) || col.image) {
-              <img [src]="cloudinaryUrl(colImg(col.name) || col.image, 800)" [alt]="col.name"
+            @if (col.image) {
+              <img [src]="cloudinaryUrl(col.image, 800)" [alt]="col.name"
                    class="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                   [style.opacity]="colFading() ? '0' : '1'"
-                   style="transition: opacity 0.8s ease, transform 0.5s ease"
                    loading="lazy" />
             }
             <div class="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-gray-900/20 to-gray-900/10 group-hover:from-gray-900/70 transition-all"></div>
             <div class="relative text-white text-center px-8">
-              <p class="text-xs uppercase tracking-widest mb-2 text-gray-300">Colección</p>
-              <h3 class="text-3xl font-bold mb-2">{{ col.name }}</h3>
-              @if (col.description) {
-                <p class="text-sm text-gray-300 line-clamp-2">{{ col.description }}</p>
-              }
+              <h3 class="text-3xl font-bold">{{ col.name }}</h3>
             </div>
           </a>
         }
@@ -103,7 +72,7 @@
         Ver todos
       </a>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
       @for (product of featured(); track product.id) {
         <app-product-card [product]="product" />
       }
@@ -128,7 +97,7 @@
             <img [src]="cloudinaryUrl(colImg(col.name) || col.image, 800)" [alt]="col.name"
                  class="w-full h-full object-cover object-top"
                  [style.opacity]="colFading() ? '0' : '1'"
-                 style="transition: opacity 0.8s ease"
+                 style="transition: opacity 0.4s ease"
                  loading="lazy" />
           } @else {
             <div class="flex flex-col items-center justify-center gap-2 text-gray-300">
@@ -191,7 +160,7 @@
       <!-- Foto 2 — cicla entre todos los productos -->
       <div class="overflow-hidden h-[450px] md:h-[500px] lg:h-[680px]"
            [style.opacity]="fading() ? '0' : '1'"
-           style="transition: opacity 0.8s ease">
+           style="transition: opacity 0.4s ease">
         @if (cycleImg(0)) {
           <img [src]="cloudinaryUrl(cycleImg(0), 800)" alt="Guiio Uniformes"
                class="w-full h-full object-cover object-top" />
@@ -201,7 +170,7 @@
       <!-- Foto 3 — cicla entre todos los productos -->
       <div class="overflow-hidden h-[450px] md:h-[500px] lg:h-[680px]"
            [style.opacity]="fading() ? '0' : '1'"
-           style="transition: opacity 0.8s ease">
+           style="transition: opacity 0.4s ease">
         @if (cycleImg(1)) {
           <img [src]="cloudinaryUrl(cycleImg(1), 800)" alt="Guiio Uniformes"
                class="w-full h-full object-cover object-top" />

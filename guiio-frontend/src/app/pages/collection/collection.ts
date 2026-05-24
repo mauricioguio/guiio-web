@@ -1,8 +1,9 @@
 import { Component, inject, computed } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { RouterLink } from '@angular/router';
+import { CurrencyPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { switchMap, map, startWith } from 'rxjs';
+import { switchMap, map } from 'rxjs';
 import { CollectionService, Collection as CollectionInfo } from '../../services/collection';
 import { Product } from '../../models/product';
 import { ProductCard } from '../../components/product-card/product-card';
@@ -10,7 +11,7 @@ import { slugify } from '../../utils/slugify';
 
 @Component({
   selector: 'app-collection',
-  imports: [RouterLink, ProductCard],
+  imports: [RouterLink, ProductCard, CurrencyPipe],
   templateUrl: './collection.html',
 })
 export class Collection {
@@ -31,7 +32,7 @@ export class Collection {
     this.route.params.pipe(
       map(p => p['name'] as string),
       switchMap(name =>
-        this.collectionService.getProductsByName(name).pipe(startWith([] as Product[]))
+        this.collectionService.getProductsByName(name)
       )
     )
   );

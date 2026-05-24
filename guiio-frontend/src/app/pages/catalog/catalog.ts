@@ -21,6 +21,7 @@ export class Catalog {
 
   protected readonly allProducts = this.productService.getAll();
   protected readonly collections = this.productService.getCollections();
+  protected readonly loading = this.productService.getLoading();
 
   protected readonly selectedGender = signal<'mujer' | 'hombre' | 'todos'>('todos');
   protected readonly selectedCollection = signal<string>(
@@ -31,6 +32,7 @@ export class Catalog {
     const gender = this.routeGender() ?? this.selectedGender();
     const collection = this.selectedCollection();
     return this.allProducts().filter(p => {
+      if (!p.images?.length) return false;
       const genderMatch = gender === 'todos' || p.gender === gender || p.gender === 'unisex';
       const collectionMatch = collection === 'todas' || p.collection === collection;
       return genderMatch && collectionMatch;

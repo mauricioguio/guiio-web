@@ -48,61 +48,54 @@ export class Home {
   private readonly allProductImages = computed(() =>
     this.productService.getAll()()
       .filter(p => p.images?.length)
-      .flatMap(p => p.images as string[])
+      .map(p => (p.images as string[])[0])
   );
 
-  private readonly imagesByCollection = computed(() => {
+  private readonly firstImageByCollection = computed(() => {
     const map = new Map<string, string[]>();
     for (const p of this.productService.getAll()()) {
       if (p.images?.length) {
         const key = p.collection.toLowerCase();
         if (!map.has(key)) map.set(key, []);
-        map.get(key)!.push(...(p.images as string[]));
+        map.get(key)!.push((p.images as string[])[0]);
       }
     }
     return map;
   });
 
-  protected readonly cycleIndex = signal(0);
-  protected readonly fading = signal(false);
+  protected readonly cycleIndex    = signal(0);
+  protected readonly fading        = signal(false);
   protected readonly colCycleIndex = signal(0);
-  protected readonly colFading = signal(false);
+  protected readonly colFading     = signal(false);
 
   constructor() {
-    const id = setInterval(() => {
-      this.fading.set(true);
+    const fade = (fadingSignal: ReturnType<typeof signal<boolean>>, indexSignal: ReturnType<typeof signal<number>>, getTotal: () => number) => {
+      fadingSignal.set(true);
       setTimeout(() => {
-        this.cycleIndex.update(i => {
-          const total = this.allProductImages().length;
-          return total > 1 ? (i + 2) % total : 0;
-        });
-        this.fading.set(false);
-      }, 800);
-    }, 5000);
+        indexSignal.update(i => { const t = getTotal(); return t > 1 ? (i + 1) % t : 0; });
+        fadingSignal.set(false);
+      }, 400);
+    };
 
-    const colId = setInterval(() => {
-      this.colFading.set(true);
-      setTimeout(() => {
-        this.colCycleIndex.update(i => i + 1);
-        this.colFading.set(false);
-      }, 800);
-    }, 5000);
+    const id    = setInterval(() => fade(this.fading,    this.cycleIndex,    () => this.allProductImages().length), 5000);
+    const colId = setInterval(() => fade(this.colFading, this.colCycleIndex, () => {
+      return Math.max(...[...this.firstImageByCollection().values()].map(v => v.length), 1);
+    }), 5000);
 
     this.destroyRef.onDestroy(() => { clearInterval(id); clearInterval(colId); });
   }
 
-  protected cycleImg(offset: number): string {
-    const imgs = this.allProductImages();
-    if (!imgs.length) return '';
-    return imgs[(this.cycleIndex() + offset) % imgs.length];
+  protected colImg(colName: string): string {
+    const imgs = this.firstImageByCollection().get(colName.toLowerCase());
+    if (!imgs?.length) return '';
+    return imgs[this.colCycleIndex() % imgs.length];
   }
 
-  protected colImg(colName: string, offset = 0): string {
-    const name = colName.toLowerCase();
-    if (name === 'hombre' || name === 'mujer') return '';
-    const imgs = this.imagesByCollection().get(name);
-    if (!imgs?.length) return '';
-    return imgs[(this.colCycleIndex() + offset) % imgs.length];
+  protected cycleImg(slot: number): string {
+    const imgs = this.allProductImages();
+    if (!imgs.length) return '';
+    const half = Math.max(1, Math.floor(imgs.length / 2));
+    return imgs[(this.cycleIndex() + slot * half) % imgs.length];
   }
 
   protected readonly slugify = slugify;

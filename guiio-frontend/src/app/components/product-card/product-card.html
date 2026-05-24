@@ -1,8 +1,8 @@
 <a [routerLink]="['/producto', product().id]"
    class="group block bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
   <!-- Image -->
-  <div class="aspect-[7/11] overflow-hidden relative"
-       [style.background-color]="product().colors.length > 0 ? product().colors[0].hex : '#f3f4f6'">
+  <div class="aspect-[2/3] overflow-hidden relative"
+       [style.background-color]="!product().images?.length ? (product().colors.length > 0 ? product().colors[0].hex : '#f3f4f6') : null">
     <img [src]="cloudinaryUrl(product().images[0], 400)" [alt]="product().name"
          class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
          loading="lazy" onerror="this.style.display='none'">
@@ -16,7 +16,7 @@
   <!-- Info -->
   <div class="p-4">
     <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">{{ product().collection }}</p>
-    <h3 class="text-sm font-medium text-gray-900 mb-2">{{ product().name }}</h3>
+    <h3 class="text-sm font-medium text-gray-900 mb-2 line-clamp-2 min-h-[2.5rem]">{{ product().name }}</h3>
 
     <!-- Colors -->
     <div class="flex gap-1.5 mb-3">
