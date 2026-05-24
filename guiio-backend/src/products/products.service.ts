@@ -2,6 +2,124 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 
+// ── Size charts (body measurements in cm) ────────────────────────────────────
+type CR = { max: number; size: string };
+const S_ORDER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+
+const W_BUST:  CR[] = [{max:85,size:'XS'},{max:90,size:'S'},{max:95,size:'M'},{max:100,size:'L'},{max:105,size:'XL'},{max:112,size:'XXL'},{max:9999,size:'XXXL'}];
+const W_WAIST: CR[] = [{max:72,size:'XS'},{max:78,size:'S'},{max:84,size:'M'},{max: 91,size:'L'},{max:100,size:'XL'},{max:108,size:'XXL'},{max:9999,size:'XXXL'}];
+const W_HIP:   CR[] = [{max:92,size:'XS'},{max:97,size:'S'},{max:102,size:'M'},{max:108,size:'L'},{max:114,size:'XL'},{max:121,size:'XXL'},{max:9999,size:'XXXL'}];
+const M_CHEST: CR[] = [{max:88,size:'XS'},{max:94,size:'S'},{max:100,size:'M'},{max:106,size:'L'},{max:112,size:'XL'},{max:118,size:'XXL'},{max:9999,size:'XXXL'}];
+const M_WAIST: CR[] = [{max:76,size:'XS'},{max:82,size:'S'},{max:88,size:'M'},{max: 94,size:'L'},{max:100,size:'XL'},{max:106,size:'XXL'},{max:9999,size:'XXXL'}];
+const M_HIP:   CR[] = [{max:88,size:'XS'},{max:94,size:'S'},{max:100,size:'M'},{max:106,size:'L'},{max:112,size:'XL'},{max:118,size:'XXL'},{max:9999,size:'XXXL'}];
+
+function sizeOf(cm: number, chart: CR[]): string {
+  return chart.find(r => cm <= r.max)?.size ?? chart[chart.length - 1].size;
+}
+
+/** cm remaining to the upper limit of the matching size (0 = exactly at limit, negative = over) */
+function dToMax(cm: number, chart: CR[]): number {
+  const e = chart.find(r => cm <= r.max);
+  return e ? e.max - cm : -(cm - chart[chart.length - 1].max);
+}
+
+function sIdx(s: string): number { return S_ORDER.indexOf(s.toUpperCase()); }
+function larger(a: string, b: string): string { return sIdx(a) >= sIdx(b) ? a : b; }
+
+function closest(size: string, available: string[]): string | null {
+  if (!available.length) return null;
+  const exact = available.find(s => s.toUpperCase() === size.toUpperCase());
+  if (exact) return exact;
+  const i = sIdx(size);
+  for (let d = 1; d <= S_ORDER.length; d++) {
+    const up = i + d < S_ORDER.length ? available.find(s => s.toUpperCase() === S_ORDER[i + d]) : undefined;
+    const dn = i - d >= 0             ? available.find(s => s.toUpperCase() === S_ORDER[i - d]) : undefined;
+    if (up) return up;
+    if (dn) return dn;
+  }
+  return available[0];
+}
+
+interface SizeRec { size: string; note: string }
+
+function computeTopRec(
+  bust: number | undefined, waist: number | undefined,
+  bustC: CR[], waistC: CR[],
+  pref: string | undefined, available: string[],
+): SizeRec | null {
+  const bSize = bust  && bust  > 50 ? sizeOf(bust,  bustC)  : null;
+  const wSize = waist && waist > 50 ? sizeOf(waist, waistC) : null;
+  if (!bSize && !wSize) return null;
+
+  const baseSize = bSize && wSize ? larger(bSize, wSize) : (bSize ?? wSize!);
+  const baseIdx  = sIdx(baseSize);
+
+  // smallest remaining margin across all measurements (most constrained)
+  const margins: number[] = [];
+  if (bust  && bust  > 50) margins.push(dToMax(bust,  bustC));
+  if (waist && waist > 50) margins.push(dToMax(waist, waistC));
+  const minMargin = Math.min(...margins);
+
+  let finalSize = baseSize;
+  let note      = '';
+
+  if (pref === 'suelto' && minMargin >= 0 && minMargin <= 3) {
+    const next = S_ORDER[Math.min(baseIdx + 1, S_ORDER.length - 1)];
+    if (next !== baseSize) {
+      finalSize = next;
+      note = `medida a solo ${minMargin} cm del tope de ${baseSize}; con preferencia suelta se sube a ${next} para mayor comodidad`;
+    } else {
+      note = `talla ${baseSize} según tabla`;
+    }
+  } else if (pref === 'ajustado' && minMargin >= 0 && minMargin <= 3) {
+    note = `medida a ${minMargin} cm del tope de ${baseSize}; con preferencia ajustada el licrado absorbe esos centímetros y queda ceñido sin necesidad de subir talla`;
+  } else if (minMargin < 0) {
+    // measurement slightly over the chart max — recommend next size
+    const next = S_ORDER[Math.min(baseIdx + 1, S_ORDER.length - 1)];
+    finalSize = next;
+    note = `medida ${Math.abs(minMargin)} cm por encima del tope de ${baseSize}, se recomienda ${next}`;
+  } else {
+    note = `medida corresponde cómodamente a ${baseSize} según la tabla`;
+  }
+
+  const avail = closest(finalSize, available);
+  return { size: avail ?? finalSize, note };
+}
+
+function computeBottomRec(
+  hip: number | undefined, hipC: CR[],
+  pref: string | undefined, available: string[],
+): SizeRec | null {
+  if (!hip || hip <= 50) return null;
+  const baseSize = sizeOf(hip, hipC);
+  const baseIdx  = sIdx(baseSize);
+  const margin   = dToMax(hip, hipC);
+
+  let finalSize = baseSize;
+  let note      = '';
+
+  if (pref === 'suelto' && margin >= 0 && margin <= 3) {
+    const next = S_ORDER[Math.min(baseIdx + 1, S_ORDER.length - 1)];
+    if (next !== baseSize) {
+      finalSize = next;
+      note = `cadera a ${margin} cm del tope de ${baseSize}; con preferencia suelta se sube a ${next}`;
+    } else {
+      note = `talla ${baseSize} según tabla`;
+    }
+  } else if (pref === 'ajustado' && margin >= 0 && margin <= 3) {
+    note = `cadera a ${margin} cm del tope de ${baseSize}; el licrado absorbe la diferencia quedando ajustado`;
+  } else if (margin < 0) {
+    const next = S_ORDER[Math.min(baseIdx + 1, S_ORDER.length - 1)];
+    finalSize = next;
+    note = `cadera ${Math.abs(margin)} cm por encima del tope de ${baseSize}, se recomienda ${next}`;
+  } else {
+    note = `cadera corresponde a ${baseSize} según tabla`;
+  }
+
+  const avail = closest(finalSize, available);
+  return { size: avail ?? finalSize, note };
+}
+
 @Injectable()
 export class ProductsService {
   constructor(
@@ -63,65 +181,42 @@ export class ProductsService {
     fitPreference?: string;
     history?: { role: 'user' | 'model'; text: string }[];
   }): Promise<{ advice: string }> {
+    const isMale  = dto.gender === 'hombre';
+    const bustC   = isMale ? M_CHEST : W_BUST;
+    const waistC  = isMale ? M_WAIST : W_WAIST;
+    const hipC    = isMale ? M_HIP   : W_HIP;
+
     const measurements: string[] = [];
     if (dto.bust)  measurements.push(`Busto: ${dto.bust} cm`);
     if (dto.waist) measurements.push(`Cintura: ${dto.waist} cm`);
     if (dto.hip)   measurements.push(`Cadera: ${dto.hip} cm`);
 
-    const womenChart = `XS: Busto 80-85 | Cintura 68-72 | Cadera 88-92
-S:  Busto 86-90 | Cintura 73-78 | Cadera 93-97
-M:  Busto 91-95 | Cintura 79-84 | Cadera 98-102
-L:  Busto 96-100 | Cintura 85-91 | Cadera 103-108
-XL: Busto 101-105 | Cintura 92-100 | Cadera 109-114
-XXL: Busto 106-112 | Cintura 101-108 | Cadera 115+`;
+    // Pre-compute recommendations in TypeScript (reliable math)
+    const topRec    = dto.topSizes.length    ? computeTopRec(dto.bust, dto.waist, bustC, waistC, dto.fitPreference, dto.topSizes)    : null;
+    const bottomRec = dto.bottomSizes.length ? computeBottomRec(dto.hip, hipC, dto.fitPreference, dto.bottomSizes)                  : null;
 
-    const menChart = `XS: Pecho ≤88 | Cadera ≤88
-S:  Pecho 89-94 | Cadera 89-94
-M:  Pecho 95-100 | Cadera 95-100
-L:  Pecho 101-106 | Cadera 101-106
-XL: Pecho 107-112 | Cadera 107-112
-XXL: Pecho 113+ | Cadera 113+`;
+    const recLines: string[] = [];
+    if (topRec)    recLines.push(`Blusa/Top → ${topRec.size}  [${topRec.note}]`);
+    if (bottomRec) recLines.push(`Pantalón  → ${bottomRec.size}  [${bottomRec.note}]`);
 
-    const chart = dto.gender === 'hombre' ? menChart : womenChart;
-    const available: string[] = [];
-    if (dto.topSizes.length)    available.push(`Blusa: ${dto.topSizes.join(', ')}`);
-    if (dto.bottomSizes.length) available.push(`Pantalón: ${dto.bottomSizes.join(', ')}`);
+    const fitText = dto.fitPreference === 'ajustado' ? 'ajustado/ceñido'
+      : dto.fitPreference === 'suelto' ? 'suelto/holgado'
+      : 'normal/estándar';
 
-    const fitText = dto.fitPreference === 'ajustado'
-      ? 'El cliente prefiere ropa AJUSTADA al cuerpo.'
-      : dto.fitPreference === 'suelto'
-      ? 'El cliente prefiere ropa SUELTA/holgada.'
-      : 'El cliente prefiere un ajuste NORMAL/estándar.';
-
-    const prompt = `Eres una asistente experta en tallas de Guiio Uniformes, fabricantes de uniformes médicos en Colombia.
-
-CARACTERÍSTICAS DEL TEJIDO:
-- Material: antifluido licrado con 20-25% de elasticidad
-- El tejido cede aproximadamente 2-4 cm dependiendo de la zona
-- En zonas de movimiento (cintura, cadera) cede más; en el busto cede menos
-- Con el uso y lavado el tejido mantiene su forma gracias al licrado
-
-REGLA DE TALLA LÍMITE:
-- Si una medida supera por 1-2 cm el límite superior de una talla, puede quedarse en esa talla gracias al licrado (si prefiere ajustado) o subir de talla (si prefiere suelto)
-- Si una medida cae justo en el límite inferior de una talla, considerar la talla inferior si prefiere ajustado
-
-PREFERENCIA DEL CLIENTE: ${fitText}
+    const prompt = `Eres una asistente experta en tallas de Guiio Uniformes (uniformes médicos en Colombia). El tejido es antifluido licrado con 20-25% de elasticidad.
 
 Producto: ${dto.productName} (${dto.gender})
-Tallas disponibles — ${available.join(' | ')}
+Medidas del cliente: ${measurements.join(' | ')}
+Preferencia de ajuste: ${fitText}
 
-Medidas del cliente:
-${measurements.join('\n')}
+TALLAS RECOMENDADAS (ya calculadas por el sistema, DEBES usarlas exactamente):
+${recLines.length ? recLines.join('\n') : 'Sin medidas suficientes para calcular.'}
 
-Tabla de tallas (medidas reales del cuerpo en cm):
-${chart}
-
-Escribe una recomendación personalizada en español, máximo 3-4 oraciones. Menciona la talla recomendada para cada prenda, explica brevemente el razonamiento considerando la preferencia de ajuste y las propiedades del tejido. Si las medidas caen en tallas distintas, explica cuál elegir. Tono amigable y directo. Sin asteriscos ni markdown.`;
+Escribe 2-3 oraciones amigables en español dirigidas al cliente. Confirma las tallas recomendadas tal como están arriba, explica brevemente la razón mencionando la preferencia de ajuste y el comportamiento del tejido elástico. Tono cálido y directo. Sin asteriscos ni markdown.`;
 
     const apiKey = this.config.get<string>('GEMINI_API_KEY');
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
-    // Build multi-turn contents: system prompt first, then conversation history
     const contents: any[] = [{ role: 'user', parts: [{ text: prompt }] }];
     if (dto.history?.length) {
       for (const msg of dto.history) {
