@@ -603,8 +603,23 @@
             <div class="space-y-2 max-h-36 overflow-y-auto mb-2 pr-1">
               @for (msg of chatHistory(); track $index) {
                 @if (msg.role === 'model') {
-                  <div class="bg-blue-50 border border-blue-100 rounded-xl p-3">
-                    <p class="text-sm text-blue-800 leading-relaxed">{{ msg.text }}</p>
+                  <div class="rounded-xl p-3"
+                       [class.bg-blue-50]="!aiErrored() || $index < chatHistory().length - 1"
+                       [class.border]="!aiErrored() || $index < chatHistory().length - 1"
+                       [class.border-blue-100]="!aiErrored() || $index < chatHistory().length - 1"
+                       [class.bg-amber-50]="aiErrored() && $index === chatHistory().length - 1"
+                       [class.border-amber-200]="aiErrored() && $index === chatHistory().length - 1">
+                    <p class="text-sm leading-relaxed"
+                       [class.text-blue-800]="!aiErrored() || $index < chatHistory().length - 1"
+                       [class.text-amber-800]="aiErrored() && $index === chatHistory().length - 1">
+                      {{ msg.text }}
+                    </p>
+                    @if (aiErrored() && $index === chatHistory().length - 1) {
+                      <button (click)="requestAiAdvice()"
+                        class="mt-2 text-xs text-amber-700 underline underline-offset-2">
+                        Intentar de nuevo
+                      </button>
+                    }
                   </div>
                 } @else {
                   <div class="bg-gray-100 rounded-xl p-3 ml-6">

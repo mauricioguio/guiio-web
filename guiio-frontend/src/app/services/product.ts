@@ -52,7 +52,7 @@ export class ProductService {
     fitPreference?: string | null;
     history?: { role: 'user' | 'model'; text: string }[];
   }) {
-    return this.http.post<{ advice: string }>(`${API_URL}/products/size-advice`, dto);
+    return this.http.post<{ advice: string; isError?: boolean }>(`${API_URL}/products/size-advice`, dto);
   }
 
   getCollectionSpotlights() {

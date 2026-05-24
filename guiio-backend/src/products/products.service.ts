@@ -259,8 +259,18 @@ Escribe 2-3 oraciones amigables en español dirigidas al cliente. Confirma las t
     });
 
     const json = await res.json() as any;
-    const advice: string = json?.candidates?.[0]?.content?.parts?.[0]?.text
-      ?? 'No se pudo generar una sugerencia en este momento.';
-    return { advice };
+
+    if (!res.ok || json?.error) {
+      const code = json?.error?.code as number | undefined;
+      const msg  = (json?.error?.message ?? '').toLowerCase();
+      if (code === 429 || msg.includes('quota') || msg.includes('exhausted') || msg.includes('rate limit')) {
+        return { advice: 'Se alcanzó el límite de solicitudes de IA por hoy. Puedes ver la talla recomendada en la barra de abajo.', isError: true };
+      }
+      return { advice: 'Error al conectar con el servicio de IA. Intenta de nuevo en unos momentos.', isError: true };
+    }
+
+    const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) return { advice: 'No se pudo generar la sugerencia. Intenta de nuevo.', isError: true };
+    return { advice: text };
   }
 }

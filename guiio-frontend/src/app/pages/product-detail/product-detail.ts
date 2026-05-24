@@ -161,28 +161,31 @@ export class ProductDetail {
 
   private prefTimer: any    = null;
   private measureTimer: any = null;
+  protected readonly aiErrored = signal(false);
 
   constructor() {
-    // Re-call AI when fit preference changes (if advice already shown)
+    // Re-call AI when fit preference changes (if advice already shown and no error)
     effect(() => {
       const fit = this.fitPreference();
       const hasHistory = untracked(() => this.chatHistory().length > 0);
       const loading    = untracked(() => this.chatLoading());
       const hasMeasure = untracked(() => !!(this.calcBust() || this.calcWaist() || this.calcHip()));
-      if (!fit || !hasHistory || loading || !hasMeasure) return;
+      const errored    = untracked(() => this.aiErrored());
+      if (!fit || !hasHistory || loading || !hasMeasure || errored) return;
       clearTimeout(this.prefTimer);
       this.prefTimer = setTimeout(() => this.requestAiAdvice(), 400);
     });
 
-    // Re-call AI when measurements change (debounced, only if advice already shown)
+    // Re-call AI when measurements change (debounced, only if advice already shown and no error)
     effect(() => {
       const bust  = this.calcBust();
       const waist = this.calcWaist();
       const hip   = this.calcHip();
-      const fit     = untracked(() => this.fitPreference());
+      const fit        = untracked(() => this.fitPreference());
       const hasHistory = untracked(() => this.chatHistory().length > 0);
       const loading    = untracked(() => this.chatLoading());
-      if (!fit || !hasHistory || loading || (!bust && !waist && !hip)) return;
+      const errored    = untracked(() => this.aiErrored());
+      if (!fit || !hasHistory || loading || errored || (!bust && !waist && !hip)) return;
       clearTimeout(this.measureTimer);
       this.measureTimer = setTimeout(() => this.requestAiAdvice(), 1500);
     });
@@ -254,18 +257,21 @@ export class ProductDetail {
       fitPreference: this.fitPreference(),
       history,
     }).subscribe({
-      next: ({ advice }) => {
+      next: ({ advice, isError }) => {
+        this.aiErrored.set(!!isError);
         this.chatHistory.update(h => [...h, { role: 'model', text: advice }]);
         this.chatLoading.set(false);
       },
       error: () => {
-        this.chatHistory.update(h => [...h, { role: 'model', text: 'No se pudo responder. Intenta de nuevo.' }]);
+        this.aiErrored.set(true);
+        this.chatHistory.update(h => [...h, { role: 'model', text: 'No se pudo conectar. Intenta de nuevo.' }]);
         this.chatLoading.set(false);
       },
     });
   }
 
   requestAiAdvice() {
+    this.aiErrored.set(false);
     this.chatHistory.set([]);
     this.callAdvice([]);
   }
@@ -273,6 +279,7 @@ export class ProductDetail {
   sendFollowUp() {
     const text = this.chatInputValue.trim();
     if (!text || this.chatLoading()) return;
+    this.aiErrored.set(false);
     this.chatInputValue = '';
     const newHistory = [...this.chatHistory(), { role: 'user' as const, text }];
     this.chatHistory.set(newHistory);
