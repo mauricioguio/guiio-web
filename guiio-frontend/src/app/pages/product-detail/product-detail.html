@@ -524,33 +524,56 @@
         </div>
       </div>
 
-      <!-- Sugerencia IA -->
+      <!-- Chat IA -->
       @if (calcBust() || calcWaist() || calcHip()) {
         <div class="px-6 pb-2">
-          @if (!aiAdvice() && !aiLoading()) {
+          @if (chatHistory().length === 0 && !chatLoading()) {
             <button (click)="requestAiAdvice()"
               class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:border-gray-900 hover:text-gray-900 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
-                <path d="M12 6v6l4 2"/>
+                <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/>
               </svg>
-              Obtener sugerencia personalizada con IA
+              Sugerencia personalizada con IA
             </button>
           }
-          @if (aiLoading()) {
+          @if (chatHistory().length > 0) {
+            <div class="space-y-2 max-h-52 overflow-y-auto mb-3 pr-1">
+              @for (msg of chatHistory(); track $index) {
+                @if (msg.role === 'model') {
+                  <div class="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                    <p class="text-sm text-blue-800 leading-relaxed">{{ msg.text }}</p>
+                  </div>
+                } @else {
+                  <div class="bg-gray-100 rounded-xl p-3 ml-6">
+                    <p class="text-sm text-gray-700">{{ msg.text }}</p>
+                  </div>
+                }
+              }
+              @if (chatLoading()) {
+                <div class="flex items-center gap-2 py-1 text-sm text-gray-400">
+                  <div class="w-3.5 h-3.5 border-2 border-gray-200 border-t-gray-400 rounded-full animate-spin shrink-0"></div>
+                  Analizando...
+                </div>
+              }
+            </div>
+            <div class="flex gap-2">
+              <input
+                [(ngModel)]="chatInputValue"
+                (keyup.enter)="sendFollowUp()"
+                placeholder="Escribe tu pregunta..."
+                [disabled]="chatLoading()"
+                class="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-gray-900 transition-colors disabled:opacity-50">
+              <button (click)="sendFollowUp()"
+                [disabled]="!chatInputValue.trim() || chatLoading()"
+                class="px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                Enviar
+              </button>
+            </div>
+          }
+          @if (chatHistory().length === 0 && chatLoading()) {
             <div class="flex items-center gap-2 py-2.5 text-sm text-gray-400">
               <div class="w-4 h-4 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin shrink-0"></div>
               Analizando tus medidas...
-            </div>
-          }
-          @if (aiAdvice()) {
-            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
-              <div class="flex items-start gap-2.5">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-500 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-                </svg>
-                <p class="text-sm text-blue-800 leading-relaxed">{{ aiAdvice() }}</p>
-              </div>
             </div>
           }
         </div>

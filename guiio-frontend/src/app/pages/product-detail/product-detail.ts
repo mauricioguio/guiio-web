@@ -145,12 +145,13 @@ export class ProductDetail {
   protected readonly added = signal(false);
 
   // Size calculator
-  protected showSizeCalc  = signal(false);
-  protected calcBust      = signal<number | null>(null);
-  protected calcHip       = signal<number | null>(null);
-  protected calcWaist     = signal<number | null>(null);
-  protected aiAdvice      = signal<string | null>(null);
-  protected aiLoading     = signal(false);
+  protected showSizeCalc   = signal(false);
+  protected calcBust       = signal<number | null>(null);
+  protected calcHip        = signal<number | null>(null);
+  protected calcWaist      = signal<number | null>(null);
+  protected chatHistory    = signal<{ role: 'user' | 'model'; text: string }[]>([]);
+  protected chatLoading    = signal(false);
+  protected chatInputValue = '';
 
   private get isMale() { return this.product()?.gender === 'hombre'; }
 
@@ -183,28 +184,44 @@ export class ProductDetail {
     this.calcBust.set(null);
     this.calcHip.set(null);
     this.calcWaist.set(null);
-    this.aiAdvice.set(null);
+    this.chatHistory.set([]);
+    this.chatInputValue = '';
     this.showSizeCalc.set(true);
   }
 
-  requestAiAdvice() {
+  private callAdvice(history: { role: 'user' | 'model'; text: string }[]) {
     const p = this.product();
     if (!p) return;
-    this.aiLoading.set(true);
-    this.aiAdvice.set(null);
+    this.chatLoading.set(true);
     this.productService.getSizeAdvice({
-      bust: this.calcBust(),
-      waist: this.calcWaist(),
-      hip: this.calcHip(),
-      gender: p.gender,
-      type: p.type,
-      productName: p.name,
-      topSizes: p.topSizes,
-      bottomSizes: p.bottomSizes,
+      bust: this.calcBust(), waist: this.calcWaist(), hip: this.calcHip(),
+      gender: p.gender, type: p.type, productName: p.name,
+      topSizes: p.topSizes, bottomSizes: p.bottomSizes,
+      history,
     }).subscribe({
-      next: ({ advice }) => { this.aiAdvice.set(advice); this.aiLoading.set(false); },
-      error: ()          => { this.aiAdvice.set('No se pudo obtener la sugerencia. Intenta de nuevo.'); this.aiLoading.set(false); },
+      next: ({ advice }) => {
+        this.chatHistory.update(h => [...h, { role: 'model', text: advice }]);
+        this.chatLoading.set(false);
+      },
+      error: () => {
+        this.chatHistory.update(h => [...h, { role: 'model', text: 'No se pudo responder. Intenta de nuevo.' }]);
+        this.chatLoading.set(false);
+      },
     });
+  }
+
+  requestAiAdvice() {
+    this.chatHistory.set([]);
+    this.callAdvice([]);
+  }
+
+  sendFollowUp() {
+    const text = this.chatInputValue.trim();
+    if (!text || this.chatLoading()) return;
+    this.chatInputValue = '';
+    const newHistory = [...this.chatHistory(), { role: 'user' as const, text }];
+    this.chatHistory.set(newHistory);
+    this.callAdvice(newHistory);
   }
 
   applyCalcSizes() {

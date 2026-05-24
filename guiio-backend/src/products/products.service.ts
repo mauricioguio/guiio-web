@@ -60,6 +60,7 @@ export class ProductsService {
     bust?: number; waist?: number; hip?: number;
     gender: string; type: string; productName: string;
     topSizes: string[]; bottomSizes: string[];
+    history?: { role: 'user' | 'model'; text: string }[];
   }): Promise<{ advice: string }> {
     const measurements: string[] = [];
     if (dto.bust)  measurements.push(`Busto: ${dto.bust} cm`);
@@ -101,19 +102,26 @@ Escribe una recomendación personalizada en español, máximo 3 oraciones cortas
     const apiKey = this.config.get<string>('GEMINI_API_KEY');
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
+    // Build multi-turn contents: system prompt first, then conversation history
+    const contents: any[] = [{ role: 'user', parts: [{ text: prompt }] }];
+    if (dto.history?.length) {
+      for (const msg of dto.history) {
+        contents.push({ role: msg.role, parts: [{ text: msg.text }] });
+      }
+    }
+
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
+        contents,
         generationConfig: { maxOutputTokens: 1024, thinkingConfig: { thinkingBudget: 0 } },
       }),
     });
 
     const json = await res.json() as any;
     const advice: string = json?.candidates?.[0]?.content?.parts?.[0]?.text
-      ?? json?.error?.message
-      ?? JSON.stringify(json).slice(0, 200);
+      ?? 'No se pudo generar una sugerencia en este momento.';
     return { advice };
   }
 }

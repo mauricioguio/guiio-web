@@ -49,6 +49,7 @@ export class ProductService {
     bust?: number | null; waist?: number | null; hip?: number | null;
     gender: string; type: string; productName: string;
     topSizes: string[]; bottomSizes: string[];
+    history?: { role: 'user' | 'model'; text: string }[];
   }) {
     return this.http.post<{ advice: string }>(`${API_URL}/products/size-advice`, dto);
   }
