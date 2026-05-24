@@ -8,6 +8,10 @@ export class PaymentService {
   private readonly cart = inject(CartService);
   private readonly apiUrl = 'https://guiio-web-production.up.railway.app/api';
 
+  getTransactionStatus(wompiId: string) {
+    return this.http.get<{ status: string }>(`${this.apiUrl}/payments/status/${wompiId}`);
+  }
+
   createPreference(customer: {
     name: string; email: string; phone: string;
     address: string; reference?: string | null;

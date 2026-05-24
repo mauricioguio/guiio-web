@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, HttpCode } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { CreatePreferenceDto } from './dto/create-preference.dto';
 
@@ -10,6 +10,11 @@ export class PaymentsController {
   @HttpCode(200)
   createCheckout(@Body() dto: CreatePreferenceDto) {
     return this.paymentsService.createCheckout(dto);
+  }
+
+  @Get('status/:id')
+  getStatus(@Param('id') id: string) {
+    return this.paymentsService.verifyTransaction(id);
   }
 
   @Post('webhook')

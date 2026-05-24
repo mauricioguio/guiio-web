@@ -8,6 +8,7 @@ export const routes: Routes = [
   { path: 'carrito', loadComponent: () => import('./pages/cart/cart').then(m => m.Cart) },
   { path: 'checkout', loadComponent: () => import('./pages/checkout/checkout').then(m => m.Checkout) },
   { path: 'contacto', loadComponent: () => import('./pages/contact/contact').then(m => m.Contact) },
+  { path: 'pago/resultado', loadComponent: () => import('./pages/payment-result/payment-result').then(m => m.PaymentResult) },
   { path: 'pago/exitoso', loadComponent: () => import('./pages/payment-success/payment-success').then(m => m.PaymentSuccess) },
   { path: 'pago/fallido', loadComponent: () => import('./pages/payment-failure/payment-failure').then(m => m.PaymentFailure) },
   { path: 'pago/pendiente', loadComponent: () => import('./pages/payment-pending/payment-pending').then(m => m.PaymentPending) },

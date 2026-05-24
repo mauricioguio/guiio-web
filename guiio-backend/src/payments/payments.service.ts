@@ -27,7 +27,7 @@ export class PaymentsService {
 
     const reference = `GUIIO-${Date.now()}-${randomUUID().slice(0, 8).toUpperCase()}`;
     const currency = 'COP';
-    const redirectUrl = `${this.frontendUrl}/pago/exitoso`;
+    const redirectUrl = `${this.frontendUrl}/pago/resultado`;
 
     const signature = createHash('sha256')
       .update(`${reference}${amountInCents}${currency}${this.integritySecret}`)
@@ -84,6 +84,15 @@ export class PaymentsService {
     }
 
     return { checkoutUrl, reference, total };
+  }
+
+  async verifyTransaction(wompiId: string): Promise<{ status: string }> {
+    const apiBase = 'https://api.wompi.co/v1';
+    const res = await fetch(`${apiBase}/transactions/${wompiId}`, {
+      headers: { Authorization: `Bearer ${this.publicKey}` },
+    });
+    const json = await res.json() as any;
+    return { status: json?.data?.status ?? 'ERROR' };
   }
 
   async handleWebhook(payload: any) {
