@@ -190,6 +190,24 @@ export class ProductDetail {
 
   private get isMale() { return this.product()?.gender === 'hombre'; }
 
+  protected readonly calcBustSize = computed(() => {
+    const v = this.calcBust();
+    if (!v || v < 50 || v > 200) return null;
+    return measurementToSize(v, this.isMale ? TOP_CHART_M : TOP_CHART_F);
+  });
+
+  protected readonly calcWaistSize = computed(() => {
+    const v = this.calcWaist();
+    if (!v || v < 50 || v > 200) return null;
+    return measurementToSize(v, this.isMale ? WAIST_CHART_M : WAIST_TOP_CHART_F);
+  });
+
+  protected readonly calcHipSize = computed(() => {
+    const v = this.calcHip();
+    if (!v || v < 50 || v > 200) return null;
+    return measurementToSize(v, this.isMale ? BOTTOM_CHART_M : BOTTOM_CHART_F);
+  });
+
   protected readonly calcTopResult = computed(() => {
     const bust  = this.calcBust();
     const waist = this.calcWaist();

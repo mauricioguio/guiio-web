@@ -431,6 +431,11 @@
               </p>
               <p class="text-xs text-gray-400 leading-snug">Parte más ancha del {{ product()?.gender === 'hombre' ? 'pecho' : 'busto' }}</p>
             </div>
+            @if (calcBustSize()) {
+              <span class="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-1 rounded-lg shrink-0 min-w-[2.5rem] text-center">
+                {{ calcBustSize() }}
+              </span>
+            }
             <div class="relative w-24 shrink-0">
               <input type="number"
                 [ngModel]="calcBust()"
@@ -452,6 +457,11 @@
               </p>
               <p class="text-xs text-gray-400 leading-snug">Parte más estrecha de la cintura</p>
             </div>
+            @if (calcWaistSize()) {
+              <span class="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-1 rounded-lg shrink-0 min-w-[2.5rem] text-center">
+                {{ calcWaistSize() }}
+              </span>
+            }
             <div class="relative w-24 shrink-0">
               <input type="number"
                 [ngModel]="calcWaist()"
@@ -473,6 +483,11 @@
               </p>
               <p class="text-xs text-gray-400 leading-snug">Parte más ancha de las caderas</p>
             </div>
+            @if (calcHipSize()) {
+              <span class="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-1 rounded-lg shrink-0 min-w-[2.5rem] text-center">
+                {{ calcHipSize() }}
+              </span>
+            }
             <div class="relative w-24 shrink-0">
               <input type="number"
                 [ngModel]="calcHip()"
