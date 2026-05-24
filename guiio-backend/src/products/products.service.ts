@@ -106,7 +106,7 @@ Escribe una recomendación personalizada en español, máximo 3 oraciones cortas
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: 600 },
+        generationConfig: { maxOutputTokens: 1024, thinkingConfig: { thinkingBudget: 0 } },
       }),
     });
 
