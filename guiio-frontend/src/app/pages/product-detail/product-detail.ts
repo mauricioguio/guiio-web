@@ -11,23 +11,23 @@ import { ProductCard } from '../../components/product-card/product-card';
 
 type SizeChart = { max: number; size: string }[];
 
-// ── MUJER ──
+// ── MUJER ── (medidas reales del cuerpo de la cliente)
 const TOP_CHART_F: SizeChart = [
-  { max: 84,  size: 'XS' },
-  { max: 89,  size: 'S'  },
-  { max: 94,  size: 'M'  },
+  { max: 85,  size: 'XS' },
+  { max: 90,  size: 'S'  },
+  { max: 95,  size: 'M'  },
   { max: 100, size: 'L'  },
-  { max: 106, size: 'XL' },
-  { max: 113, size: 'XXL'},
+  { max: 105, size: 'XL' },
+  { max: 112, size: 'XXL'},
   { max: 9999,size: 'XXXL'},
 ];
 const WAIST_TOP_CHART_F: SizeChart = [
   { max: 72,  size: 'XS' },
-  { max: 77,  size: 'S'  },
-  { max: 82,  size: 'M'  },
-  { max: 88,  size: 'L'  },
-  { max: 94,  size: 'XL' },
-  { max: 101, size: 'XXL'},
+  { max: 78,  size: 'S'  },
+  { max: 84,  size: 'M'  },
+  { max: 91,  size: 'L'  },
+  { max: 100, size: 'XL' },
+  { max: 108, size: 'XXL'},
   { max: 9999,size: 'XXXL'},
 ];
 const BOTTOM_CHART_F: SizeChart = [
