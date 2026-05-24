@@ -99,7 +99,7 @@ ${chart}
 Escribe una recomendación personalizada en español, máximo 3 oraciones cortas. Menciona qué talla corresponde a cada medida ingresada. Si las medidas caen en tallas distintas, explica cuál elegir según preferencia de ajuste y menciona que el material cede un poco. Tono amigable. Sin asteriscos ni markdown.`;
 
     const apiKey = this.config.get<string>('GEMINI_API_KEY');
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     const res = await fetch(url, {
       method: 'POST',
