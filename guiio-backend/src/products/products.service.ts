@@ -1,18 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ProductsService {
-  private readonly genAI: GoogleGenerativeAI;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
-  ) {
-    this.genAI = new GoogleGenerativeAI(this.config.get('GEMINI_API_KEY') ?? '');
-  }
+  ) {}
+
 
   async findAll(onlyActive = true) {
     const list = await this.prisma.product.findMany({
@@ -102,14 +98,21 @@ ${chart}
 
 Escribe una recomendación personalizada en español, máximo 3 oraciones cortas. Menciona qué talla corresponde a cada medida ingresada. Si las medidas caen en tallas distintas, explica cuál elegir según preferencia de ajuste y menciona que el material cede un poco. Tono amigable. Sin asteriscos ni markdown.`;
 
-    try {
-      const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      const result = await model.generateContent(prompt);
-      const advice = result.response.text() ?? 'No se pudo generar una sugerencia en este momento.';
-      return { advice };
-    } catch (err) {
-      console.error('Gemini error:', err);
-      throw err;
-    }
+    const apiKey = this.config.get<string>('GEMINI_API_KEY');
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 220 },
+      }),
+    });
+
+    const json = await res.json() as any;
+    const advice: string = json?.candidates?.[0]?.content?.parts?.[0]?.text
+      ?? 'No se pudo generar una sugerencia en este momento.';
+    return { advice };
   }
 }
