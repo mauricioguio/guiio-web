@@ -111,9 +111,9 @@ Escribe una recomendación personalizada en español, máximo 3 oraciones cortas
     });
 
     const json = await res.json() as any;
-    console.log('Gemini response:', JSON.stringify(json).slice(0, 500));
     const advice: string = json?.candidates?.[0]?.content?.parts?.[0]?.text
-      ?? 'No se pudo generar una sugerencia en este momento.';
+      ?? json?.error?.message
+      ?? JSON.stringify(json).slice(0, 200);
     return { advice };
   }
 }
