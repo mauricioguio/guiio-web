@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ProductsService {
-  private readonly anthropic: Anthropic;
+  private readonly genAI: GoogleGenerativeAI;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
   ) {
-    this.anthropic = new Anthropic({ apiKey: this.config.get('ANTHROPIC_API_KEY') });
+    this.genAI = new GoogleGenerativeAI(this.config.get('GEMINI_API_KEY') ?? '');
   }
 
   async findAll(onlyActive = true) {
@@ -102,13 +102,9 @@ ${chart}
 
 Escribe una recomendación personalizada en español, máximo 3 oraciones cortas. Menciona qué talla corresponde a cada medida ingresada. Si las medidas caen en tallas distintas, explica cuál elegir según preferencia de ajuste y menciona que el material cede un poco. Tono amigable. Sin asteriscos ni markdown.`;
 
-    const message = await this.anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 220,
-      messages: [{ role: 'user', content: prompt }],
-    });
-
-    const advice = (message.content[0] as any).text ?? 'No se pudo generar una sugerencia en este momento.';
+    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const result = await model.generateContent(prompt);
+    const advice = result.response.text() ?? 'No se pudo generar una sugerencia en este momento.';
     return { advice };
   }
 }
