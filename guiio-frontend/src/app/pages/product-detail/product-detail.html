@@ -260,6 +260,39 @@
       </div>
     </div>
   </div>
+} @else if (loading()) {
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="h-4 w-48 bg-gray-200 rounded animate-pulse mb-8"></div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <div class="flex gap-3">
+        <div class="flex flex-col gap-2">
+          @for (_ of [1,2,3]; track $index) {
+            <div class="w-16 h-20 bg-gray-200 rounded animate-pulse"></div>
+          }
+        </div>
+        <div class="flex-1 aspect-[3/4] bg-gray-200 rounded animate-pulse"></div>
+      </div>
+      <div class="flex flex-col gap-4 pt-4">
+        <div class="h-3 w-24 bg-gray-200 rounded animate-pulse"></div>
+        <div class="h-8 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+        <div class="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
+        <div class="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+        <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+        <div class="h-4 w-4/6 bg-gray-200 rounded animate-pulse"></div>
+        <div class="flex gap-3 mt-4">
+          @for (_ of [1,2,3,4]; track $index) {
+            <div class="w-8 h-8 rounded-full bg-gray-200 animate-pulse"></div>
+          }
+        </div>
+        <div class="flex gap-2 mt-2">
+          @for (_ of [1,2,3,4,5]; track $index) {
+            <div class="w-12 h-12 rounded-lg bg-gray-200 animate-pulse"></div>
+          }
+        </div>
+        <div class="h-14 w-full bg-gray-200 rounded-xl animate-pulse mt-4"></div>
+      </div>
+    </div>
+  </div>
 } @else {
   <div class="max-w-7xl mx-auto px-4 py-20 text-center text-gray-400">
     <p>Producto no encontrado.</p>

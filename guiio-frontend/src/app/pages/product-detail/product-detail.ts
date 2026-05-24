@@ -122,6 +122,7 @@ export class ProductDetail {
 
   private readonly productId = toSignal(this.route.params.pipe(map(p => p['id'] as string)));
   protected readonly product = computed(() => this.productService.getById(this.productId() ?? '')());
+  protected readonly loading = this.productService.getLoading();
 
   protected readonly sameCollectionWithPhotos = computed(() => {
     const p = this.product();
