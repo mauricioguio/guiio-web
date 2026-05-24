@@ -102,9 +102,14 @@ ${chart}
 
 Escribe una recomendación personalizada en español, máximo 3 oraciones cortas. Menciona qué talla corresponde a cada medida ingresada. Si las medidas caen en tallas distintas, explica cuál elegir según preferencia de ajuste y menciona que el material cede un poco. Tono amigable. Sin asteriscos ni markdown.`;
 
-    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-    const result = await model.generateContent(prompt);
-    const advice = result.response.text() ?? 'No se pudo generar una sugerencia en este momento.';
-    return { advice };
+    try {
+      const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const result = await model.generateContent(prompt);
+      const advice = result.response.text() ?? 'No se pudo generar una sugerencia en este momento.';
+      return { advice };
+    } catch (err) {
+      console.error('Gemini error:', err);
+      throw err;
+    }
   }
 }
