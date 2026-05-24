@@ -74,7 +74,7 @@ export class Home {
       setTimeout(() => {
         indexSignal.update(i => { const t = getTotal(); return t > 1 ? (i + 1) % t : 0; });
         fadingSignal.set(false);
-      }, 400);
+      }, 350);
     };
 
     const id    = setInterval(() => fade(this.fading,    this.cycleIndex,    () => this.allProductImages().length), 5000);

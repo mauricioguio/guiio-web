@@ -152,6 +152,12 @@ export class ProductDetail {
   protected chatHistory    = signal<{ role: 'user' | 'model'; text: string }[]>([]);
   protected chatLoading    = signal(false);
   protected chatInputValue = '';
+  protected fitPreference  = signal<'ajustado' | 'normal' | 'suelto' | null>(null);
+  protected readonly fitOptions = [
+    { value: 'ajustado' as const, label: '😊 Ajustado' },
+    { value: 'normal'   as const, label: '👌 Normal'   },
+    { value: 'suelto'   as const, label: '😌 Suelto'   },
+  ];
 
   private get isMale() { return this.product()?.gender === 'hombre'; }
 
@@ -186,6 +192,7 @@ export class ProductDetail {
     this.calcWaist.set(null);
     this.chatHistory.set([]);
     this.chatInputValue = '';
+    this.fitPreference.set(null);
     this.showSizeCalc.set(true);
   }
 
@@ -197,6 +204,7 @@ export class ProductDetail {
       bust: this.calcBust(), waist: this.calcWaist(), hip: this.calcHip(),
       gender: p.gender, type: p.type, productName: p.name,
       topSizes: p.topSizes, bottomSizes: p.bottomSizes,
+      fitPreference: this.fitPreference(),
       history,
     }).subscribe({
       next: ({ advice }) => {

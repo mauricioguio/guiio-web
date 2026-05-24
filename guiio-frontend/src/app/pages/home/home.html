@@ -97,7 +97,7 @@
             <img [src]="cloudinaryUrl(colImg(col.name) || col.image, 800)" [alt]="col.name"
                  class="w-full h-full object-cover object-top"
                  [style.opacity]="colFading() ? '0' : '1'"
-                 style="transition: opacity 0.4s ease"
+                 style="transition: opacity 0.3s ease"
                  loading="lazy" />
           } @else {
             <div class="flex flex-col items-center justify-center gap-2 text-gray-300">
@@ -160,7 +160,7 @@
       <!-- Foto 2 — cicla entre todos los productos -->
       <div class="overflow-hidden h-[450px] md:h-[500px] lg:h-[680px]"
            [style.opacity]="fading() ? '0' : '1'"
-           style="transition: opacity 0.4s ease">
+           style="transition: opacity 0.3s ease">
         @if (cycleImg(0)) {
           <img [src]="cloudinaryUrl(cycleImg(0), 800)" alt="Guiio Uniformes"
                class="w-full h-full object-cover object-top" />
@@ -170,7 +170,7 @@
       <!-- Foto 3 — cicla entre todos los productos -->
       <div class="overflow-hidden h-[450px] md:h-[500px] lg:h-[680px]"
            [style.opacity]="fading() ? '0' : '1'"
-           style="transition: opacity 0.4s ease">
+           style="transition: opacity 0.3s ease">
         @if (cycleImg(1)) {
           <img [src]="cloudinaryUrl(cycleImg(1), 800)" alt="Guiio Uniformes"
                class="w-full h-full object-cover object-top" />

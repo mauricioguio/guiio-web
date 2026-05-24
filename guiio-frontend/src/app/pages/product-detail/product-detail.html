@@ -528,12 +528,32 @@
       @if (calcBust() || calcWaist() || calcHip()) {
         <div class="px-6 pb-2">
           @if (chatHistory().length === 0 && !chatLoading()) {
-            <button (click)="requestAiAdvice()"
-              class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:border-gray-900 hover:text-gray-900 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/>
-              </svg>
-              Sugerencia personalizada con IA
+            <div class="mb-3">
+              <p class="text-xs font-medium text-gray-600 mb-2">¿Cómo prefieres que te quede la ropa?</p>
+              <div class="flex gap-2">
+                @for (opt of fitOptions; track opt.value) {
+                  <button (click)="fitPreference.set(opt.value)"
+                    class="flex-1 py-2 rounded-xl border text-xs font-medium transition-all"
+                    [class.bg-gray-900]="fitPreference() === opt.value"
+                    [class.text-white]="fitPreference() === opt.value"
+                    [class.border-gray-900]="fitPreference() === opt.value"
+                    [class.text-gray-600]="fitPreference() !== opt.value"
+                    [class.border-gray-200]="fitPreference() !== opt.value">
+                    {{ opt.label }}
+                  </button>
+                }
+              </div>
+            </div>
+            <button (click)="requestAiAdvice()" [disabled]="!fitPreference()"
+              class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border text-sm font-medium transition-colors"
+              [class.border-gray-200]="!fitPreference()"
+              [class.text-gray-300]="!fitPreference()"
+              [class.cursor-not-allowed]="!fitPreference()"
+              [class.border-gray-900]="fitPreference()"
+              [class.text-gray-900]="fitPreference()"
+              [class.hover:bg-gray-900]="fitPreference()"
+              [class.hover:text-white]="fitPreference()">
+              Obtener sugerencia con IA
             </button>
           }
           @if (chatHistory().length > 0) {

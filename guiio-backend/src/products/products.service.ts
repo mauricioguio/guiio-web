@@ -60,6 +60,7 @@ export class ProductsService {
     bust?: number; waist?: number; hip?: number;
     gender: string; type: string; productName: string;
     topSizes: string[]; bottomSizes: string[];
+    fitPreference?: string;
     history?: { role: 'user' | 'model'; text: string }[];
   }): Promise<{ advice: string }> {
     const measurements: string[] = [];
@@ -86,7 +87,25 @@ XXL: Pecho 113+ | Cadera 113+`;
     if (dto.topSizes.length)    available.push(`Blusa: ${dto.topSizes.join(', ')}`);
     if (dto.bottomSizes.length) available.push(`Pantalón: ${dto.bottomSizes.join(', ')}`);
 
-    const prompt = `Eres una asistente de tallas para Guiio Uniformes, fabricantes de uniformes médicos en Colombia. Los uniformes son de material antifluido licrado que cede un poco con el uso.
+    const fitText = dto.fitPreference === 'ajustado'
+      ? 'El cliente prefiere ropa AJUSTADA al cuerpo.'
+      : dto.fitPreference === 'suelto'
+      ? 'El cliente prefiere ropa SUELTA/holgada.'
+      : 'El cliente prefiere un ajuste NORMAL/estándar.';
+
+    const prompt = `Eres una asistente experta en tallas de Guiio Uniformes, fabricantes de uniformes médicos en Colombia.
+
+CARACTERÍSTICAS DEL TEJIDO:
+- Material: antifluido licrado con 20-25% de elasticidad
+- El tejido cede aproximadamente 2-4 cm dependiendo de la zona
+- En zonas de movimiento (cintura, cadera) cede más; en el busto cede menos
+- Con el uso y lavado el tejido mantiene su forma gracias al licrado
+
+REGLA DE TALLA LÍMITE:
+- Si una medida supera por 1-2 cm el límite superior de una talla, puede quedarse en esa talla gracias al licrado (si prefiere ajustado) o subir de talla (si prefiere suelto)
+- Si una medida cae justo en el límite inferior de una talla, considerar la talla inferior si prefiere ajustado
+
+PREFERENCIA DEL CLIENTE: ${fitText}
 
 Producto: ${dto.productName} (${dto.gender})
 Tallas disponibles — ${available.join(' | ')}
@@ -97,7 +116,7 @@ ${measurements.join('\n')}
 Tabla de tallas (medidas reales del cuerpo en cm):
 ${chart}
 
-Escribe una recomendación personalizada en español, máximo 3 oraciones cortas. Menciona qué talla corresponde a cada medida ingresada. Si las medidas caen en tallas distintas, explica cuál elegir según preferencia de ajuste y menciona que el material cede un poco. Tono amigable. Sin asteriscos ni markdown.`;
+Escribe una recomendación personalizada en español, máximo 3-4 oraciones. Menciona la talla recomendada para cada prenda, explica brevemente el razonamiento considerando la preferencia de ajuste y las propiedades del tejido. Si las medidas caen en tallas distintas, explica cuál elegir. Tono amigable y directo. Sin asteriscos ni markdown.`;
 
     const apiKey = this.config.get<string>('GEMINI_API_KEY');
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
