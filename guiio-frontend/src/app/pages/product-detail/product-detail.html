@@ -402,11 +402,11 @@
 @if (showSizeCalc()) {
   <div class="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4"
        (click)="showSizeCalc.set(false)">
-    <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+    <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl flex flex-col max-h-[92vh]"
          (click)="$event.stopPropagation()">
 
       <!-- Header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
         <div>
           <p class="font-semibold text-gray-900">Calculadora de tallas</p>
           <p class="text-xs text-gray-500 mt-0.5">Ingresa tus medidas en centímetros</p>
@@ -418,6 +418,9 @@
           </svg>
         </button>
       </div>
+
+      <!-- Scrollable body -->
+      <div class="overflow-y-auto flex-1 min-h-0">
 
       <!-- Inputs -->
       <div class="px-6 py-4 space-y-3">
@@ -658,8 +661,10 @@
         </div>
       }
 
+      </div><!-- end scrollable body -->
+
       <!-- Footer -->
-      <div class="px-6 py-4 flex gap-3">
+      <div class="px-6 py-4 flex gap-3 shrink-0 border-t border-gray-100">
         <button (click)="showSizeCalc.set(false)"
           class="flex-1 py-3 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">
           Cancelar
