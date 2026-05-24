@@ -104,7 +104,7 @@ function findClosest(recommended: string, available: string[]): string | null {
   styleUrl: './product-detail.scss',
 })
 export class ProductDetail {
-  private readonly productService = inject(ProductService);
+  protected readonly productService = inject(ProductService);
   private readonly cartService = inject(CartService);
   private readonly route = inject(ActivatedRoute);
 
@@ -145,10 +145,12 @@ export class ProductDetail {
   protected readonly added = signal(false);
 
   // Size calculator
-  protected showSizeCalc = signal(false);
-  protected calcBust  = signal<number | null>(null);
-  protected calcHip   = signal<number | null>(null);
-  protected calcWaist = signal<number | null>(null);
+  protected showSizeCalc  = signal(false);
+  protected calcBust      = signal<number | null>(null);
+  protected calcHip       = signal<number | null>(null);
+  protected calcWaist     = signal<number | null>(null);
+  protected aiAdvice      = signal<string | null>(null);
+  protected aiLoading     = signal(false);
 
   private get isMale() { return this.product()?.gender === 'hombre'; }
 
@@ -181,7 +183,28 @@ export class ProductDetail {
     this.calcBust.set(null);
     this.calcHip.set(null);
     this.calcWaist.set(null);
+    this.aiAdvice.set(null);
     this.showSizeCalc.set(true);
+  }
+
+  requestAiAdvice() {
+    const p = this.product();
+    if (!p) return;
+    this.aiLoading.set(true);
+    this.aiAdvice.set(null);
+    this.productService.getSizeAdvice({
+      bust: this.calcBust(),
+      waist: this.calcWaist(),
+      hip: this.calcHip(),
+      gender: p.gender,
+      type: p.type,
+      productName: p.name,
+      topSizes: p.topSizes,
+      bottomSizes: p.bottomSizes,
+    }).subscribe({
+      next: ({ advice }) => { this.aiAdvice.set(advice); this.aiLoading.set(false); },
+      error: ()          => { this.aiAdvice.set('No se pudo obtener la sugerencia. Intenta de nuevo.'); this.aiLoading.set(false); },
+    });
   }
 
   applyCalcSizes() {

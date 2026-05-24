@@ -1,9 +1,18 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import Anthropic from '@anthropic-ai/sdk';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly anthropic: Anthropic;
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
+  ) {
+    this.anthropic = new Anthropic({ apiKey: this.config.get('ANTHROPIC_API_KEY') });
+  }
 
   async findAll(onlyActive = true) {
     const list = await this.prisma.product.findMany({
@@ -49,5 +58,57 @@ export class ProductsService {
   async remove(id: string) {
     await this.prisma.product.delete({ where: { id } });
     return { deleted: true };
+  }
+
+  async getSizeAdvice(dto: {
+    bust?: number; waist?: number; hip?: number;
+    gender: string; type: string; productName: string;
+    topSizes: string[]; bottomSizes: string[];
+  }): Promise<{ advice: string }> {
+    const measurements: string[] = [];
+    if (dto.bust)  measurements.push(`Busto: ${dto.bust} cm`);
+    if (dto.waist) measurements.push(`Cintura: ${dto.waist} cm`);
+    if (dto.hip)   measurements.push(`Cadera: ${dto.hip} cm`);
+
+    const womenChart = `XS: Busto 80-85 | Cintura 68-72 | Cadera 88-92
+S:  Busto 86-90 | Cintura 73-78 | Cadera 93-97
+M:  Busto 91-95 | Cintura 79-84 | Cadera 98-102
+L:  Busto 96-100 | Cintura 85-91 | Cadera 103-108
+XL: Busto 101-105 | Cintura 92-100 | Cadera 109-114
+XXL: Busto 106-112 | Cintura 101-108 | Cadera 115+`;
+
+    const menChart = `XS: Pecho ≤88 | Cadera ≤88
+S:  Pecho 89-94 | Cadera 89-94
+M:  Pecho 95-100 | Cadera 95-100
+L:  Pecho 101-106 | Cadera 101-106
+XL: Pecho 107-112 | Cadera 107-112
+XXL: Pecho 113+ | Cadera 113+`;
+
+    const chart = dto.gender === 'hombre' ? menChart : womenChart;
+    const available: string[] = [];
+    if (dto.topSizes.length)    available.push(`Blusa: ${dto.topSizes.join(', ')}`);
+    if (dto.bottomSizes.length) available.push(`Pantalón: ${dto.bottomSizes.join(', ')}`);
+
+    const prompt = `Eres una asistente de tallas para Guiio Uniformes, fabricantes de uniformes médicos en Colombia. Los uniformes son de material antifluido licrado que cede un poco con el uso.
+
+Producto: ${dto.productName} (${dto.gender})
+Tallas disponibles — ${available.join(' | ')}
+
+Medidas del cliente:
+${measurements.join('\n')}
+
+Tabla de tallas (medidas reales del cuerpo en cm):
+${chart}
+
+Escribe una recomendación personalizada en español, máximo 3 oraciones cortas. Menciona qué talla corresponde a cada medida ingresada. Si las medidas caen en tallas distintas, explica cuál elegir según preferencia de ajuste y menciona que el material cede un poco. Tono amigable. Sin asteriscos ni markdown.`;
+
+    const message = await this.anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 220,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const advice = (message.content[0] as any).text ?? 'No se pudo generar una sugerencia en este momento.';
+    return { advice };
   }
 }

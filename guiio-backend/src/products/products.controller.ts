@@ -22,6 +22,12 @@ export class ProductsController {
     private readonly config: ConfigService,
   ) {}
 
+  @Post('size-advice')
+  @HttpCode(200)
+  getSizeAdvice(@Body() dto: any) {
+    return this.productsService.getSizeAdvice(dto);
+  }
+
   @Get()
   findAll(@Req() req: any) {
     const isAdmin = req.headers['x-admin-key'] === this.config.get<string>('ADMIN_API_KEY');

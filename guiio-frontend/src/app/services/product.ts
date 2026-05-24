@@ -45,6 +45,14 @@ export class ProductService {
     return computed(() => [...new Set(this.products().map(p => p.collection))]);
   }
 
+  getSizeAdvice(dto: {
+    bust?: number | null; waist?: number | null; hip?: number | null;
+    gender: string; type: string; productName: string;
+    topSizes: string[]; bottomSizes: string[];
+  }) {
+    return this.http.post<{ advice: string }>(`${API_URL}/products/size-advice`, dto);
+  }
+
   getCollectionSpotlights() {
     return computed(() => {
       const seen = new Map<string, { name: string; description: string; image: string }>();
