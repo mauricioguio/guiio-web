@@ -205,7 +205,7 @@ export class ProductsService {
     topSizes: string[]; bottomSizes: string[];
     fitPreference?: string;
     history?: { role: 'user' | 'model'; text: string }[];
-  }): Promise<{ advice: string }> {
+  }): Promise<{ advice: string; isError?: boolean }> {
     const isMale  = dto.gender === 'hombre';
     const bustC   = isMale ? M_CHEST : W_BUST;
     const waistC  = isMale ? M_WAIST : W_WAIST;
