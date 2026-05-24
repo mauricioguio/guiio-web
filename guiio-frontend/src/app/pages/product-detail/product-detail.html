@@ -451,80 +451,42 @@
         <!-- Tabla de referencia -->
         <div class="bg-gray-50 rounded-xl p-4">
           <p class="text-xs font-medium text-gray-600 mb-3 uppercase tracking-wide">Tabla de referencia (cm)</p>
-          @if (product()?.type === 'top' || product()?.type === 'conjunto') {
-            @if (product()?.gender === 'hombre') {
-              <p class="text-xs text-gray-500 font-medium mb-1.5">Camisa</p>
-              <table class="w-full text-xs mb-1">
-                <thead><tr class="text-gray-400 border-b border-gray-200">
-                  <th class="font-medium pb-1 text-left">Talla</th>
-                  <th class="font-medium pb-1 text-center">Pecho</th>
-                </tr></thead>
-                <tbody>
-                  @for (row of [['XS','≤88'],['S','89–94'],['M','95–100'],['L','101–106'],['XL','107–112'],['XXL','113+']]; track $index) {
-                    <tr class="border-b border-gray-100 last:border-0">
-                      <td class="py-1 font-semibold text-gray-800">{{ row[0] }}</td>
-                      <td class="py-1 text-center text-gray-500">{{ row[1] }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-              <p class="text-[10px] text-gray-400 mb-3">Corte recto: se usa la medida mayor entre pecho y cintura.</p>
-            } @else {
-              <p class="text-xs text-gray-500 font-medium mb-1.5">Blusa</p>
-              <table class="w-full text-xs mb-3">
-                <thead><tr class="text-gray-400 border-b border-gray-200">
-                  <th class="font-medium pb-1 text-left">Talla</th>
-                  <th class="font-medium pb-1 text-center">Busto</th>
-                  <th class="font-medium pb-1 text-center">Cintura</th>
-                </tr></thead>
-                <tbody>
-                  @for (row of [['XS','≤87','≤79'],['S','88–95','80–87'],['M','96–103','88–95'],['L','104–111','96–103'],['XL','112–119','104–111'],['XXL','120+','112+']]; track $index) {
-                    <tr class="border-b border-gray-100 last:border-0">
-                      <td class="py-1 font-semibold text-gray-800">{{ row[0] }}</td>
-                      <td class="py-1 text-center text-gray-500">{{ row[1] }}</td>
-                      <td class="py-1 text-center text-gray-500">{{ row[2] }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            }
-          }
-          @if (product()?.type === 'bottom' || product()?.type === 'conjunto') {
-            @if (product()?.gender === 'hombre') {
-              <p class="text-xs text-gray-500 font-medium mb-1.5">Pantalón</p>
-              <table class="w-full text-xs">
-                <thead><tr class="text-gray-400 border-b border-gray-200">
-                  <th class="font-medium pb-1 text-left">Talla</th>
-                  <th class="font-medium pb-1 text-center">Cadera</th>
-                </tr></thead>
-                <tbody>
-                  @for (row of [['XS','≤88'],['S','89–94'],['M','95–100'],['L','101–106'],['XL','107–112'],['XXL','113+']]; track $index) {
-                    <tr class="border-b border-gray-100 last:border-0">
-                      <td class="py-1 font-semibold text-gray-800">{{ row[0] }}</td>
-                      <td class="py-1 text-center text-gray-500">{{ row[1] }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            } @else {
-              <p class="text-xs text-gray-500 font-medium mb-1.5">Pantalón</p>
-              <table class="w-full text-xs">
-                <thead><tr class="text-gray-400 border-b border-gray-200">
-                  <th class="font-medium pb-1 text-left">Talla</th>
-                  <th class="font-medium pb-1 text-center">Cadera</th>
-                  <th class="font-medium pb-1 text-center">Cintura</th>
-                </tr></thead>
-                <tbody>
-                  @for (row of [['XS','≤93','≤77'],['S','94–97','78–83'],['M','98–101','84–89'],['L','102–105','90–95'],['XL','106–109','96–101'],['XXL','110+','102+']]; track $index) {
-                    <tr class="border-b border-gray-100 last:border-0">
-                      <td class="py-1 font-semibold text-gray-800">{{ row[0] }}</td>
-                      <td class="py-1 text-center text-gray-500">{{ row[1] }}</td>
-                      <td class="py-1 text-center text-gray-500">{{ row[2] }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            }
+          @if (product()?.gender === 'hombre') {
+            <table class="w-full text-xs">
+              <thead><tr class="text-gray-400 border-b border-gray-200">
+                <th class="font-medium pb-1 text-left">Talla</th>
+                <th class="font-medium pb-1 text-center">Pecho</th>
+                <th class="font-medium pb-1 text-center">Cadera</th>
+              </tr></thead>
+              <tbody>
+                @for (row of [['XS','≤88','≤88'],['S','89–94','89–94'],['M','95–100','95–100'],['L','101–106','101–106'],['XL','107–112','107–112'],['XXL','113+','113+']]; track $index) {
+                  <tr class="border-b border-gray-100 last:border-0">
+                    <td class="py-1 font-semibold text-gray-800">{{ row[0] }}</td>
+                    <td class="py-1 text-center text-gray-500">{{ row[1] }}</td>
+                    <td class="py-1 text-center text-gray-500">{{ row[2] }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <table class="w-full text-xs">
+              <thead><tr class="text-gray-400 border-b border-gray-200">
+                <th class="font-medium pb-1 text-left">Talla</th>
+                <th class="font-medium pb-1 text-center">Busto</th>
+                <th class="font-medium pb-1 text-center">Cintura</th>
+                <th class="font-medium pb-1 text-center">Cadera</th>
+              </tr></thead>
+              <tbody>
+                @for (row of [['XS','≤87','≤79','≤93'],['S','88–95','80–87','94–97'],['M','96–103','88–95','98–101'],['L','104–111','96–103','102–105'],['XL','112–119','104–111','106–109'],['XXL','120+','112+','110+']]; track $index) {
+                  <tr class="border-b border-gray-100 last:border-0">
+                    <td class="py-1 font-semibold text-gray-800">{{ row[0] }}</td>
+                    <td class="py-1 text-center text-gray-500">{{ row[1] }}</td>
+                    <td class="py-1 text-center text-gray-500">{{ row[2] }}</td>
+                    <td class="py-1 text-center text-gray-500">{{ row[3] }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
           }
         </div>
       </div>
