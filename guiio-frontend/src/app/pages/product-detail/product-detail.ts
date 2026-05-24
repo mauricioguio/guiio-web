@@ -232,6 +232,24 @@ export class ProductDetail {
     this.callAdvice(newHistory);
   }
 
+  protected readonly contextTableRows = computed(() => {
+    const rec = this.calcTopResult() ?? this.calcBottomResult();
+    const isMale = this.product()?.gender === 'hombre';
+    const all: string[][] = isMale ? [
+      ['XS','≤88','≤88'],['S','89–94','89–94'],['M','95–100','95–100'],
+      ['L','101–106','101–106'],['XL','107–112','107–112'],['XXL','113+','113+'],
+    ] : [
+      ['XS','80–85','68–72','88–92'],['S','86–90','73–78','93–97'],['M','91–95','79–84','98–102'],
+      ['L','96–100','85–91','103–108'],['XL','101–105','92–100','109–114'],['XXL','106–112','101–108','115+'],
+    ];
+    if (!rec) return all;
+    const i = all.findIndex(r => r[0] === rec);
+    if (i === -1) return all;
+    return all.slice(Math.max(0, i - 1), Math.min(all.length, i + 2));
+  });
+
+  protected readonly highlightedSize = computed(() => this.calcTopResult() ?? this.calcBottomResult());
+
   applyCalcSizes() {
     const top = this.calcTopResult();
     const bot = this.calcBottomResult();

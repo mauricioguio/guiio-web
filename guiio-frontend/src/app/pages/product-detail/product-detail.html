@@ -420,107 +420,126 @@
       </div>
 
       <!-- Inputs -->
-      <div class="px-6 py-5 space-y-4">
+      <div class="px-6 py-4 space-y-3">
 
         @if (product()?.type === 'top' || product()?.type === 'conjunto') {
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">
-              {{ product()?.gender === 'hombre' ? 'Contorno de pecho' : 'Contorno de busto' }}
-              <span class="text-gray-400 font-normal">(cm)</span>
-            </label>
-            <div class="relative">
-              <input
-                type="number"
+          <div class="flex items-center gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-700">
+                {{ product()?.gender === 'hombre' ? 'Contorno de pecho' : 'Contorno de busto' }}
+                <span class="text-gray-400 font-normal text-xs">(cm)</span>
+              </p>
+              <p class="text-xs text-gray-400 leading-snug">Parte más ancha del {{ product()?.gender === 'hombre' ? 'pecho' : 'busto' }}</p>
+            </div>
+            <div class="relative w-24 shrink-0">
+              <input type="number"
                 [ngModel]="calcBust()"
                 (ngModelChange)="calcBust.set($event ? +$event : null)"
-                [placeholder]="product()?.gender === 'hombre' ? 'Ej: 98' : 'Ej: 90'"
+                [placeholder]="product()?.gender === 'hombre' ? '98' : '90'"
                 min="60" max="160"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 transition-colors">
+                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 transition-colors pr-8">
               <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">cm</span>
             </div>
-            <p class="text-xs text-gray-400 mt-1">Mide alrededor de la parte más ancha del pecho</p>
           </div>
         }
 
         @if (product()?.type === 'bottom' || product()?.type === 'conjunto' || (product()?.type === 'top' && product()?.gender !== 'hombre')) {
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">
-              Contorno de cintura
-              <span class="text-gray-400 font-normal">(cm)</span>
-            </label>
-            <div class="relative">
-              <input
-                type="number"
+          <div class="flex items-center gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-700">
+                Contorno de cintura
+                <span class="text-gray-400 font-normal text-xs">(cm)</span>
+              </p>
+              <p class="text-xs text-gray-400 leading-snug">Parte más estrecha de la cintura</p>
+            </div>
+            <div class="relative w-24 shrink-0">
+              <input type="number"
                 [ngModel]="calcWaist()"
                 (ngModelChange)="calcWaist.set($event ? +$event : null)"
-                placeholder="Ej: 78"
+                placeholder="78"
                 min="50" max="160"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 transition-colors">
+                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 transition-colors pr-8">
               <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">cm</span>
             </div>
-            <p class="text-xs text-gray-400 mt-1">Mide alrededor de la parte más estrecha de tu cintura</p>
           </div>
         }
+
         @if (product()?.type === 'bottom' || product()?.type === 'conjunto') {
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">
-              Contorno de cadera
-              <span class="text-gray-400 font-normal">(cm)</span>
-            </label>
-            <div class="relative">
-              <input
-                type="number"
+          <div class="flex items-center gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-700">
+                Contorno de cadera
+                <span class="text-gray-400 font-normal text-xs">(cm)</span>
+              </p>
+              <p class="text-xs text-gray-400 leading-snug">Parte más ancha de las caderas</p>
+            </div>
+            <div class="relative w-24 shrink-0">
+              <input type="number"
                 [ngModel]="calcHip()"
                 (ngModelChange)="calcHip.set($event ? +$event : null)"
-                placeholder="Ej: 98"
+                placeholder="98"
                 min="60" max="160"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 transition-colors">
+                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 transition-colors pr-8">
               <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">cm</span>
             </div>
-            <p class="text-xs text-gray-400 mt-1">Mide alrededor de la parte más ancha de las caderas</p>
           </div>
         }
 
         <!-- Tabla de referencia -->
-        <div class="bg-gray-50 rounded-xl p-4">
-          <p class="text-xs font-medium text-gray-600 mb-3 uppercase tracking-wide">Tabla de referencia (cm)</p>
-          @if (product()?.gender === 'hombre') {
-            <table class="w-full text-xs">
-              <thead><tr class="text-gray-400 border-b border-gray-200">
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+            Tabla de referencia (cm)
+            @if (highlightedSize()) {
+              <span class="normal-case tracking-normal text-blue-600 ml-1">— talla {{ highlightedSize() }} resaltada</span>
+            }
+          </p>
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="text-gray-400 border-b border-gray-200">
                 <th class="font-medium pb-1 text-left">Talla</th>
-                <th class="font-medium pb-1 text-center">Pecho</th>
-                <th class="font-medium pb-1 text-center">Cadera</th>
-              </tr></thead>
-              <tbody>
-                @for (row of [['XS','≤88','≤88'],['S','89–94','89–94'],['M','95–100','95–100'],['L','101–106','101–106'],['XL','107–112','107–112'],['XXL','113+','113+']]; track $index) {
-                  <tr class="border-b border-gray-100 last:border-0">
-                    <td class="py-1 font-semibold text-gray-800">{{ row[0] }}</td>
-                    <td class="py-1 text-center text-gray-500">{{ row[1] }}</td>
-                    <td class="py-1 text-center text-gray-500">{{ row[2] }}</td>
-                  </tr>
+                @if (product()?.gender !== 'hombre') {
+                  <th class="font-medium pb-1 text-center">Busto</th>
+                  <th class="font-medium pb-1 text-center">Cintura</th>
+                  <th class="font-medium pb-1 text-center">Cadera</th>
+                } @else {
+                  <th class="font-medium pb-1 text-center">Pecho</th>
+                  <th class="font-medium pb-1 text-center">Cadera</th>
                 }
-              </tbody>
-            </table>
-          } @else {
-            <table class="w-full text-xs">
-              <thead><tr class="text-gray-400 border-b border-gray-200">
-                <th class="font-medium pb-1 text-left">Talla</th>
-                <th class="font-medium pb-1 text-center">Busto</th>
-                <th class="font-medium pb-1 text-center">Cintura</th>
-                <th class="font-medium pb-1 text-center">Cadera</th>
-              </tr></thead>
-              <tbody>
-                @for (row of [['XS','80–85','68–72','88–92'],['S','86–90','73–78','93–97'],['M','91–95','79–84','98–102'],['L','96–100','85–91','103–108'],['XL','101–105','92–100','109–114'],['XXL','106–112','101–108','115+']]; track $index) {
-                  <tr class="border-b border-gray-100 last:border-0">
-                    <td class="py-1 font-semibold text-gray-800">{{ row[0] }}</td>
-                    <td class="py-1 text-center text-gray-500">{{ row[1] }}</td>
-                    <td class="py-1 text-center text-gray-500">{{ row[2] }}</td>
-                    <td class="py-1 text-center text-gray-500">{{ row[3] }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of contextTableRows(); track row[0]) {
+                <tr class="border-b border-gray-100 last:border-0 transition-colors"
+                    [class.bg-blue-50]="row[0] === highlightedSize()"
+                    [class.-mx-3]="row[0] === highlightedSize()">
+                  <td class="py-1.5 pl-1 rounded-l"
+                      [class.font-bold]="row[0] === highlightedSize()"
+                      [class.text-blue-700]="row[0] === highlightedSize()"
+                      [class.font-semibold]="row[0] !== highlightedSize()"
+                      [class.text-gray-800]="row[0] !== highlightedSize()">
+                    {{ row[0] }}
+                    @if (row[0] === highlightedSize()) {
+                      <span class="text-blue-500 ml-1">★</span>
+                    }
+                  </td>
+                  <td class="py-1.5 text-center rounded"
+                      [class.text-blue-700]="row[0] === highlightedSize()"
+                      [class.font-medium]="row[0] === highlightedSize()"
+                      [class.text-gray-500]="row[0] !== highlightedSize()">{{ row[1] }}</td>
+                  <td class="py-1.5 text-center rounded"
+                      [class.text-blue-700]="row[0] === highlightedSize()"
+                      [class.font-medium]="row[0] === highlightedSize()"
+                      [class.text-gray-500]="row[0] !== highlightedSize()">{{ row[2] }}</td>
+                  @if (product()?.gender !== 'hombre') {
+                    <td class="py-1.5 text-center pr-1 rounded-r"
+                        [class.text-blue-700]="row[0] === highlightedSize()"
+                        [class.font-medium]="row[0] === highlightedSize()"
+                        [class.text-gray-500]="row[0] !== highlightedSize()">{{ row[3] }}</td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
       </div>
 
