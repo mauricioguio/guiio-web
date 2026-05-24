@@ -22,12 +22,12 @@ const TOP_CHART_F: SizeChart = [
   { max: 9999,size: 'XXXL'},
 ];
 const WAIST_TOP_CHART_F: SizeChart = [
-  { max: 66,  size: 'XS' },
-  { max: 71,  size: 'S'  },
-  { max: 76,  size: 'M'  },
-  { max: 82,  size: 'L'  },
-  { max: 88,  size: 'XL' },
-  { max: 95,  size: 'XXL'},
+  { max: 72,  size: 'XS' },
+  { max: 77,  size: 'S'  },
+  { max: 82,  size: 'M'  },
+  { max: 88,  size: 'L'  },
+  { max: 94,  size: 'XL' },
+  { max: 101, size: 'XXL'},
   { max: 9999,size: 'XXXL'},
 ];
 const BOTTOM_CHART_F: SizeChart = [
