@@ -12,24 +12,24 @@ import { ProductCard } from '../../components/product-card/product-card';
 type SizeChart = { max: number; size: string }[];
 
 // ── MUJER ──
-// Blusa: intervalos de 8cm entre tallas
+// Blusa: intervalos de 4cm entre tallas
 const TOP_CHART_F: SizeChart = [
   { max: 87,  size: 'XS' },
-  { max: 95,  size: 'S'  },
-  { max: 103, size: 'M'  },
-  { max: 111, size: 'L'  },
-  { max: 119, size: 'XL' },
-  { max: 127, size: 'XXL'},
+  { max: 92,  size: 'S'  },
+  { max: 97,  size: 'M'  },
+  { max: 102, size: 'L'  },
+  { max: 107, size: 'XL' },
+  { max: 112, size: 'XXL'},
   { max: 9999,size: 'XXXL'},
 ];
-// Cintura blusa: pecho - 8cm (corte semi-entallado)
+// Cintura blusa: busto - 8cm (corte semi-entallado), intervalos de 4cm
 const WAIST_TOP_CHART_F: SizeChart = [
   { max: 79,  size: 'XS' },
-  { max: 87,  size: 'S'  },
-  { max: 95,  size: 'M'  },
-  { max: 103, size: 'L'  },
-  { max: 111, size: 'XL' },
-  { max: 119, size: 'XXL'},
+  { max: 84,  size: 'S'  },
+  { max: 89,  size: 'M'  },
+  { max: 94,  size: 'L'  },
+  { max: 99,  size: 'XL' },
+  { max: 104, size: 'XXL'},
   { max: 9999,size: 'XXXL'},
 ];
 // Cintura pantalón: intervalos de 5cm
