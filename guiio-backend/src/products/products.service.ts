@@ -17,10 +17,17 @@ function sizeOf(cm: number, chart: CR[]): string {
   return chart.find(r => cm <= r.max)?.size ?? chart[chart.length - 1].size;
 }
 
-/** cm remaining to the upper limit of the matching size (0 = exactly at limit, negative = over) */
+/** cm remaining to the upper limit of the matching size (0 = at limit, negative = over) */
 function dToMax(cm: number, chart: CR[]): number {
   const e = chart.find(r => cm <= r.max);
   return e ? e.max - cm : -(cm - chart[chart.length - 1].max);
+}
+
+/** how many cm above the PREVIOUS size's upper limit (= how far into current size from below) */
+function dFromPrevMax(cm: number, chart: CR[]): number {
+  const i = chart.findIndex(r => cm <= r.max);
+  if (i <= 0) return 999; // at XS, no smaller size exists
+  return cm - chart[i - 1].max;
 }
 
 function sIdx(s: string): number { return S_ORDER.indexOf(s.toUpperCase()); }
@@ -54,32 +61,45 @@ function computeTopRec(
   const baseSize = bSize && wSize ? larger(bSize, wSize) : (bSize ?? wSize!);
   const baseIdx  = sIdx(baseSize);
 
-  // smallest remaining margin across all measurements (most constrained)
-  const margins: number[] = [];
-  if (bust  && bust  > 50) margins.push(dToMax(bust,  bustC));
-  if (waist && waist > 50) margins.push(dToMax(waist, waistC));
-  const minMargin = Math.min(...margins);
+  // distance to upper limit (most constrained measurement)
+  const upMargins: number[] = [];
+  if (bust  && bust  > 50) upMargins.push(dToMax(bust,  bustC));
+  if (waist && waist > 50) upMargins.push(dToMax(waist, waistC));
+  const minUp = Math.min(...upMargins);
+
+  // distance from previous size's upper limit (how far into current size from below)
+  const downMargins: number[] = [];
+  if (bust  && bust  > 50) downMargins.push(dFromPrevMax(bust,  bustC));
+  if (waist && waist > 50) downMargins.push(dFromPrevMax(waist, waistC));
+  const minDown = Math.min(...downMargins);
 
   let finalSize = baseSize;
   let note      = '';
 
-  if (pref === 'suelto' && minMargin >= 0 && minMargin <= 3) {
+  if (minUp < 0) {
+    // Over chart max → must go up
+    const next = S_ORDER[Math.min(baseIdx + 1, S_ORDER.length - 1)];
+    finalSize = next;
+    note = `medida ${Math.abs(minUp)} cm por encima del tope de ${baseSize}; se recomienda ${next}`;
+  } else if (pref === 'suelto' && minUp <= 2) {
+    // Near upper limit + suelto → upsize for room
     const next = S_ORDER[Math.min(baseIdx + 1, S_ORDER.length - 1)];
     if (next !== baseSize) {
       finalSize = next;
-      note = `medida a solo ${minMargin} cm del tope de ${baseSize}; con preferencia suelta se sube a ${next} para mayor comodidad`;
+      note = `medida a ${minUp} cm del tope de ${baseSize}; preferencia suelta → ${next} para mayor holgura`;
     } else {
       note = `talla ${baseSize} según tabla`;
     }
-  } else if (pref === 'ajustado' && minMargin >= 0 && minMargin <= 3) {
-    note = `medida a ${minMargin} cm del tope de ${baseSize}; con preferencia ajustada el licrado absorbe esos centímetros y queda ceñido sin necesidad de subir talla`;
-  } else if (minMargin < 0) {
-    // measurement slightly over the chart max — recommend next size
-    const next = S_ORDER[Math.min(baseIdx + 1, S_ORDER.length - 1)];
-    finalSize = next;
-    note = `medida ${Math.abs(minMargin)} cm por encima del tope de ${baseSize}, se recomienda ${next}`;
+  } else if (pref === 'ajustado' && minUp <= 2) {
+    // Near upper limit + ajustado → stay, fabric absorbs
+    note = `medida a ${minUp} cm del tope de ${baseSize}; el licrado absorbe la diferencia quedando ceñido en ${baseSize}`;
+  } else if (pref === 'ajustado' && minDown <= 3 && baseIdx > 0) {
+    // Near lower limit + ajustado → downsize, fabric in smaller size stretches to fit snugly
+    const prev = S_ORDER[baseIdx - 1];
+    finalSize = prev;
+    note = `medida ${minDown} cm sobre el tope de ${prev}; con preferencia ajustada el licrado estira para un ajuste ceñido en ${prev}`;
   } else {
-    note = `medida corresponde cómodamente a ${baseSize} según la tabla`;
+    note = `medida corresponde a ${baseSize} según la tabla`;
   }
 
   const avail = closest(finalSize, available);
@@ -93,25 +113,30 @@ function computeBottomRec(
   if (!hip || hip <= 50) return null;
   const baseSize = sizeOf(hip, hipC);
   const baseIdx  = sIdx(baseSize);
-  const margin   = dToMax(hip, hipC);
+  const minUp    = dToMax(hip, hipC);
+  const minDown  = dFromPrevMax(hip, hipC);
 
   let finalSize = baseSize;
   let note      = '';
 
-  if (pref === 'suelto' && margin >= 0 && margin <= 3) {
+  if (minUp < 0) {
+    const next = S_ORDER[Math.min(baseIdx + 1, S_ORDER.length - 1)];
+    finalSize = next;
+    note = `cadera ${Math.abs(minUp)} cm sobre el tope de ${baseSize}; se recomienda ${next}`;
+  } else if (pref === 'suelto' && minUp <= 2) {
     const next = S_ORDER[Math.min(baseIdx + 1, S_ORDER.length - 1)];
     if (next !== baseSize) {
       finalSize = next;
-      note = `cadera a ${margin} cm del tope de ${baseSize}; con preferencia suelta se sube a ${next}`;
+      note = `cadera a ${minUp} cm del tope de ${baseSize}; preferencia suelta → ${next}`;
     } else {
       note = `talla ${baseSize} según tabla`;
     }
-  } else if (pref === 'ajustado' && margin >= 0 && margin <= 3) {
-    note = `cadera a ${margin} cm del tope de ${baseSize}; el licrado absorbe la diferencia quedando ajustado`;
-  } else if (margin < 0) {
-    const next = S_ORDER[Math.min(baseIdx + 1, S_ORDER.length - 1)];
-    finalSize = next;
-    note = `cadera ${Math.abs(margin)} cm por encima del tope de ${baseSize}, se recomienda ${next}`;
+  } else if (pref === 'ajustado' && minUp <= 2) {
+    note = `cadera a ${minUp} cm del tope de ${baseSize}; el licrado absorbe la diferencia, queda ceñido en ${baseSize}`;
+  } else if (pref === 'ajustado' && minDown <= 3 && baseIdx > 0) {
+    const prev = S_ORDER[baseIdx - 1];
+    finalSize = prev;
+    note = `cadera ${minDown} cm sobre el tope de ${prev}; el licrado estira para ajuste ceñido en ${prev}`;
   } else {
     note = `cadera corresponde a ${baseSize} según tabla`;
   }
