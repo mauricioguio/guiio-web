@@ -12,25 +12,38 @@ export class PaymentService {
     return this.http.get<{ status: string }>(`${this.apiUrl}/payments/status/${wompiId}`);
   }
 
+  private buildItems() {
+    return this.cart.cartItems().map(item => ({
+      id:         item.product.id,
+      name:       item.product.name,
+      price:      item.product.price,
+      quantity:   item.quantity,
+      image:      item.product.images[0],
+      topSize:    item.selectedTopSize,
+      bottomSize: item.selectedBottomSize,
+      color:      item.selectedColor?.name ?? '',
+    }));
+  }
+
   createPreference(customer: {
     name: string; email: string; phone: string;
     address: string; reference?: string | null;
     city: string; notes?: string | null;
   }) {
-    const items = this.cart.cartItems().map(item => ({
-      id: item.product.id,
-      name: item.product.name,
-      price: item.product.price,
-      quantity: item.quantity,
-      image: item.product.images[0],
-      topSize: item.selectedTopSize,
-      bottomSize: item.selectedBottomSize,
-      color: item.selectedColor?.name ?? '',
-    }));
-
     return this.http.post<{ checkoutUrl: string; reference: string; total: number }>(
       `${this.apiUrl}/payments/checkout`,
-      { items, shipping: this.cart.shipping(), discount: this.cart.discount(), customer },
+      { items: this.buildItems(), shipping: this.cart.shipping(), discount: this.cart.discount(), customer },
+    );
+  }
+
+  createAddiCheckout(customer: {
+    name: string; email: string; phone: string;
+    address: string; city: string; docNumber: string;
+    reference?: string | null; notes?: string | null;
+  }) {
+    return this.http.post<{ checkoutUrl: string; reference: string; total: number }>(
+      `${this.apiUrl}/addi/checkout`,
+      { items: this.buildItems(), shipping: this.cart.shipping(), discount: this.cart.discount(), customer },
     );
   }
 }

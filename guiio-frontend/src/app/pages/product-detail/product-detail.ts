@@ -13,6 +13,7 @@ type SizeChart = { max: number; size: string }[];
 
 // ── MUJER ── (medidas reales del cuerpo de la cliente)
 const TOP_CHART_F: SizeChart = [
+  { max: 79,  size: 'XXS'},
   { max: 85,  size: 'XS' },
   { max: 90,  size: 'S'  },
   { max: 95,  size: 'M'  },
@@ -22,6 +23,7 @@ const TOP_CHART_F: SizeChart = [
   { max: 9999,size: 'XXXL'},
 ];
 const WAIST_TOP_CHART_F: SizeChart = [
+  { max: 67,  size: 'XXS'},
   { max: 72,  size: 'XS' },
   { max: 78,  size: 'S'  },
   { max: 84,  size: 'M'  },
@@ -31,12 +33,13 @@ const WAIST_TOP_CHART_F: SizeChart = [
   { max: 9999,size: 'XXXL'},
 ];
 const BOTTOM_CHART_F: SizeChart = [
-  { max: 92,  size: 'XS' },
-  { max: 97,  size: 'S'  },
-  { max: 102, size: 'M'  },
-  { max: 108, size: 'L'  },
-  { max: 114, size: 'XL' },
-  { max: 121, size: 'XXL'},
+  { max: 89,  size: 'XXS'},
+  { max: 94,  size: 'XS' },
+  { max: 99,  size: 'S'  },
+  { max: 104, size: 'M'  },
+  { max: 110, size: 'L'  },
+  { max: 116, size: 'XL' },
+  { max: 123, size: 'XXL'},
   { max: 9999,size: 'XXXL'},
 ];
 
@@ -69,7 +72,7 @@ const BOTTOM_CHART_M: SizeChart = [
   { max: 9999,size: 'XXXL'},
 ];
 
-const SIZE_ORDER = ['XS','S','M','L','XL','XXL','XXXL'];
+const SIZE_ORDER = ['XXS','XS','S','M','L','XL','XXL','XXXL'];
 
 function largerSize(a: string, b: string): string {
   return SIZE_ORDER.indexOf(a.toUpperCase()) >= SIZE_ORDER.indexOf(b.toUpperCase()) ? a : b;
@@ -317,8 +320,8 @@ export class ProductDetail {
       ['XS','≤88','≤88'],['S','89–94','89–94'],['M','95–100','95–100'],
       ['L','101–106','101–106'],['XL','107–112','107–112'],['XXL','113+','113+'],
     ] : [
-      ['XS','80–85','68–72','88–92'],['S','86–90','73–78','93–97'],['M','91–95','79–84','98–102'],
-      ['L','96–100','85–91','103–108'],['XL','101–105','92–100','109–114'],['XXL','106–112','101–108','115+'],
+      ['XXS','75–79','63–67','85–89'],['XS','80–85','68–72','90–94'],['S','86–90','73–78','95–99'],['M','91–95','79–84','100–104'],
+      ['L','96–100','85–91','105–110'],['XL','101–105','92–100','111–116'],['XXL','106–112','101–108','117+'],
     ];
     if (!rec) return all;
     const i = all.findIndex(r => r[0] === rec);

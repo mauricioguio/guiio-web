@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
@@ -19,16 +19,29 @@ export class Checkout {
 
   protected readonly loading = signal(false);
   protected readonly error = signal(false);
+  protected readonly paymentMethod = signal<'wompi' | 'addi'>('wompi');
 
   protected readonly form = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(3)]],
-    email: ['', [Validators.required, Validators.email]],
-    phone: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
-    address: ['', [Validators.required, Validators.minLength(5)]],
+    name:      ['', [Validators.required, Validators.minLength(3)]],
+    email:     ['', [Validators.required, Validators.email]],
+    phone:     ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
+    docNumber: [''],
+    address:   ['', [Validators.required, Validators.minLength(5)]],
     reference: [''],
-    city: ['', Validators.required],
-    notes: [''],
+    city:      ['', Validators.required],
+    notes:     [''],
   });
+
+  selectMethod(method: 'wompi' | 'addi') {
+    this.paymentMethod.set(method);
+    const ctrl = this.form.get('docNumber')!;
+    if (method === 'addi') {
+      ctrl.setValidators([Validators.required, Validators.pattern(/^[0-9]{6,12}$/)]);
+    } else {
+      ctrl.clearValidators();
+    }
+    ctrl.updateValueAndValidity();
+  }
 
   submit() {
     if (this.form.invalid) {
@@ -40,25 +53,35 @@ export class Checkout {
     this.error.set(false);
 
     const v = this.form.getRawValue();
-    const customer = {
-      name: v.name!,
-      email: v.email!,
-      phone: v.phone!,
-      address: v.address!,
-      reference: v.reference,
-      city: v.city!,
-      notes: v.notes,
-    };
 
-    this.paymentService.createPreference(customer).subscribe({
-      next: ({ checkoutUrl }) => {
-        window.location.href = checkoutUrl;
-      },
-      error: () => {
-        this.loading.set(false);
-        this.error.set(true);
-      },
-    });
+    if (this.paymentMethod() === 'addi') {
+      this.paymentService.createAddiCheckout({
+        name:      v.name!,
+        email:     v.email!,
+        phone:     v.phone!,
+        address:   v.address!,
+        city:      v.city!,
+        docNumber: v.docNumber!,
+        reference: v.reference,
+        notes:     v.notes,
+      }).subscribe({
+        next: ({ checkoutUrl }) => { window.location.href = checkoutUrl; },
+        error: () => { this.loading.set(false); this.error.set(true); },
+      });
+    } else {
+      this.paymentService.createPreference({
+        name:      v.name!,
+        email:     v.email!,
+        phone:     v.phone!,
+        address:   v.address!,
+        reference: v.reference,
+        city:      v.city!,
+        notes:     v.notes,
+      }).subscribe({
+        next: ({ checkoutUrl }) => { window.location.href = checkoutUrl; },
+        error: () => { this.loading.set(false); this.error.set(true); },
+      });
+    }
   }
 
   isInvalid(field: string) {

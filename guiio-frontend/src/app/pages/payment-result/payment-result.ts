@@ -20,7 +20,21 @@ export class PaymentResult implements OnInit {
   private readonly paymentService = inject(PaymentService);
 
   ngOnInit() {
-    const wompiId = this.route.snapshot.queryParamMap.get('id');
+    const params = this.route.snapshot.queryParamMap;
+
+    // ADDI redirect
+    const addi = params.get('addi');
+    if (addi) {
+      if (addi === 'approved') {
+        this.router.navigate(['/pago/exitoso']);
+      } else {
+        this.router.navigate(['/pago/fallido']);
+      }
+      return;
+    }
+
+    // Wompi redirect
+    const wompiId = params.get('id');
     if (!wompiId) {
       this.router.navigate(['/pago/fallido']);
       return;

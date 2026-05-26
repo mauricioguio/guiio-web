@@ -158,8 +158,9 @@ model Order {
   address    String
   city       String
   notes      String?
-  wompiTxId  String?
-  createdAt  DateTime    @default(now())
+  wompiTxId       String?
+  paymentProvider String?  @default("wompi")
+  createdAt       DateTime @default(now())
   updatedAt  DateTime    @updatedAt
 
   customerId String

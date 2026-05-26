@@ -9,11 +9,13 @@ import { InventoryModule } from './inventory/inventory.module';
 import { SellerModule } from './seller/seller.module';
 import { HeroModule } from './hero/hero.module';
 import { HomeSectionsModule } from './home-sections/home-sections.module';
+import { AddiModule } from './addi/addi.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PaymentsModule,
+    AddiModule,
     OrdersModule,
     ProductsModule,
     CollectionsModule,
