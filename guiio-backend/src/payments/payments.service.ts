@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { createHash, randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePreferenceDto } from './dto/create-preference.dto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class PaymentsService {
@@ -14,6 +15,7 @@ export class PaymentsService {
   constructor(
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly email: EmailService,
   ) {
     this.publicKey = this.config.get<string>('WOMPI_PUBLIC_KEY')!;
     this.integritySecret = this.config.get<string>('WOMPI_INTEGRITY_SECRET')!;
@@ -113,6 +115,28 @@ export class PaymentsService {
           where: { reference },
           data: { status: orderStatus as any, wompiTxId },
         });
+
+        if (orderStatus === 'PAID') {
+          const order = await this.prisma.order.findUnique({
+            where: { reference },
+            include: { customer: true, items: true },
+          });
+          if (order) {
+            await this.email.sendOrderConfirmation({
+              reference: order.reference,
+              customerName: order.customer.name,
+              customerEmail: order.customer.email,
+              customerPhone: order.customer.phone,
+              address: order.address,
+              city: order.city,
+              notes: order.notes,
+              total: order.total,
+              shipping: order.shipping,
+              discount: order.discount,
+              items: order.items,
+            });
+          }
+        }
       }
     } catch (err) {
       this.logger.error('Webhook error:', err);
