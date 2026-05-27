@@ -23,24 +23,32 @@ export class AddiService {
   }
 
   private async getToken(): Promise<string> {
-    const res = await fetch('https://addi.us.auth0.com/oauth/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        grant_type:    'client_credentials',
-        client_id:     this.clientId,
-        client_secret: this.clientSecret,
-        audience:      this.apiUrl,
-      }),
-    });
+    // Try known ADDI Auth0 audience values
+    const audiences = [
+      'https://addi.com.co/',
+      'https://api.addi.com/',
+      'https://addi.com/',
+    ];
 
-    if (!res.ok) {
+    for (const audience of audiences) {
+      const res = await fetch('https://addi.us.auth0.com/oauth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          grant_type:    'client_credentials',
+          client_id:     this.clientId,
+          client_secret: this.clientSecret,
+          audience,
+        }),
+      });
       const text = await res.text();
-      throw new Error(`ADDI token error: ${res.status} ${text}`);
+      this.logger.log(`ADDI auth0 audience "${audience}" → ${res.status}: ${text.slice(0, 80)}`);
+      if (res.ok) {
+        return (JSON.parse(text)).access_token as string;
+      }
     }
 
-    const data = await res.json() as any;
-    return data.access_token as string;
+    throw new Error('ADDI token: no valid audience found');
   }
 
   async createCheckout(dto: CreateAddiCheckoutDto) {
