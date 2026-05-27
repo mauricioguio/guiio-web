@@ -11,6 +11,7 @@ import { HeroModule } from './hero/hero.module';
 import { HomeSectionsModule } from './home-sections/home-sections.module';
 import { AddiModule } from './addi/addi.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { TrackingModule } from './tracking/tracking.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
     HeroModule,
     HomeSectionsModule,
     AnalyticsModule,
+    TrackingModule,
   ],
 })
 export class AppModule {}

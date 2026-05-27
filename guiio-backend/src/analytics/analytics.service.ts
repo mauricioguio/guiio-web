@@ -11,7 +11,7 @@ export class AnalyticsService {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const [ordersToday, paidAll, paidMonth, totalCustomers, pendingOrders, recentPaidOrders, topProducts] =
+    const [ordersToday, paidAll, paidMonth, totalCustomers, pendingOrders, recentPaidOrders, topProducts, rawHourly] =
       await Promise.all([
         this.prisma.order.count({ where: { createdAt: { gte: startOfToday } } }),
 
@@ -46,6 +46,15 @@ export class AnalyticsService {
           ORDER  BY revenue DESC
           LIMIT  5
         `,
+
+        this.prisma.$queryRaw<{ hour: number; count: number }[]>`
+          SELECT EXTRACT(HOUR FROM "createdAt")::int AS hour,
+                 COUNT(*)::int                       AS count
+          FROM   "PageView"
+          WHERE  "createdAt" >= NOW() - INTERVAL '24 hours'
+          GROUP  BY hour
+          ORDER  BY hour
+        `,
       ]);
 
     // Build daily buckets for last 30 days (oldest → newest)
@@ -66,6 +75,14 @@ export class AnalyticsService {
     const totalPaidCount = paidAll._count._all;
     const totalPaidSum   = paidAll._sum.total ?? 0;
 
+    // Build 24-hour slots (0-23)
+    const hourlyMap = new Map<number, number>();
+    for (const row of rawHourly) hourlyMap.set(Number(row.hour), Number(row.count));
+    const hourlySessions = Array.from({ length: 24 }, (_, h) => ({
+      hour: h,
+      count: hourlyMap.get(h) ?? 0,
+    }));
+
     return {
       ordersToday,
       salesMonth:    paidMonth._sum.total ?? 0,
@@ -74,6 +91,7 @@ export class AnalyticsService {
       avgOrderValue: totalPaidCount > 0 ? totalPaidSum / totalPaidCount : 0,
       totalRevenue:  totalPaidSum,
       dailySales,
+      hourlySessions,
       topProducts: topProducts.map(p => ({
         name:     p.productName,
         revenue:  Number(p.revenue),

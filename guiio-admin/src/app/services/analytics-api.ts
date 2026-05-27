@@ -16,6 +16,11 @@ export interface TopProduct {
   quantity: number;
 }
 
+export interface HourlySession {
+  hour: number;
+  count: number;
+}
+
 export interface OverviewData {
   ordersToday: number;
   salesMonth: number;
@@ -24,6 +29,7 @@ export interface OverviewData {
   avgOrderValue: number;
   totalRevenue: number;
   dailySales: DailySale[];
+  hourlySessions: HourlySession[];
   topProducts: TopProduct[];
 }
 

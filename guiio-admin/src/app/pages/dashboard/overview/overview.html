@@ -106,6 +106,37 @@
       </div>
     </div>
 
+    <!-- Sesiones por hora (últimas 24 h) -->
+    <div class="bg-gray-900 rounded-2xl border border-gray-800 p-5 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-gray-400 text-xs">Visitas por hora — últimas 24 h</p>
+        <p class="text-gray-600 text-xs">Total: {{ totalVisits() }}</p>
+      </div>
+      @if (totalVisits() === 0) {
+        <p class="text-gray-600 text-xs text-center py-6">Sin visitas registradas aún — se irán acumulando desde hoy</p>
+      } @else {
+        <div class="flex items-end gap-1 h-20">
+          @for (slot of data()!.hourlySessions; track slot.hour) {
+            <div class="flex-1 flex flex-col items-center">
+              <div
+                class="w-full rounded-sm bg-violet-500/70 hover:bg-violet-400 transition-colors cursor-default"
+                [style.height.%]="maxVisits() > 0 ? (slot.count / maxVisits()) * 100 : 0"
+                [style.min-height.px]="slot.count > 0 ? 4 : 0"
+                [title]="slot.hour + 'h: ' + slot.count + ' visitas'"
+              ></div>
+            </div>
+          }
+        </div>
+        <div class="flex justify-between mt-1">
+          <span class="text-gray-600 text-xs">0h</span>
+          <span class="text-gray-600 text-xs">6h</span>
+          <span class="text-gray-600 text-xs">12h</span>
+          <span class="text-gray-600 text-xs">18h</span>
+          <span class="text-gray-600 text-xs">23h</span>
+        </div>
+      }
+    </div>
+
     <!-- Top products -->
     @if (data()!.topProducts.length > 0) {
       <div class="bg-gray-900 rounded-2xl border border-gray-800 p-5">

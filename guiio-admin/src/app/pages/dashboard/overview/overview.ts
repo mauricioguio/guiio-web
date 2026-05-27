@@ -64,6 +64,14 @@ export class Overview {
     return `${d}/${m}`;
   }
 
+  totalVisits = computed(() =>
+    (this.data()?.hourlySessions ?? []).reduce((s, h) => s + h.count, 0),
+  );
+
+  maxVisits = computed(() =>
+    Math.max(...(this.data()?.hourlySessions ?? []).map(h => h.count), 1),
+  );
+
   chartLabels = computed(() => {
     const daily = this.data()?.dailySales ?? [];
     if (daily.length === 0) return [];

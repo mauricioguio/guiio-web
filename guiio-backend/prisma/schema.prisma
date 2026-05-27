@@ -214,3 +214,11 @@ model HomeSections {
   galleryImages Json     @default("[]")
   updatedAt     DateTime @updatedAt
 }
+
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
