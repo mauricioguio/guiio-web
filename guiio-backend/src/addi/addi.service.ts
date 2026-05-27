@@ -23,14 +23,14 @@ export class AddiService {
   }
 
   private async getToken(): Promise<string> {
+    const basic = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64');
     const res = await fetch(`${this.apiUrl}/v1/token`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type:    'client_credentials',
-        client_id:     this.clientId,
-        client_secret: this.clientSecret,
-      }).toString(),
+      headers: {
+        'Content-Type':  'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${basic}`,
+      },
+      body: new URLSearchParams({ grant_type: 'client_credentials' }).toString(),
     });
 
     if (!res.ok) {
