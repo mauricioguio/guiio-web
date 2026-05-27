@@ -33,14 +33,30 @@ export class PaymentResult implements OnInit {
       return;
     }
 
-    // Wompi redirect
-    const wompiId = params.get('id');
-    if (!wompiId) {
+    // Wompi redirect — usa transaction_status de la URL directamente
+    const txStatus = params.get('transaction_status') ?? params.get('status');
+    const wompiId  = params.get('id');
+
+    if (!wompiId && !txStatus) {
       this.router.navigate(['/pago/fallido']);
       return;
     }
 
-    this.paymentService.getTransactionStatus(wompiId).subscribe({
+    if (txStatus === 'APPROVED') {
+      this.router.navigate(['/pago/exitoso']);
+      return;
+    }
+    if (txStatus === 'PENDING') {
+      this.router.navigate(['/pago/pendiente']);
+      return;
+    }
+    if (txStatus) {
+      this.router.navigate(['/pago/fallido']);
+      return;
+    }
+
+    // Fallback: consulta al backend si no vino transaction_status
+    this.paymentService.getTransactionStatus(wompiId!).subscribe({
       next: ({ status }) => {
         if (status === 'APPROVED') {
           this.router.navigate(['/pago/exitoso']);
