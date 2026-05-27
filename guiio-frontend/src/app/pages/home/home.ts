@@ -25,6 +25,10 @@ export class Home {
   protected readonly hero = this.heroService.getSettings();
   protected readonly sections = this.homeSectionsService.get();
 
+  protected readonly loading = computed(() =>
+    this.productService.getLoading()() || this.collectionService.getLoading()()
+  );
+
   protected readonly featured = computed(() =>
     this.productService.getAll()().filter(p => p.featured)
   );

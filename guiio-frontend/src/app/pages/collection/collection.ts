@@ -22,6 +22,8 @@ export class Collection {
     this.route.params.pipe(map(p => p['name'] as string))
   );
 
+  protected readonly loading = this.collectionService.getLoading();
+
   protected readonly collectionInfo = computed<CollectionInfo | null>(() => {
     const name = this.collectionName();
     if (!name) return null;

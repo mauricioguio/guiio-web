@@ -23,21 +23,30 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
         </svg>
-        <span>Envío gratis en pedidos +$500.000 COP</span>
+        <span>Envio gratis en pedidos +$500.000 COP</span>
       </div>
       <div class="flex items-center gap-2">
         <svg class="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
             d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
         </svg>
-        <span>18+ años de experiencia</span>
+        <span>18+ anos de experiencia</span>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Colecciones destacadas (administrable desde admin → toggle "Destacada") -->
-@if (featuredCollections().length > 0) {
+<!-- Colecciones destacadas -->
+@if (loading()) {
+  <section class="py-12 bg-gray-50">
+    <div class="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="h-[40rem] rounded-2xl bg-gray-200 animate-pulse"></div>
+        <div class="h-[40rem] rounded-2xl bg-gray-200 animate-pulse"></div>
+      </div>
+    </div>
+  </section>
+} @else if (featuredCollections().length > 0) {
   <section class="py-12 bg-gray-50">
     <div class="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -60,12 +69,28 @@
   </section>
 }
 
-<!-- Featured products (solo si hay destacados) -->
-@if (featured().length > 0) {
+<!-- Featured products -->
+@if (loading()) {
+  <section class="py-16 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-10">
+      <div class="h-3 w-20 bg-gray-200 rounded animate-pulse mb-3"></div>
+      <div class="h-8 w-40 bg-gray-200 rounded animate-pulse"></div>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (i of [1,2,3]; track i) {
+        <div class="animate-pulse">
+          <div class="bg-gray-200 rounded-2xl aspect-[3/4] mb-3"></div>
+          <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/3"></div>
+        </div>
+      }
+    </div>
+  </section>
+} @else if (featured().length > 0) {
   <section class="py-16 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-end justify-between mb-10">
       <div>
-        <p class="text-sm uppercase tracking-widest text-gray-400 mb-2">Selección</p>
+        <p class="text-sm uppercase tracking-widest text-gray-400 mb-2">Seleccion</p>
         <h2 class="text-3xl font-bold text-gray-900">Destacados</h2>
       </div>
       <a routerLink="/catalogo" class="text-sm text-gray-600 hover:text-gray-900 underline">
@@ -80,49 +105,65 @@
   </section>
 }
 
-<!-- Collections (sin Hombre/Mujer que ya aparecen arriba) -->
+<!-- Collections -->
 <section>
   <div class="text-center py-14 px-4">
-    <p class="text-sm uppercase tracking-widest text-gray-400 mb-2">Nuestras líneas</p>
+    <p class="text-sm uppercase tracking-widest text-gray-400 mb-2">Nuestras lineas</p>
     <h2 class="text-3xl font-bold text-gray-900">Colecciones</h2>
   </div>
 
   <div class="max-w-[1024px] mx-auto">
-    @for (col of mainCollections(); track col.id; let i = $index) {
-      <div class="flex flex-col md:flex-row md:h-[525px] border-t border-gray-100">
-        <!-- Imagen -->
-        <div class="w-full md:w-1/2 bg-gray-50 overflow-hidden flex items-center justify-center h-[24rem] md:h-full order-2"
-             [ngClass]="{ 'md:order-1': i % 2 !== 0 }">
-          @if (colImg(col.name) || col.image) {
-            <img [src]="cloudinaryUrl(colImg(col.name) || col.image, 800)" [alt]="col.name"
-                 class="w-full h-full object-cover object-top"
-                 [style.opacity]="colFading() ? '0' : '1'"
-                 style="transition: opacity 0.3s ease"
-                 loading="lazy" />
-          } @else {
-            <div class="flex flex-col items-center justify-center gap-2 text-gray-300">
-              <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-              </svg>
-              <span class="text-sm">Imagen próximamente</span>
+    @if (loading()) {
+      @for (i of [1,2]; track i) {
+        <div class="flex flex-col md:flex-row md:h-[525px] border-t border-gray-100 animate-pulse">
+          <div class="w-full md:w-1/2 bg-gray-200 h-[24rem] md:h-full"></div>
+          <div class="w-full md:w-1/2 flex items-center px-8 md:px-14 py-10">
+            <div class="w-full">
+              <div class="h-3 w-20 bg-gray-200 rounded mb-4"></div>
+              <div class="h-9 w-48 bg-gray-200 rounded mb-4"></div>
+              <div class="h-4 bg-gray-200 rounded mb-2 max-w-sm"></div>
+              <div class="h-4 bg-gray-200 rounded mb-2 max-w-xs"></div>
+              <div class="h-4 bg-gray-200 rounded mb-8 max-w-[200px]"></div>
+              <div class="h-10 w-36 bg-gray-200 rounded-full"></div>
             </div>
-          }
-        </div>
-        <!-- Texto -->
-        <div class="w-full md:w-1/2 flex items-center px-8 md:px-14 py-10 order-1"
-             [ngClass]="{ 'md:order-2': i % 2 !== 0 }">
-          <div>
-            <p class="text-xs uppercase tracking-widest text-gray-400 mb-3">Colección</p>
-            <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{{ col.name }}</h3>
-            <p class="text-gray-500 leading-relaxed mb-7 max-w-sm text-sm line-clamp-3">{{ col.description }}</p>
-            <a [routerLink]="['/coleccion', slugify(col.name)]"
-               class="inline-block bg-gray-900 text-white px-7 py-2.5 rounded-full text-sm font-medium hover:bg-gray-700 transition-colors">
-              Ver colección
-            </a>
           </div>
         </div>
-      </div>
+      }
+    } @else {
+      @for (col of mainCollections(); track col.id; let i = $index) {
+        <div class="flex flex-col md:flex-row md:h-[525px] border-t border-gray-100">
+          <div class="w-full md:w-1/2 bg-gray-50 overflow-hidden flex items-center justify-center h-[24rem] md:h-full order-2"
+               [ngClass]="{ 'md:order-1': i % 2 !== 0 }">
+            @if (colImg(col.name) || col.image) {
+              <img [src]="cloudinaryUrl(colImg(col.name) || col.image, 800)" [alt]="col.name"
+                   class="w-full h-full object-cover object-top"
+                   [style.opacity]="colFading() ? '0' : '1'"
+                   style="transition: opacity 0.3s ease"
+                   loading="lazy" />
+            } @else {
+              <div class="flex flex-col items-center justify-center gap-2 text-gray-300">
+                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span class="text-sm">Imagen proximamente</span>
+              </div>
+            }
+          </div>
+          <div class="w-full md:w-1/2 flex items-center px-8 md:px-14 py-10 order-1"
+               [ngClass]="{ 'md:order-2': i % 2 !== 0 }">
+            <div>
+              <p class="text-xs uppercase tracking-widest text-gray-400 mb-3">Coleccion</p>
+              <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{{ col.name }}</h3>
+              <p class="text-gray-500 leading-relaxed mb-7 max-w-sm text-sm line-clamp-3">{{ col.description }}</p>
+              <a [routerLink]="['/coleccion', slugify(col.name)]"
+                 class="inline-block bg-gray-900 text-white px-7 py-2.5 rounded-full text-sm font-medium hover:bg-gray-700 transition-colors">
+                Ver coleccion
+              </a>
+            </div>
+          </div>
+        </div>
+      }
     }
   </div>
 </section>
@@ -142,22 +183,20 @@
   </section>
 }
 
-<!-- Galería -->
+<!-- Galeria -->
 @if (sections().galleryImages[0] || cycleImg(0)) {
   <section class="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <p class="text-sm uppercase tracking-widest text-gray-400 mb-2">Fotos</p>
-    <h2 class="text-2xl font-bold text-gray-900 mb-8">Galería</h2>
+    <h2 class="text-2xl font-bold text-gray-900 mb-8">Galeria</h2>
     <div class="grid grid-cols-2 gap-4">
 
-      <!-- Foto principal (ancha) -->
       @if (sections().galleryImages[0]) {
         <div class="col-span-2 overflow-hidden h-[325px] md:h-[500px] lg:h-[680px]">
-          <img [src]="cloudinaryUrl(sections().galleryImages[0], 1400)" alt="Galería Guiio"
+          <img [src]="cloudinaryUrl(sections().galleryImages[0], 1400)" alt="Galeria Guiio"
                class="w-full h-full object-cover" loading="lazy" />
         </div>
       }
 
-      <!-- Foto 2 — cicla entre todos los productos -->
       <div class="overflow-hidden h-[450px] md:h-[500px] lg:h-[680px]"
            [style.opacity]="fading() ? '0' : '1'"
            style="transition: opacity 0.3s ease">
@@ -167,7 +206,6 @@
         }
       </div>
 
-      <!-- Foto 3 — cicla entre todos los productos -->
       <div class="overflow-hidden h-[450px] md:h-[500px] lg:h-[680px]"
            [style.opacity]="fading() ? '0' : '1'"
            style="transition: opacity 0.3s ease">
@@ -185,16 +223,16 @@
 <section class="bg-gray-900 text-white py-20">
   <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
     <div class="max-w-2xl">
-      <p class="text-sm uppercase tracking-widest text-gray-400 mb-4">Quiénes somos</p>
-      <h2 class="text-3xl font-bold mb-6">+18 años vistiendo a los mejores profesionales</h2>
+      <p class="text-sm uppercase tracking-widest text-gray-400 mb-4">Quienes somos</p>
+      <h2 class="text-3xl font-bold mb-6">+18 anos vistiendo a los mejores profesionales</h2>
       <p class="text-gray-300 leading-relaxed mb-6">
-        En Guiio Uniformes creemos que quienes cuidan a otros merecen sentirse cómodos y seguros.
-        Confeccionamos cada uniforme con atención al detalle, materiales de alta calidad y
+        En Guiio Uniformes creemos que quienes cuidan a otros merecen sentirse comodos y seguros.
+        Confeccionamos cada uniforme con atencion al detalle, materiales de alta calidad y
         un compromiso genuino con la sostenibilidad.
       </p>
       <a routerLink="/contacto"
          class="inline-block border border-white text-white px-8 py-3 rounded-full text-sm font-medium hover:bg-white hover:text-gray-900 transition-colors">
-        Contáctanos
+        Contactanos
       </a>
     </div>
   </div>
