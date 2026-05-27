@@ -51,7 +51,7 @@ export class PaymentsService {
 
       const customer = await this.prisma.customer.upsert({
         where: { email: dto.customer.email },
-        update: { name: dto.customer.name, phone: dto.customer.phone },
+        update: { phone: dto.customer.phone },
         create: {
           name: dto.customer.name,
           email: dto.customer.email,
@@ -89,7 +89,9 @@ export class PaymentsService {
   }
 
   async verifyTransaction(wompiId: string): Promise<{ status: string }> {
-    const apiBase = 'https://api.wompi.co/v1';
+    const apiBase = this.publicKey.startsWith('pub_test_')
+      ? 'https://sandbox.wompi.co/v1'
+      : 'https://api.wompi.co/v1';
     const res = await fetch(`${apiBase}/transactions/${wompiId}`, {
       headers: { Authorization: `Bearer ${this.publicKey}` },
     });
