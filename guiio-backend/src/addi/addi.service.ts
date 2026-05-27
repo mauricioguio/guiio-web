@@ -55,13 +55,9 @@ export class AddiService {
     const [firstName, ...rest] = dto.customer.name.trim().split(' ');
     const lastName = rest.join(' ') || firstName;
 
-    const address = {
-      lineOne: dto.customer.reference
-        ? `${dto.customer.address} (${dto.customer.reference})`
-        : dto.customer.address,
-      city:    dto.customer.city,
-      country: 'CO',
-    };
+    const addressLine = dto.customer.reference
+      ? `${dto.customer.address} (${dto.customer.reference})`
+      : dto.customer.address;
 
     const token = await this.getToken();
 
@@ -70,6 +66,12 @@ export class AddiService {
       allySlug:              this.allySlug,
       totalAmount:           total,
       currency:              'COP',
+      country:               'CO',
+      redirectUrls: {
+        successUrl:  `${this.frontendUrl}/pago/exitoso`,
+        declinedUrl: `${this.frontendUrl}/pago/fallido`,
+        canceledUrl: `${this.frontendUrl}/pago/fallido`,
+      },
       client: {
         idType:    'CC',
         idNumber:  dto.customer.docNumber,
@@ -78,20 +80,20 @@ export class AddiService {
         email:     dto.customer.email,
         cellphone: dto.customer.phone,
       },
-      shippingAddress: address,
-      billingAddress:  address,
+      shippingAddress: {
+        line1:   addressLine,
+        city:    dto.customer.city,
+        country: 'CO',
+      },
       items: dto.items.map(i => ({
         sku:       i.id,
         name:      i.name,
         quantity:  i.quantity,
         unitPrice: i.price,
       })),
-      successUrl:  `${this.frontendUrl}/pago/exitoso`,
-      declinedUrl: `${this.frontendUrl}/pago/fallido`,
-      canceledUrl: `${this.frontendUrl}/pago/fallido`,
     };
 
-    const res = await fetch(`${this.apiUrl}/v1/applications`, {
+    const res = await fetch(`${this.apiUrl}/applications`, {
       method:  'POST',
       headers: {
         'Content-Type':  'application/json',
@@ -122,7 +124,7 @@ export class AddiService {
           total,
           shipping:        dto.shipping,
           discount:        dto.discount,
-          address:         address.lineOne,
+          address:         addressLine,
           city:            dto.customer.city,
           notes:           dto.customer.notes ?? null,
           paymentProvider: 'addi',
