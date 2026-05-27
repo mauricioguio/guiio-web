@@ -97,6 +97,38 @@ export class PaymentsService {
     return { status: json?.data?.status ?? 'ERROR' };
   }
 
+  async confirmOrderByReference(reference: string) {
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { reference },
+        include: { customer: true, items: true },
+      });
+      if (!order || order.status === 'PAID') return { ok: true };
+
+      await this.prisma.order.update({
+        where: { reference },
+        data: { status: 'PAID' as any },
+      });
+
+      await this.email.sendOrderConfirmation({
+        reference: order.reference,
+        customerName: order.customer.name,
+        customerEmail: order.customer.email,
+        customerPhone: order.customer.phone,
+        address: order.address,
+        city: order.city,
+        notes: order.notes,
+        total: order.total,
+        shipping: order.shipping,
+        discount: order.discount,
+        items: order.items,
+      });
+    } catch (err) {
+      this.logger.error('confirmOrderByReference error:', err);
+    }
+    return { ok: true };
+  }
+
   async handleWebhook(payload: any) {
     try {
       const event = payload?.data?.transaction;

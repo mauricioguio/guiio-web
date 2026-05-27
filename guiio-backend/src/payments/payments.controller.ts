@@ -22,4 +22,10 @@ export class PaymentsController {
   webhook(@Body() payload: any) {
     return this.paymentsService.handleWebhook(payload);
   }
+
+  @Post('confirm/:reference')
+  @HttpCode(200)
+  confirm(@Param('reference') reference: string) {
+    return this.paymentsService.confirmOrderByReference(reference);
+  }
 }

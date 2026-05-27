@@ -12,6 +12,10 @@ export class PaymentService {
     return this.http.get<{ status: string }>(`${this.apiUrl}/payments/status/${wompiId}`);
   }
 
+  confirmOrder(reference: string) {
+    return this.http.post<{ ok: boolean }>(`${this.apiUrl}/payments/confirm/${reference}`, {});
+  }
+
   private buildItems() {
     return this.cart.cartItems().map(item => ({
       id:         item.product.id,

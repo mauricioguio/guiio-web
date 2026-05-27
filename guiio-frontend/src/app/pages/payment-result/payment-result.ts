@@ -43,6 +43,8 @@ export class PaymentResult implements OnInit {
     }
 
     if (txStatus === 'APPROVED') {
+      const ref = params.get('reference');
+      if (ref) this.paymentService.confirmOrder(ref).subscribe();
       this.router.navigate(['/pago/exitoso']);
       return;
     }
