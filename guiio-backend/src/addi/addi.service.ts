@@ -91,7 +91,7 @@ export class AddiService {
       canceledUrl: `${this.frontendUrl}/pago/fallido`,
     };
 
-    const res = await fetch(`${this.apiUrl}/applications`, {
+    const res = await fetch(`${this.apiUrl}/v1/applications`, {
       method:  'POST',
       headers: {
         'Content-Type':  'application/json',
