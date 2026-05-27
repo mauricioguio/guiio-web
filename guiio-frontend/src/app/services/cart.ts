@@ -25,7 +25,7 @@ export class CartService {
     return sorted[0].product.price * 0.2;
   });
 
-  readonly shipping = computed(() => this.subtotal() >= 500000 ? 0 : 10000);
+  readonly shipping = computed(() => 0);
 
   readonly total = computed(() => this.subtotal() - this.discount() + this.shipping());
 
