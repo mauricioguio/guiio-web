@@ -6,10 +6,15 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:4200';
-      const adminUrl = process.env.ADMIN_URL ?? 'http://localhost:4201';
-      const sellerUrl = process.env.SELLER_URL ?? 'http://localhost:4202';
-      const allowed = [frontendUrl, adminUrl, sellerUrl];
+      const parseCsv = (env: string | undefined, fallback: string) =>
+        (env ?? fallback).split(',').map(s => s.trim()).filter(Boolean);
+
+      const allowed = [
+        ...parseCsv(process.env.FRONTEND_URL, 'http://localhost:4200'),
+        ...parseCsv(process.env.ADMIN_URL,    'http://localhost:4201'),
+        ...parseCsv(process.env.SELLER_URL,   'http://localhost:4202'),
+      ];
+
       if (!origin || allowed.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
         callback(null, true);
       } else {
