@@ -21,6 +21,7 @@ export class PaymentResult implements OnInit {
 
   ngOnInit() {
     const params = this.route.snapshot.queryParamMap;
+    console.log('Wompi redirect params:', Object.fromEntries(params.keys.map(k => [k, params.get(k)])));
 
     // ADDI redirect
     const addi = params.get('addi');
