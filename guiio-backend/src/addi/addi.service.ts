@@ -23,6 +23,7 @@ export class AddiService {
   }
 
   private async getToken(): Promise<string> {
+    this.logger.log(`ADDI token req — clientId starts: "${this.clientId?.slice(0,6)}" len:${this.clientId?.length} url:${this.apiUrl}`);
     const basic = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64');
     const res = await fetch(`${this.apiUrl}/v1/token`, {
       method: 'POST',
