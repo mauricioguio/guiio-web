@@ -57,10 +57,15 @@ export class PaymentResult implements OnInit {
       return;
     }
 
-    // Fallback: consulta al backend si no vino transaction_status
+    // Fallback: consulta al backend con el wompiId
     this.paymentService.getTransactionStatus(wompiId!).subscribe({
       next: ({ status }) => {
         if (status === 'APPROVED') {
+          const ref = localStorage.getItem('pendingOrderRef');
+          if (ref) {
+            localStorage.removeItem('pendingOrderRef');
+            this.paymentService.confirmOrder(ref).subscribe();
+          }
           this.router.navigate(['/pago/exitoso']);
         } else if (status === 'PENDING') {
           this.router.navigate(['/pago/pendiente']);

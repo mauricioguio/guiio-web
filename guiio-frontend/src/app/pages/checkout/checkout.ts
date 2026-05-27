@@ -78,7 +78,10 @@ export class Checkout {
         city:      v.city!,
         notes:     v.notes,
       }).subscribe({
-        next: ({ checkoutUrl }) => { window.location.href = checkoutUrl; },
+        next: ({ checkoutUrl, reference }) => {
+          localStorage.setItem('pendingOrderRef', reference);
+          window.location.href = checkoutUrl;
+        },
         error: () => { this.loading.set(false); this.error.set(true); },
       });
     }
