@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import { CreateAddiCheckoutDto } from './dto/create-addi-checkout.dto';
 
 @Injectable()
@@ -17,6 +18,7 @@ export class AddiService {
   constructor(
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly email: EmailService,
   ) {
     this.apiUrl       = this.config.get<string>('ADDI_API_URL')   ?? 'https://api.addi.com';
     this.authUrl      = this.config.get<string>('ADDI_AUTH_URL')  ?? 'https://auth.addi.com/oauth/token';
@@ -165,6 +167,28 @@ export class AddiService {
           where: { reference },
           data:  { status: orderStatus as any },
         });
+
+        if (orderStatus === 'PAID') {
+          const order = await this.prisma.order.findUnique({
+            where: { reference },
+            include: { customer: true, items: true },
+          });
+          if (order) {
+            await this.email.sendOrderConfirmation({
+              reference: order.reference,
+              customerName: order.customer.name,
+              customerEmail: order.customer.email,
+              customerPhone: order.customer.phone,
+              address: order.address,
+              city: order.city,
+              notes: order.notes,
+              total: order.total,
+              shipping: order.shipping,
+              discount: order.discount,
+              items: order.items,
+            });
+          }
+        }
       }
     } catch (err) {
       this.logger.error('ADDI webhook error:', err);
