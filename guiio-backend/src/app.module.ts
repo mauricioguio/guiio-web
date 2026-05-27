@@ -10,6 +10,7 @@ import { SellerModule } from './seller/seller.module';
 import { HeroModule } from './hero/hero.module';
 import { HomeSectionsModule } from './home-sections/home-sections.module';
 import { AddiModule } from './addi/addi.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AddiModule } from './addi/addi.module';
     SellerModule,
     HeroModule,
     HomeSectionsModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}

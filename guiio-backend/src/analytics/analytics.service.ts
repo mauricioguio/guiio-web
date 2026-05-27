@@ -1,0 +1,84 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Injectable()
+export class AnalyticsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async getOverview() {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const [ordersToday, paidAll, paidMonth, totalCustomers, pendingOrders, recentPaidOrders, topProducts] =
+      await Promise.all([
+        this.prisma.order.count({ where: { createdAt: { gte: startOfToday } } }),
+
+        this.prisma.order.aggregate({
+          where: { status: 'PAID' },
+          _sum: { total: true },
+          _count: { _all: true },
+        }),
+
+        this.prisma.order.aggregate({
+          where: { status: 'PAID', createdAt: { gte: startOfMonth } },
+          _sum: { total: true },
+        }),
+
+        this.prisma.customer.count(),
+
+        this.prisma.order.count({ where: { status: 'PENDING' } }),
+
+        this.prisma.order.findMany({
+          where: { status: 'PAID', createdAt: { gte: thirtyDaysAgo } },
+          select: { createdAt: true, total: true },
+        }),
+
+        this.prisma.$queryRaw<{ productName: string; revenue: number; quantity: number }[]>`
+          SELECT oi."productName",
+                 SUM(oi.price * oi.quantity) AS revenue,
+                 SUM(oi.quantity)            AS quantity
+          FROM   "OrderItem" oi
+          JOIN   "Order"     o  ON o.id = oi."orderId"
+          WHERE  o.status = 'PAID'
+          GROUP  BY oi."productName"
+          ORDER  BY revenue DESC
+          LIMIT  5
+        `,
+      ]);
+
+    // Build daily buckets for last 30 days (oldest → newest)
+    const dailySales: { date: string; total: number; count: number }[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      dailySales.push({ date: d.toISOString().slice(0, 10), total: 0, count: 0 });
+    }
+    for (const order of recentPaidOrders) {
+      const key = order.createdAt.toISOString().slice(0, 10);
+      const bucket = dailySales.find(b => b.date === key);
+      if (bucket) {
+        bucket.total += order.total;
+        bucket.count += 1;
+      }
+    }
+
+    const totalPaidCount = paidAll._count._all;
+    const totalPaidSum   = paidAll._sum.total ?? 0;
+
+    return {
+      ordersToday,
+      salesMonth:    paidMonth._sum.total ?? 0,
+      totalCustomers,
+      pendingOrders,
+      avgOrderValue: totalPaidCount > 0 ? totalPaidSum / totalPaidCount : 0,
+      totalRevenue:  totalPaidSum,
+      dailySales,
+      topProducts: topProducts.map(p => ({
+        name:     p.productName,
+        revenue:  Number(p.revenue),
+        quantity: Number(p.quantity),
+      })),
+    };
+  }
+}
