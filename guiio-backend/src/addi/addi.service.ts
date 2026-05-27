@@ -23,24 +23,43 @@ export class AddiService {
   }
 
   private async getToken(): Promise<string> {
-    this.logger.log(`ADDI token req — clientId starts: "${this.clientId?.slice(0,6)}" len:${this.clientId?.length} url:${this.apiUrl}`);
     const basic = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64');
-    const res = await fetch(`${this.apiUrl}/v1/token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type':  'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${basic}`,
-      },
-      body: new URLSearchParams({ grant_type: 'client_credentials' }).toString(),
-    });
 
-    if (!res.ok) {
+    // Try each known token endpoint/auth combination until one succeeds
+    const attempts = [
+      {
+        url: `${this.apiUrl}/v1/token`,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': `Basic ${basic}` },
+        body: new URLSearchParams({ grant_type: 'client_credentials' }).toString(),
+      },
+      {
+        url: `${this.apiUrl}/v1/token`,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ grant_type: 'client_credentials', client_id: this.clientId, client_secret: this.clientSecret }).toString(),
+      },
+      {
+        url: `${this.apiUrl}/v1/oauth/token`,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': `Basic ${basic}` },
+        body: new URLSearchParams({ grant_type: 'client_credentials' }).toString(),
+      },
+      {
+        url: `${this.apiUrl}/oauth/token`,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': `Basic ${basic}` },
+        body: new URLSearchParams({ grant_type: 'client_credentials' }).toString(),
+      },
+    ];
+
+    for (const attempt of attempts) {
+      const res = await fetch(attempt.url, { method: 'POST', headers: attempt.headers as any, body: attempt.body });
       const text = await res.text();
-      throw new Error(`ADDI token error: ${res.status} ${text}`);
+      this.logger.log(`ADDI token attempt ${attempt.url} → ${res.status}: ${text.slice(0, 120)}`);
+      if (res.ok) {
+        const data = JSON.parse(text);
+        return data.access_token as string;
+      }
     }
 
-    const data = await res.json() as any;
-    return data.access_token as string;
+    throw new Error('ADDI token: all authentication attempts failed');
   }
 
   async createCheckout(dto: CreateAddiCheckoutDto) {
