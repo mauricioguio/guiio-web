@@ -6,16 +6,13 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      const parseCsv = (env: string | undefined, fallback: string) =>
-        (env ?? fallback).split(',').map(s => s.trim()).filter(Boolean);
+      const guiio   = /^https:\/\/([a-z0-9-]+\.)?guiiouniformes\.com$/.test(origin ?? '');
+      const local   = !origin || /^http:\/\/localhost:\d+$/.test(origin);
+      const parseCsv = (env: string | undefined) =>
+        (env ?? '').split(',').map(s => s.trim()).filter(Boolean);
+      const extra   = [...parseCsv(process.env.ADMIN_URL), ...parseCsv(process.env.SELLER_URL)];
 
-      const allowed = [
-        ...parseCsv(process.env.FRONTEND_URL, 'http://localhost:4200'),
-        ...parseCsv(process.env.ADMIN_URL,    'http://localhost:4201'),
-        ...parseCsv(process.env.SELLER_URL,   'http://localhost:4202'),
-      ];
-
-      if (!origin || allowed.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
+      if (guiio || local || extra.includes(origin!)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
