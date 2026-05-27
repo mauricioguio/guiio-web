@@ -7,6 +7,11 @@
       @else if (activeGender() === 'hombre') { Colección Hombre }
       @else { Todos los productos }
     </h1>
+    @if (activeGender() === 'mujer') {
+      <p class="text-sm text-gray-500 mt-2 max-w-2xl">Porque sentirte bien cambia el día. Prendas con cortes que favorecen, tela suave y resistente que acompaña desde la primera hora hasta la última — sin sacrificar estilo ni comodidad.</p>
+    } @else if (activeGender() === 'hombre') {
+      <p class="text-sm text-gray-500 mt-2 max-w-2xl">Comodidad y estilo que se notan. Cortes limpios, tela que respira y aguanta el ritmo del día — para que lo único en lo que pienses sea en tu trabajo.</p>
+    }
     @if (!loading()) {
       <p class="text-sm text-gray-500 mt-1">{{ filteredProducts().length }} productos</p>
     }
