@@ -7,8 +7,8 @@ export class TrackingController {
 
   @Post()
   @HttpCode(204)
-  track(@Body('path') path: string) {
-    if (path) this.trackingService.track(path).catch(() => null);
+  track(@Body('path') path: string, @Body('source') source?: string) {
+    if (path) this.trackingService.track(path, source).catch(() => null);
     return;
   }
 }

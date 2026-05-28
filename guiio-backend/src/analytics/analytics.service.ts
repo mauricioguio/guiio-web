@@ -11,7 +11,7 @@ export class AnalyticsService {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const [ordersToday, paidAll, paidMonth, totalCustomers, pendingOrders, recentPaidOrders, topProducts, rawHourly] =
+    const [ordersToday, paidAll, paidMonth, totalCustomers, pendingOrders, recentPaidOrders, topProducts, rawHourly, adVisitsToday] =
       await Promise.all([
         this.prisma.order.count({ where: { createdAt: { gte: startOfToday } } }),
 
@@ -55,6 +55,10 @@ export class AnalyticsService {
           GROUP  BY hour
           ORDER  BY hour
         `,
+
+        this.prisma.pageView.count({
+          where: { source: 'facebook', createdAt: { gte: startOfToday } },
+        }),
       ]);
 
     // Build daily buckets for last 30 days (oldest → newest)
@@ -90,6 +94,7 @@ export class AnalyticsService {
       pendingOrders,
       avgOrderValue: totalPaidCount > 0 ? totalPaidSum / totalPaidCount : 0,
       totalRevenue:  totalPaidSum,
+      adVisitsToday,
       dailySales,
       hourlySessions,
       topProducts: topProducts.map(p => ({

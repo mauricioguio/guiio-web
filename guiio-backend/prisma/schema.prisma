@@ -219,7 +219,9 @@ model HomeSections {
 model PageView {
   id        String   @id @default(cuid())
   path      String
+  source    String?
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+  @@index([source, createdAt])
 }

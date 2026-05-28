@@ -53,6 +53,21 @@
         <p class="text-2xl font-bold" [class]="data()!.pendingOrders > 0 ? 'text-yellow-300' : 'text-white'">{{ data()!.pendingOrders }}</p>
         <p class="text-gray-500 text-xs mt-2">esperando confirmación de pago</p>
       </div>
+
+      <!-- Visitas desde pauta -->
+      <div class="rounded-2xl p-5 border"
+        [class]="data()!.adVisitsToday > 0
+          ? 'bg-blue-500/10 border-blue-500/20'
+          : 'bg-gray-900 border-gray-800'">
+        <div class="flex items-center gap-2 mb-1">
+          <svg class="w-3.5 h-3.5" [class]="data()!.adVisitsToday > 0 ? 'text-blue-400' : 'text-gray-500'" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+          <p class="text-xs" [class]="data()!.adVisitsToday > 0 ? 'text-blue-400' : 'text-gray-400'">Desde pauta hoy</p>
+        </div>
+        <p class="text-2xl font-bold" [class]="data()!.adVisitsToday > 0 ? 'text-blue-300' : 'text-white'">{{ data()!.adVisitsToday }}</p>
+        <p class="text-gray-500 text-xs mt-2">visitas llegadas desde Facebook Ads</p>
+      </div>
     </div>
 
     <!-- Chart + Avg row -->

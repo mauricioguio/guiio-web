@@ -28,6 +28,7 @@ export interface OverviewData {
   pendingOrders: number;
   avgOrderValue: number;
   totalRevenue: number;
+  adVisitsToday: number;
   dailySales: DailySale[];
   hourlySessions: HourlySession[];
   topProducts: TopProduct[];

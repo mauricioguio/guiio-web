@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class TrackingService {
   constructor(private readonly prisma: PrismaService) {}
 
-  track(path: string) {
-    return this.prisma.pageView.create({ data: { path } });
+  track(path: string, source?: string) {
+    return this.prisma.pageView.create({ data: { path, source: source ?? null } });
   }
 }

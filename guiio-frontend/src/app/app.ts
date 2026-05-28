@@ -17,12 +17,21 @@ export class App {
   private readonly http   = inject(HttpClient);
 
   constructor() {
+    // Detect Facebook ad traffic (fbclid = Meta click ID, utm_source = manual UTM)
+    const params = new URLSearchParams(window.location.search);
+    const isFbAd = params.has('fbclid') ||
+      ['facebook', 'fb', 'instagram'].some(s => (params.get('utm_source') ?? '').toLowerCase().includes(s));
+    if (isFbAd) sessionStorage.setItem('trafficSource', 'facebook');
+
     this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd),
     ).subscribe(e => {
       (window as any).fbq?.('track', 'PageView');
-      this.http.post('https://api.guiiouniformes.com/api/track', { path: e.urlAfterRedirects })
-        .subscribe({ error: () => null });
+      const source = sessionStorage.getItem('trafficSource') ?? undefined;
+      this.http.post('https://api.guiiouniformes.com/api/track', {
+        path: e.urlAfterRedirects,
+        ...(source ? { source } : {}),
+      }).subscribe({ error: () => null });
     });
   }
 }
