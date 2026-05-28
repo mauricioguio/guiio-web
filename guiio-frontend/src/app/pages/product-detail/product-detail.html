@@ -538,6 +538,7 @@
                   <th class="font-medium pb-1 text-center">Cadera</th>
                 } @else {
                   <th class="font-medium pb-1 text-center">Pecho</th>
+                  <th class="font-medium pb-1 text-center">Cintura</th>
                   <th class="font-medium pb-1 text-center">Cadera</th>
                 }
               </tr>
@@ -565,12 +566,10 @@
                       [class.text-blue-700]="row[0] === highlightedSize()"
                       [class.font-medium]="row[0] === highlightedSize()"
                       [class.text-gray-500]="row[0] !== highlightedSize()">{{ row[2] }}</td>
-                  @if (product()?.gender !== 'hombre') {
-                    <td class="py-1.5 text-center pr-1 rounded-r"
-                        [class.text-blue-700]="row[0] === highlightedSize()"
-                        [class.font-medium]="row[0] === highlightedSize()"
-                        [class.text-gray-500]="row[0] !== highlightedSize()">{{ row[3] }}</td>
-                  }
+                  <td class="py-1.5 text-center pr-1 rounded-r"
+                      [class.text-blue-700]="row[0] === highlightedSize()"
+                      [class.font-medium]="row[0] === highlightedSize()"
+                      [class.text-gray-500]="row[0] !== highlightedSize()">{{ row[3] }}</td>
                 </tr>
               }
             </tbody>

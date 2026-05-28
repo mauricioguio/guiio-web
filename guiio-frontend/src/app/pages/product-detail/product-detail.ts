@@ -227,7 +227,8 @@ export class ProductDetail {
   protected readonly calcWaistSize = computed(() => {
     const v = this.calcWaist();
     if (!v || v < 50 || v > 200) return null;
-    return measurementToSize(v, this.isMale ? WAIST_CHART_M : WAIST_TOP_CHART_F);
+    // Men's tops are boxy — waist uses same chart as chest
+    return measurementToSize(v, this.isMale ? TOP_CHART_M : WAIST_TOP_CHART_F);
   });
 
   protected readonly calcHipSize = computed(() => {
@@ -242,10 +243,8 @@ export class ProductDetail {
     const p = this.product();
     if (!p?.topSizes.length) return null;
     const bustChart  = this.isMale ? TOP_CHART_M : TOP_CHART_F;
-    // For men: if waist exceeds chest, the belly is the bottleneck — use WAIST_CHART_M
-    const waistChart = this.isMale
-      ? (waist && bust && waist > bust ? WAIST_CHART_M : TOP_CHART_M)
-      : WAIST_TOP_CHART_F;
+    // Men's tops are boxy — waist and chest use the same chart
+    const waistChart = this.isMale ? TOP_CHART_M : WAIST_TOP_CHART_F;
     const bustSize  = bust  && bust  > 50 && bust  < 200 ? measurementToSize(bust,  bustChart)  : null;
     const waistSize = waist && waist > 50 && waist < 200 ? measurementToSize(waist, waistChart) : null;
     if (!bustSize && !waistSize) return null;
@@ -320,8 +319,8 @@ export class ProductDetail {
     const rec = this.calcTopResult() ?? this.calcBottomResult();
     const isMale = this.product()?.gender === 'hombre';
     const all: string[][] = isMale ? [
-      ['XS','≤88','≤88'],['S','89–94','89–94'],['M','95–100','95–100'],
-      ['L','101–106','101–106'],['XL','107–112','107–112'],['XXL','113+','113+'],
+      ['XS','≤88','≤88','≤88'],['S','89–94','89–94','89–94'],['M','95–100','95–100','95–100'],
+      ['L','101–106','101–106','101–106'],['XL','107–112','107–112','107–112'],['XXL','113+','113+','113+'],
     ] : [
       ['XXS','75–79','63–67','85–89'],['XS','80–85','68–72','90–94'],['S','86–90','73–78','95–99'],['M','91–95','79–84','100–104'],
       ['L','96–100','85–91','105–110'],['XL','101–105','92–100','111–116'],['XXL','106–112','101–108','117+'],
