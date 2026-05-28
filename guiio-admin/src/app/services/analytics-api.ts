@@ -16,6 +16,11 @@ export interface TopProduct {
   quantity: number;
 }
 
+export interface TopCarted {
+  name: string;
+  count: number;
+}
+
 export interface HourlySession {
   hour: number;
   count: number;
@@ -29,9 +34,12 @@ export interface OverviewData {
   avgOrderValue: number;
   totalRevenue: number;
   adVisitsToday: number;
+  addToCartToday: number;
+  checkoutToday: number;
   dailySales: DailySale[];
   hourlySessions: HourlySession[];
   topProducts: TopProduct[];
+  topCarted: TopCarted[];
 }
 
 @Injectable({ providedIn: 'root' })

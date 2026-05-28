@@ -77,9 +77,25 @@
   <!-- Footer -->
   @if (cart.cartItems().length > 0) {
     <div class="px-6 py-4 border-t border-gray-100 space-y-2">
+
+      <!-- Promo banner -->
       @if (cart.hasDiscount()) {
-        <div class="flex justify-between text-sm text-green-600">
-          <span>Descuento 20%</span>
+        <div class="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-xs text-green-700">
+          Promo aplicada: por cada 2 uniformes, el mas economico lleva <strong>20% off</strong>
+        </div>
+      } @else {
+        <div class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500">
+          Agrega otro uniforme y el mas economico lleva <strong>20% off</strong>
+        </div>
+      }
+
+      @if (cart.hasDiscount()) {
+        <div class="flex justify-between text-sm text-gray-500">
+          <span>Subtotal</span>
+          <span>{{ cart.subtotal() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+        <div class="flex justify-between text-sm text-green-600 font-medium">
+          <span>Descuento promo 2x1</span>
           <span>- {{ cart.discount() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
         </div>
       }

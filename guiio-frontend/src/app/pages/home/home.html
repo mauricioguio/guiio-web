@@ -1,10 +1,16 @@
 <!-- Hero -->
 <section class="relative bg-gray-900 text-white min-h-[49vh] md:min-h-[85vh] flex items-center">
-  @if (hero().backgroundImage) {
-    <img [src]="cloudinaryUrl(hero().backgroundImage, 1440)" alt="Hero"
-         class="absolute inset-0 w-full h-full object-cover"
-         [style.object-position]="hero().imagePosition || 'center center'"
-         fetchpriority="high" loading="eager" />
+  @if (hero().backgroundImage || hero().backgroundImageMobile) {
+    <picture class="absolute inset-0 w-full h-full">
+      @if (hero().backgroundImageMobile) {
+        <source media="(max-width: 767px)" [attr.srcset]="cloudinaryUrl(hero().backgroundImageMobile!, 800)">
+      }
+      <img [src]="cloudinaryUrl((hero().backgroundImage ?? hero().backgroundImageMobile)!, 1440)"
+           alt="Hero"
+           class="w-full h-full object-cover"
+           [style.object-position]="hero().imagePosition || 'center center'"
+           fetchpriority="high" loading="eager" />
+    </picture>
   }
 </section>
 

@@ -8,4 +8,14 @@ export class TrackingService {
   track(path: string, source?: string) {
     return this.prisma.pageView.create({ data: { path, source: source ?? null } });
   }
+
+  trackCart(data: {
+    event: string;
+    productId?: string;
+    productName?: string;
+    price?: number;
+    quantity?: number;
+  }) {
+    return this.prisma.funnelEvent.create({ data });
+  }
 }

@@ -11,7 +11,7 @@ export class AnalyticsService {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const [ordersToday, paidAll, paidMonth, totalCustomers, pendingOrders, recentPaidOrders, topProducts, rawHourly, adVisitsToday] =
+    const [ordersToday, paidAll, paidMonth, totalCustomers, pendingOrders, recentPaidOrders, topProducts, rawHourly, adVisitsToday, addToCartToday, checkoutToday, topCarted] =
       await Promise.all([
         this.prisma.order.count({ where: { createdAt: { gte: startOfToday } } }),
 
@@ -59,6 +59,26 @@ export class AnalyticsService {
         this.prisma.pageView.count({
           where: { source: 'facebook', createdAt: { gte: startOfToday } },
         }),
+
+        this.prisma.funnelEvent.count({
+          where: { event: 'add_to_cart', createdAt: { gte: startOfToday } },
+        }),
+
+        this.prisma.funnelEvent.count({
+          where: { event: 'initiate_checkout', createdAt: { gte: startOfToday } },
+        }),
+
+        this.prisma.$queryRaw<{ productName: string; count: number }[]>`
+          SELECT "productName",
+                 COUNT(*)::int AS count
+          FROM   "FunnelEvent"
+          WHERE  event = 'add_to_cart'
+            AND  "createdAt" >= NOW() - INTERVAL '30 days'
+            AND  "productName" IS NOT NULL
+          GROUP  BY "productName"
+          ORDER  BY count DESC
+          LIMIT  5
+        `,
       ]);
 
     // Build daily buckets for last 30 days (oldest → newest)
@@ -89,18 +109,24 @@ export class AnalyticsService {
 
     return {
       ordersToday,
-      salesMonth:    paidMonth._sum.total ?? 0,
+      salesMonth:      paidMonth._sum.total ?? 0,
       totalCustomers,
       pendingOrders,
-      avgOrderValue: totalPaidCount > 0 ? totalPaidSum / totalPaidCount : 0,
-      totalRevenue:  totalPaidSum,
+      avgOrderValue:   totalPaidCount > 0 ? totalPaidSum / totalPaidCount : 0,
+      totalRevenue:    totalPaidSum,
       adVisitsToday,
+      addToCartToday,
+      checkoutToday,
       dailySales,
       hourlySessions,
       topProducts: topProducts.map(p => ({
         name:     p.productName,
         revenue:  Number(p.revenue),
         quantity: Number(p.quantity),
+      })),
+      topCarted: topCarted.map(p => ({
+        name:  p.productName,
+        count: Number(p.count),
       })),
     };
   }

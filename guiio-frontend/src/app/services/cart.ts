@@ -1,9 +1,13 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable, signal, computed, effect, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { CartItem } from '../models/cart-item';
 import { Product, ProductColor } from '../models/product';
 
+const TRACK_URL = 'https://api.guiiouniformes.com/api/track/cart';
+
 @Injectable({ providedIn: 'root' })
 export class CartService {
+  private readonly http = inject(HttpClient);
   private readonly items = signal<CartItem[]>(this.loadFromStorage());
   readonly isOpen = signal(false);
 
@@ -17,12 +21,14 @@ export class CartService {
     this.items().reduce((sum, item) => sum + item.product.price * item.quantity, 0)
   );
 
-  readonly hasDiscount = computed(() => this.totalItems() >= 2);
+  readonly hasDiscount = computed(() => this.items().length >= 2);
 
   readonly discount = computed(() => {
-    if (!this.hasDiscount()) return 0;
-    const sorted = [...this.items()].sort((a, b) => a.product.price - b.product.price);
-    return sorted[0].product.price * 0.2;
+    const items = this.items();
+    const pairs = Math.floor(items.length / 2);
+    if (pairs === 0) return 0;
+    const sorted = [...items].sort((a, b) => a.product.price - b.product.price);
+    return sorted.slice(0, pairs).reduce((sum, item) => sum + item.product.price * item.quantity * 0.2, 0);
   });
 
   readonly shipping = computed(() => this.subtotal() >= 500000 ? 0 : 10000);
@@ -57,6 +63,7 @@ export class CartService {
       }
       return [...items, { product, quantity: 1, selectedColor: color, selectedTopSize: topSize, selectedBottomSize: bottomSize }];
     });
+
     (window as any).fbq?.('track', 'AddToCart', {
       content_name: product.name,
       content_ids: [product.id],
@@ -64,6 +71,15 @@ export class CartService {
       value: product.price,
       currency: 'COP',
     });
+
+    this.http.post(TRACK_URL, {
+      event: 'add_to_cart',
+      productId: product.id,
+      productName: product.name,
+      price: product.price,
+      quantity: 1,
+    }).subscribe({ error: () => null });
+
     this.isOpen.set(true);
   }
 

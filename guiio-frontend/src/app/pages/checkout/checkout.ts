@@ -2,6 +2,7 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { CartService } from '../../services/cart';
 import { PaymentService } from '../../services/payment';
 
@@ -14,6 +15,7 @@ import { PaymentService } from '../../services/payment';
 export class Checkout {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly http = inject(HttpClient);
   protected readonly cart = inject(CartService);
   private readonly paymentService = inject(PaymentService);
 
@@ -50,6 +52,10 @@ export class Checkout {
       currency: 'COP',
       num_items: this.cart.totalItems(),
     });
+
+    this.http.post('https://api.guiiouniformes.com/api/track/cart', {
+      event: 'initiate_checkout',
+    }).subscribe({ error: () => null });
 
     const v = this.form.getRawValue();
 

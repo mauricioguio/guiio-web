@@ -197,10 +197,23 @@ enum OrderStatus {
   CANCELLED
 }
 
+model FunnelEvent {
+  id          String   @id @default(cuid())
+  event       String
+  productId   String?
+  productName String?
+  price       Float?
+  quantity    Int?
+  createdAt   DateTime @default(now())
+
+  @@index([event, createdAt])
+}
+
 model HeroSettings {
-  id              String   @id @default("singleton")
-  backgroundImage String?
-  imagePosition   String?
+  id                    String   @id @default("singleton")
+  backgroundImage       String?
+  backgroundImageMobile String?
+  imagePosition         String?
   badge           String?
   title           String?
   subtitle        String?

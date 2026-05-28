@@ -11,6 +11,7 @@ export interface HeroButton {
 
 export interface HeroSettings {
   backgroundImage: string | null;
+  backgroundImageMobile: string | null;
   imagePosition: string | null;
   badge: string | null;
   title: string | null;
@@ -20,6 +21,7 @@ export interface HeroSettings {
 
 const DEFAULT: HeroSettings = {
   backgroundImage: null,
+  backgroundImageMobile: null,
   imagePosition: 'center center',
   badge: 'Uniformes médicos premium',
   title: 'Así como tú cuidas de ellos, nosotros cuidamos de ti',

@@ -8,15 +8,17 @@
     </div>
   } @else {
 
-    <!-- Imagen de fondo -->
+    <!-- Imágenes de fondo -->
     <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden mb-4">
       <div class="px-6 py-4 border-b border-gray-800">
         <p class="text-white font-medium text-sm">Imagen de fondo</p>
-        <p class="text-gray-500 text-xs mt-0.5">Se muestra detrás del texto. Si no hay imagen, se ve el fondo oscuro.</p>
+        <p class="text-gray-500 text-xs mt-0.5">Puedes subir una imagen para escritorio y otra para móvil.</p>
       </div>
-      <div class="p-4">
+
+      <!-- Desktop -->
+      <div class="p-4 border-b border-gray-800">
+        <p class="text-gray-400 text-xs uppercase tracking-widest mb-3">Desktop</p>
         @if (backgroundImage()) {
-          <!-- Focal point selector -->
           <div class="mb-2">
             <p class="text-gray-500 text-xs mb-1.5">Haz clic en la imagen para mover el foco</p>
             <div
@@ -24,10 +26,9 @@
               (click)="onFocalPointClick($event)">
               <img
                 [src]="backgroundImage()!"
-                alt="Hero"
+                alt="Hero desktop"
                 class="w-full h-full object-cover pointer-events-none"
                 [style.object-position]="imagePosition()" />
-              <!-- Focal point dot -->
               <div
                 class="absolute w-6 h-6 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
                 [style.left.%]="focalX()"
@@ -56,9 +57,45 @@
           <label class="flex items-center gap-2 cursor-pointer w-fit">
             <input type="file" accept="image/*" class="hidden" (change)="onImagePick($event)" [disabled]="uploadingImage()">
             <span class="block px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-xs rounded-xl transition-colors border border-gray-700">
-              {{ uploadingImage() ? 'Subiendo...' : '+ Subir imagen' }}
+              {{ uploadingImage() ? 'Subiendo...' : '+ Subir imagen desktop' }}
             </span>
           </label>
+        }
+      </div>
+
+      <!-- Móvil -->
+      <div class="p-4">
+        <p class="text-gray-400 text-xs uppercase tracking-widest mb-3">Movil</p>
+        @if (backgroundImageMobile()) {
+          <div class="mb-2">
+            <div class="relative w-full h-52 rounded-xl overflow-hidden">
+              <img
+                [src]="backgroundImageMobile()!"
+                alt="Hero móvil"
+                class="w-full h-full object-cover" />
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <label class="cursor-pointer">
+              <input type="file" accept="image/*" class="hidden" (change)="onImagePickMobile($event)" [disabled]="uploadingImageMobile()">
+              <span class="block px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-xs rounded-xl transition-colors border border-gray-700">
+                {{ uploadingImageMobile() ? 'Subiendo...' : 'Cambiar imagen' }}
+              </span>
+            </label>
+            <button
+              (click)="removeImageMobile()"
+              class="px-4 py-2 bg-transparent hover:bg-red-500/10 text-red-400 text-xs rounded-xl transition-colors border border-red-500/20">
+              Quitar imagen
+            </button>
+          </div>
+        } @else {
+          <label class="flex items-center gap-2 cursor-pointer w-fit">
+            <input type="file" accept="image/*" class="hidden" (change)="onImagePickMobile($event)" [disabled]="uploadingImageMobile()">
+            <span class="block px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-xs rounded-xl transition-colors border border-gray-700">
+              {{ uploadingImageMobile() ? 'Subiendo...' : '+ Subir imagen movil' }}
+            </span>
+          </label>
+          <p class="text-gray-600 text-xs mt-2">Si no se sube imagen móvil, se usará la de desktop.</p>
         }
       </div>
     </div>
@@ -212,7 +249,7 @@
     <!-- Guardar -->
     <button
       (click)="save()"
-      [disabled]="saving() || uploadingImage()"
+      [disabled]="saving() || uploadingImage() || uploadingImageMobile()"
       class="w-full py-3 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
       [class]="saved()
         ? 'bg-green-500/20 text-green-400 border border-green-500/30'

@@ -11,4 +11,17 @@ export class TrackingController {
     if (path) this.trackingService.track(path, source).catch(() => null);
     return;
   }
+
+  @Post('cart')
+  @HttpCode(204)
+  trackCart(
+    @Body('event') event: string,
+    @Body('productId') productId?: string,
+    @Body('productName') productName?: string,
+    @Body('price') price?: number,
+    @Body('quantity') quantity?: number,
+  ) {
+    if (event) this.trackingService.trackCart({ event, productId, productName, price, quantity }).catch(() => null);
+    return;
+  }
 }

@@ -70,6 +70,55 @@
       </div>
     </div>
 
+    <!-- Embudo de conversión (hoy) -->
+    <div class="bg-gray-900 rounded-2xl border border-gray-800 p-5 mb-6">
+      <p class="text-gray-400 text-xs mb-4">Embudo de conversion — hoy</p>
+      <div class="flex items-stretch gap-0">
+
+        <!-- Visitas -->
+        <div class="flex-1 text-center px-3 py-4 relative">
+          <p class="text-gray-500 text-xs mb-1">Visitas</p>
+          <p class="text-white text-2xl font-bold">{{ totalVisits() }}</p>
+          <p class="text-gray-600 text-xs mt-1">100%</p>
+          <div class="absolute right-0 top-1/2 -translate-y-1/2 text-gray-700 text-lg">›</div>
+        </div>
+
+        <!-- Agrego al carrito -->
+        <div class="flex-1 text-center px-3 py-4 relative">
+          <p class="text-gray-500 text-xs mb-1">Agregaron al carrito</p>
+          <p class="text-white text-2xl font-bold">{{ data()!.addToCartToday }}</p>
+          <p class="text-xs mt-1"
+             [class]="data()!.addToCartToday > 0 ? 'text-violet-400' : 'text-gray-600'">
+            {{ totalVisits() > 0 ? ((data()!.addToCartToday / totalVisits()) * 100 | number:'1.0-0') : 0 }}%
+          </p>
+          <div class="absolute right-0 top-1/2 -translate-y-1/2 text-gray-700 text-lg">›</div>
+        </div>
+
+        <!-- Iniciaron checkout -->
+        <div class="flex-1 text-center px-3 py-4 relative">
+          <p class="text-gray-500 text-xs mb-1">Iniciaron compra</p>
+          <p class="text-white text-2xl font-bold">{{ data()!.checkoutToday }}</p>
+          <p class="text-xs mt-1"
+             [class]="data()!.checkoutToday > 0 ? 'text-blue-400' : 'text-gray-600'">
+            {{ data()!.addToCartToday > 0 ? ((data()!.checkoutToday / data()!.addToCartToday) * 100 | number:'1.0-0') : 0 }}%
+          </p>
+          <div class="absolute right-0 top-1/2 -translate-y-1/2 text-gray-700 text-lg">›</div>
+        </div>
+
+        <!-- Compraron -->
+        <div class="flex-1 text-center px-3 py-4">
+          <p class="text-gray-500 text-xs mb-1">Compraron</p>
+          <p class="text-white text-2xl font-bold">{{ data()!.ordersToday }}</p>
+          <p class="text-xs mt-1"
+             [class]="data()!.ordersToday > 0 ? 'text-green-400' : 'text-gray-600'">
+            {{ data()!.checkoutToday > 0 ? ((data()!.ordersToday / data()!.checkoutToday) * 100 | number:'1.0-0') : 0 }}%
+          </p>
+        </div>
+
+      </div>
+      <p class="text-gray-700 text-xs mt-3 text-center">Los porcentajes muestran la conversion respecto al paso anterior</p>
+    </div>
+
     <!-- Chart + Avg row -->
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
 
@@ -130,27 +179,53 @@
       @if (totalVisits() === 0) {
         <p class="text-gray-600 text-xs text-center py-6">Sin visitas registradas aún — se irán acumulando desde hoy</p>
       } @else {
-        <div class="flex items-end gap-1 h-20">
-          @for (slot of data()!.hourlySessions; track slot.hour) {
-            <div class="flex-1 flex flex-col items-center">
-              <div
-                class="w-full rounded-sm bg-violet-500/70 hover:bg-violet-400 transition-colors cursor-default"
-                [style.height.%]="maxVisits() > 0 ? (slot.count / maxVisits()) * 100 : 0"
-                [style.min-height.px]="slot.count > 0 ? 4 : 0"
-                [title]="slot.hour + 'h: ' + slot.count + ' visitas'"
-              ></div>
+        <svg [attr.viewBox]="'0 0 ' + H_W + ' ' + (H_H + 20)"
+             class="w-full" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="hourlyGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#8b5cf6" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path [attr.d]="hourlyArea()" fill="url(#hourlyGrad)"/>
+          <path [attr.d]="hourlyPath()"
+                fill="none"
+                stroke="#8b5cf6"
+                stroke-width="2"
+                stroke-linejoin="round"
+                stroke-linecap="round"/>
+          @for (lbl of hourlyLabels(); track lbl.x) {
+            <text [attr.x]="lbl.x" [attr.y]="H_H + 16"
+                  text-anchor="middle" fill="#6b7280" font-size="9">{{ lbl.label }}</text>
+          }
+        </svg>
+      }
+    </div>
+
+    <!-- Top carted products -->
+    @if ((data()!.topCarted?.length ?? 0) > 0) {
+      <div class="bg-gray-900 rounded-2xl border border-gray-800 p-5 mb-4">
+        <p class="text-gray-400 text-xs mb-4">Productos mas agregados al carrito — ultimos 30 dias</p>
+        <div class="space-y-3">
+          @for (p of data()!.topCarted; track p.name; let i = $index) {
+            <div class="flex items-center gap-3">
+              <span class="text-gray-600 text-xs w-4 shrink-0">{{ i + 1 }}</span>
+              <div class="flex-1 min-w-0">
+                <p class="text-white text-sm truncate">{{ p.name }}</p>
+                <div class="mt-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+                  <div class="h-full bg-blue-500 rounded-full"
+                       [style.width.%]="(p.count / data()!.topCarted[0].count) * 100"></div>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <p class="text-white text-sm font-medium">{{ p.count }}</p>
+                <p class="text-gray-500 text-xs">veces</p>
+              </div>
             </div>
           }
         </div>
-        <div class="flex justify-between mt-1">
-          <span class="text-gray-600 text-xs">0h</span>
-          <span class="text-gray-600 text-xs">6h</span>
-          <span class="text-gray-600 text-xs">12h</span>
-          <span class="text-gray-600 text-xs">18h</span>
-          <span class="text-gray-600 text-xs">23h</span>
-        </div>
-      }
-    </div>
+      </div>
+    }
 
     <!-- Top products -->
     @if (data()!.topProducts.length > 0) {

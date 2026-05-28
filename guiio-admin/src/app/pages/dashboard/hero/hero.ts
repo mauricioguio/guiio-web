@@ -15,9 +15,11 @@ export class HeroPage {
   protected loading = signal(true);
   protected saving = signal(false);
   protected uploadingImage = signal(false);
+  protected uploadingImageMobile = signal(false);
   protected saved = signal(false);
 
   protected backgroundImage = signal<string | null>(null);
+  protected backgroundImageMobile = signal<string | null>(null);
   protected imagePosition = signal<string>('50% 50%');
   protected badge = signal<string>('');
   protected badgeEnabled = signal(true);
@@ -34,6 +36,7 @@ export class HeroPage {
     this.api.get().subscribe({
       next: (data) => {
         this.backgroundImage.set(data.backgroundImage);
+        this.backgroundImageMobile.set(data.backgroundImageMobile ?? null);
         this.imagePosition.set(data.imagePosition ?? '50% 50%');
         this.badge.set(data.badge ?? '');
         this.badgeEnabled.set(!!data.badge);
@@ -58,9 +61,23 @@ export class HeroPage {
     });
   }
 
+  onImagePickMobile(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.uploadingImageMobile.set(true);
+    this.cloudinary.uploadRaw(file).subscribe({
+      next: url => { this.backgroundImageMobile.set(url); this.uploadingImageMobile.set(false); },
+      error: () => this.uploadingImageMobile.set(false),
+    });
+  }
+
   removeImage() {
     this.backgroundImage.set(null);
     this.imagePosition.set('50% 50%');
+  }
+
+  removeImageMobile() {
+    this.backgroundImageMobile.set(null);
   }
 
   onFocalPointClick(event: MouseEvent) {
@@ -97,6 +114,7 @@ export class HeroPage {
     this.saving.set(true);
     const payload: Partial<HeroSettings> = {
       backgroundImage: this.backgroundImage(),
+      backgroundImageMobile: this.backgroundImageMobile(),
       imagePosition: this.imagePosition(),
       badge: this.badgeEnabled() ? (this.badge() || null) : null,
       title: this.titleEnabled() ? (this.title() || null) : null,
