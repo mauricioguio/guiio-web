@@ -546,28 +546,35 @@
             <tbody>
               @for (row of contextTableRows(); track row[0]) {
                 <tr class="border-b border-gray-100 last:border-0 transition-colors"
-                    [class.bg-blue-50]="row[0] === highlightedSize()"
-                    [class.-mx-3]="row[0] === highlightedSize()">
+                    [class.bg-blue-50]="row[0] === highlightedSize() && !calcExceeded()"
+                    [class.bg-red-50]="row[0] === highlightedSize() && calcExceeded()">
                   <td class="py-1.5 pl-1 rounded-l"
                       [class.font-bold]="row[0] === highlightedSize()"
-                      [class.text-blue-700]="row[0] === highlightedSize()"
+                      [class.text-blue-700]="row[0] === highlightedSize() && !calcExceeded()"
+                      [class.text-red-600]="row[0] === highlightedSize() && calcExceeded()"
                       [class.font-semibold]="row[0] !== highlightedSize()"
                       [class.text-gray-800]="row[0] !== highlightedSize()">
                     {{ row[0] }}
-                    @if (row[0] === highlightedSize()) {
+                    @if (row[0] === highlightedSize() && !calcExceeded()) {
                       <span class="text-blue-500 ml-1">★</span>
+                    }
+                    @if (row[0] === highlightedSize() && calcExceeded()) {
+                      <span class="text-red-400 ml-1 text-xs">✗</span>
                     }
                   </td>
                   <td class="py-1.5 text-center rounded"
-                      [class.text-blue-700]="row[0] === highlightedSize()"
+                      [class.text-blue-700]="row[0] === highlightedSize() && !calcExceeded()"
+                      [class.text-red-600]="row[0] === highlightedSize() && calcExceeded()"
                       [class.font-medium]="row[0] === highlightedSize()"
                       [class.text-gray-500]="row[0] !== highlightedSize()">{{ row[1] }}</td>
                   <td class="py-1.5 text-center rounded"
-                      [class.text-blue-700]="row[0] === highlightedSize()"
+                      [class.text-blue-700]="row[0] === highlightedSize() && !calcExceeded()"
+                      [class.text-red-600]="row[0] === highlightedSize() && calcExceeded()"
                       [class.font-medium]="row[0] === highlightedSize()"
                       [class.text-gray-500]="row[0] !== highlightedSize()">{{ row[2] }}</td>
                   <td class="py-1.5 text-center pr-1 rounded-r"
-                      [class.text-blue-700]="row[0] === highlightedSize()"
+                      [class.text-blue-700]="row[0] === highlightedSize() && !calcExceeded()"
+                      [class.text-red-600]="row[0] === highlightedSize() && calcExceeded()"
                       [class.font-medium]="row[0] === highlightedSize()"
                       [class.text-gray-500]="row[0] !== highlightedSize()">{{ row[3] }}</td>
                 </tr>
@@ -672,10 +679,10 @@
       }
 
       <!-- Resultado -->
-      @if (calcTopResult() || calcBottomResult()) {
-        <div class="px-6 pb-2 space-y-2">
-          <div class="bg-gray-900 rounded-xl px-4 py-3 flex items-center justify-between">
-            <div>
+      @if (calcTopResult() || calcBottomResult() || calcExceeded()) {
+        <div class="px-6 pb-2">
+          @if (!calcExceeded()) {
+            <div class="bg-gray-900 rounded-xl px-4 py-3">
               <p class="text-xs text-gray-400 mb-0.5">Tu talla recomendada</p>
               <div class="flex items-center gap-3">
                 @if (calcTopResult()) {
@@ -690,18 +697,8 @@
                 }
               </div>
             </div>
-          </div>
-          @if (calcExceeded()) {
-            <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex gap-3 items-start">
-              <svg class="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-              </svg>
-              <div>
-                <p class="text-xs font-semibold text-amber-800">Tus medidas superan la talla máxima disponible</p>
-                <p class="text-xs text-amber-700 mt-0.5 leading-relaxed">Te mostramos la talla más grande que tenemos, pero es posible que la prenda no quede con el ajuste ideal. Te recomendamos contactarnos antes de hacer tu pedido.</p>
-              </div>
-            </div>
+          } @else {
+            <p class="text-xs text-red-500 font-medium text-center py-1">No contamos con este tallaje</p>
           }
         </div>
       }
@@ -715,7 +712,7 @@
           Cancelar
         </button>
         <button (click)="applyCalcSizes()"
-          [disabled]="!calcTopResult() && !calcBottomResult()"
+          [disabled]="(!calcTopResult() && !calcBottomResult()) || calcExceeded()"
           class="flex-1 py-3 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
           Usar esta talla
         </button>

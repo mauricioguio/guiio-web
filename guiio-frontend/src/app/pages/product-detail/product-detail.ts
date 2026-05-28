@@ -315,35 +315,28 @@ export class ProductDetail {
     this.callAdvice(newHistory);
   }
 
-  protected readonly contextTableRows = computed(() => {
-    const rec = this.calcTopResult() ?? this.calcBottomResult();
-    const isMale = this.product()?.gender === 'hombre';
-    const all: string[][] = isMale ? [
-      ['XS','≤88','≤88','≤88'],['S','89–94','89–94','89–94'],['M','95–100','95–100','95–100'],
-      ['L','101–106','101–106','101–106'],['XL','107–112','107–112','107–112'],['XXL','113+','113+','113+'],
-    ] : [
-      ['XXS','75–79','63–67','85–89'],['XS','80–85','68–72','90–94'],['S','86–90','73–78','95–99'],['M','91–95','79–84','100–104'],
-      ['L','96–100','85–91','105–110'],['XL','101–105','92–100','111–116'],['XXL','106–112','101–108','117+'],
-    ];
-    if (!rec) return all;
-    const i = all.findIndex(r => r[0] === rec);
-    if (i === -1) return all;
-    return all.slice(Math.max(0, i - 1), Math.min(all.length, i + 2));
-  });
-
-  protected readonly highlightedSize = computed(() => this.calcTopResult() ?? this.calcBottomResult());
-
-  protected readonly calcTopExceeded = computed(() => {
-    const p = this.product();
-    if (!p?.topSizes.length) return false;
+  private readonly rawTopSize = computed(() => {
     const bust  = this.calcBust();
     const waist = this.calcWaist();
     const bustChart  = this.isMale ? TOP_CHART_M : TOP_CHART_F;
     const waistChart = this.isMale ? TOP_CHART_M : WAIST_TOP_CHART_F;
     const bustSize  = bust  && bust  > 50 && bust  < 200 ? measurementToSize(bust,  bustChart)  : null;
     const waistSize = waist && waist > 50 && waist < 200 ? measurementToSize(waist, waistChart) : null;
-    if (!bustSize && !waistSize) return false;
-    const raw = bustSize && waistSize ? largerSize(bustSize, waistSize) : (bustSize ?? waistSize!);
+    if (!bustSize && !waistSize) return null;
+    return bustSize && waistSize ? largerSize(bustSize, waistSize) : (bustSize ?? waistSize!);
+  });
+
+  private readonly rawBottomSize = computed(() => {
+    const hip = this.calcHip();
+    if (!hip || hip < 50 || hip > 200) return null;
+    return measurementToSize(hip, this.isMale ? BOTTOM_CHART_M : BOTTOM_CHART_F);
+  });
+
+  protected readonly calcTopExceeded = computed(() => {
+    const p = this.product();
+    if (!p?.topSizes.length) return false;
+    const raw = this.rawTopSize();
+    if (!raw) return false;
     const rawIdx = SIZE_ORDER.indexOf(raw.toUpperCase());
     const maxIdx = Math.max(...p.topSizes.map(s => SIZE_ORDER.indexOf(s.toUpperCase())).filter(i => i >= 0));
     return rawIdx > maxIdx;
@@ -352,15 +345,39 @@ export class ProductDetail {
   protected readonly calcBottomExceeded = computed(() => {
     const p = this.product();
     if (!p?.bottomSizes.length) return false;
-    const hip = this.calcHip();
-    if (!hip || hip < 50 || hip > 200) return false;
-    const raw = measurementToSize(hip, this.isMale ? BOTTOM_CHART_M : BOTTOM_CHART_F);
+    const raw = this.rawBottomSize();
+    if (!raw) return false;
     const rawIdx = SIZE_ORDER.indexOf(raw.toUpperCase());
     const maxIdx = Math.max(...p.bottomSizes.map(s => SIZE_ORDER.indexOf(s.toUpperCase())).filter(i => i >= 0));
     return rawIdx > maxIdx;
   });
 
   protected readonly calcExceeded = computed(() => this.calcTopExceeded() || this.calcBottomExceeded());
+
+  // When exceeded, highlight the raw (unavailable) size in red in the table
+  protected readonly highlightedSize = computed(() => {
+    if (this.calcExceeded()) return this.rawTopSize() ?? this.rawBottomSize();
+    return this.calcTopResult() ?? this.calcBottomResult();
+  });
+
+  protected readonly contextTableRows = computed(() => {
+    const isMale = this.product()?.gender === 'hombre';
+    const all: string[][] = isMale ? [
+      ['XS','≤88','≤88','≤88'],['S','89–94','89–94','89–94'],['M','95–100','95–100','95–100'],
+      ['L','101–106','101–106','101–106'],['XL','107–112','107–112','107–112'],
+      ['XXL','113–118','113–118','113–118'],['XXXL','119+','119+','119+'],
+    ] : [
+      ['XXS','75–79','63–67','85–89'],['XS','80–85','68–72','90–94'],['S','86–90','73–78','95–99'],
+      ['M','91–95','79–84','100–104'],['L','96–100','85–91','105–110'],
+      ['XL','101–105','92–100','111–116'],['XXL','106–112','101–108','117–123'],
+      ['XXXL','113+','109+','124+'],
+    ];
+    const highlight = this.highlightedSize();
+    if (!highlight) return all;
+    const i = all.findIndex(r => r[0] === highlight);
+    if (i === -1) return all;
+    return all.slice(Math.max(0, i - 1), Math.min(all.length, i + 2));
+  });
 
   applyCalcSizes() {
     const top = this.calcTopResult();
