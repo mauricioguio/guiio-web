@@ -45,6 +45,9 @@ export class PaymentResult implements OnInit {
     if (txStatus === 'APPROVED') {
       const ref = params.get('reference');
       if (ref) this.paymentService.confirmOrder(ref).subscribe();
+      const total = parseFloat(localStorage.getItem('pendingOrderTotal') ?? '0');
+      localStorage.removeItem('pendingOrderTotal');
+      (window as any).fbq?.('track', 'Purchase', { value: total, currency: 'COP' });
       this.router.navigate(['/pago/exitoso']);
       return;
     }
@@ -66,6 +69,9 @@ export class PaymentResult implements OnInit {
             localStorage.removeItem('pendingOrderRef');
             this.paymentService.confirmOrder(ref).subscribe();
           }
+          const total = parseFloat(localStorage.getItem('pendingOrderTotal') ?? '0');
+          localStorage.removeItem('pendingOrderTotal');
+          (window as any).fbq?.('track', 'Purchase', { value: total, currency: 'COP' });
           this.router.navigate(['/pago/exitoso']);
         } else if (status === 'PENDING') {
           this.router.navigate(['/pago/pendiente']);

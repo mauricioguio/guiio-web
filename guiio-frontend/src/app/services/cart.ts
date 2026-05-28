@@ -57,6 +57,13 @@ export class CartService {
       }
       return [...items, { product, quantity: 1, selectedColor: color, selectedTopSize: topSize, selectedBottomSize: bottomSize }];
     });
+    (window as any).fbq?.('track', 'AddToCart', {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: 'product',
+      value: product.price,
+      currency: 'COP',
+    });
     this.isOpen.set(true);
   }
 

@@ -189,6 +189,18 @@ export class ProductDetail {
   protected readonly aiErrored = signal(false);
 
   constructor() {
+    effect(() => {
+      const p = this.product();
+      if (!p) return;
+      (window as any).fbq?.('track', 'ViewContent', {
+        content_name: p.name,
+        content_ids: [p.id],
+        content_type: 'product',
+        value: p.price,
+        currency: 'COP',
+      });
+    });
+
     // Re-call AI when fit preference changes (if advice already shown and no error)
     effect(() => {
       const fit = this.fitPreference();

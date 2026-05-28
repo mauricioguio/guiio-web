@@ -20,6 +20,7 @@ export class App {
     this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd),
     ).subscribe(e => {
+      (window as any).fbq?.('track', 'PageView');
       this.http.post('https://api.guiiouniformes.com/api/track', { path: e.urlAfterRedirects })
         .subscribe({ error: () => null });
     });

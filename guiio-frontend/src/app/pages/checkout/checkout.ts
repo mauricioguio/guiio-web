@@ -45,6 +45,12 @@ export class Checkout {
     this.loading.set(true);
     this.error.set(false);
 
+    (window as any).fbq?.('track', 'InitiateCheckout', {
+      value: this.cart.total(),
+      currency: 'COP',
+      num_items: this.cart.totalItems(),
+    });
+
     const v = this.form.getRawValue();
 
     if (this.paymentMethod() === 'addi') {
@@ -72,8 +78,9 @@ export class Checkout {
         city:      v.city!,
         notes:     v.notes,
       }).subscribe({
-        next: ({ checkoutUrl, reference }) => {
+        next: ({ checkoutUrl, reference, total }) => {
           localStorage.setItem('pendingOrderRef', reference);
+          localStorage.setItem('pendingOrderTotal', String(total));
           window.location.href = checkoutUrl;
         },
         error: () => { this.loading.set(false); this.error.set(true); },
