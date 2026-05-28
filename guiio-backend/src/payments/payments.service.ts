@@ -150,31 +150,38 @@ export class PaymentsService {
         : null;
 
       if (orderStatus) {
-        await this.prisma.order.updateMany({
-          where: { reference },
-          data: { status: orderStatus as any, wompiTxId },
-        });
-
         if (orderStatus === 'PAID') {
-          const order = await this.prisma.order.findUnique({
-            where: { reference },
-            include: { customer: true, items: true },
+          const updated = await this.prisma.order.updateMany({
+            where: { reference, status: { not: 'PAID' as any } },
+            data: { status: 'PAID' as any, wompiTxId },
           });
-          if (order) {
-            await this.email.sendOrderConfirmation({
-              reference: order.reference,
-              customerName: order.customer.name,
-              customerEmail: order.customer.email,
-              customerPhone: order.customer.phone,
-              address: order.address,
-              city: order.city,
-              notes: order.notes,
-              total: order.total,
-              shipping: order.shipping,
-              discount: order.discount,
-              items: order.items,
+
+          if (updated.count > 0) {
+            const order = await this.prisma.order.findUnique({
+              where: { reference },
+              include: { customer: true, items: true },
             });
+            if (order) {
+              await this.email.sendOrderConfirmation({
+                reference: order.reference,
+                customerName: order.customer.name,
+                customerEmail: order.customer.email,
+                customerPhone: order.customer.phone,
+                address: order.address,
+                city: order.city,
+                notes: order.notes,
+                total: order.total,
+                shipping: order.shipping,
+                discount: order.discount,
+                items: order.items,
+              });
+            }
           }
+        } else {
+          await this.prisma.order.updateMany({
+            where: { reference },
+            data: { status: orderStatus as any, wompiTxId },
+          });
         }
       }
     } catch (err) {
