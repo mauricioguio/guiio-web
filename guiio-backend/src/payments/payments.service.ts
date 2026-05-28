@@ -31,9 +31,10 @@ export class PaymentsService {
     const currency = 'COP';
     const redirectUrl = `${this.frontendUrl}/pago/resultado`;
 
-    const sigString = `${reference}${amountInCents}${currency}${this.integritySecret}`;
+    const integritySecret = this.integritySecret?.trim();
+    const sigString = `${reference}${amountInCents}${currency}${integritySecret}`;
     this.logger.log(`WOMPI sig string (sin secret): ${reference}${amountInCents}${currency}[SECRET]`);
-    this.logger.log(`WOMPI publicKey prefix: ${this.publicKey?.slice(0, 12)}`);
+    this.logger.log(`WOMPI publicKey prefix: ${this.publicKey?.trim().slice(0, 12)}, secretLen: ${this.integritySecret?.length}, secretTrimmedLen: ${integritySecret?.length}`);
 
     const signature = createHash('sha256')
       .update(sigString)
