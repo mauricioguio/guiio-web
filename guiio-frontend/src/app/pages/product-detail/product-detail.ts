@@ -241,8 +241,11 @@ export class ProductDetail {
     const waist = this.calcWaist();
     const p = this.product();
     if (!p?.topSizes.length) return null;
-    const bustChart  = this.isMale ? TOP_CHART_M    : TOP_CHART_F;
-    const waistChart = this.isMale ? TOP_CHART_M    : WAIST_TOP_CHART_F;
+    const bustChart  = this.isMale ? TOP_CHART_M : TOP_CHART_F;
+    // For men: if waist exceeds chest, the belly is the bottleneck — use WAIST_CHART_M
+    const waistChart = this.isMale
+      ? (waist && bust && waist > bust ? WAIST_CHART_M : TOP_CHART_M)
+      : WAIST_TOP_CHART_F;
     const bustSize  = bust  && bust  > 50 && bust  < 200 ? measurementToSize(bust,  bustChart)  : null;
     const waistSize = waist && waist > 50 && waist < 200 ? measurementToSize(waist, waistChart) : null;
     if (!bustSize && !waistSize) return null;

@@ -82,11 +82,12 @@
         <!-- Calculadora de tallas -->
         @if (p.type === 'conjunto' || p.type === 'top' || p.type === 'bottom') {
           <button (click)="openCalc()"
-            class="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 underline underline-offset-2 mb-5 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M2 12h20M12 2v20"/><circle cx="12" cy="12" r="10"/>
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold bg-gray-900 text-white shadow-sm hover:bg-gray-700 hover:-translate-y-px hover:shadow-md transition-all duration-200 mb-5 group">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-yellow-300 group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2z"/>
             </svg>
             ¿Cuál es mi talla?
+            <span class="bg-yellow-300/20 border border-yellow-300/40 text-yellow-300 text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none tracking-wide">IA</span>
           </button>
         }
 
