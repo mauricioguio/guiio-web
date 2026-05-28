@@ -333,6 +333,35 @@ export class ProductDetail {
 
   protected readonly highlightedSize = computed(() => this.calcTopResult() ?? this.calcBottomResult());
 
+  protected readonly calcTopExceeded = computed(() => {
+    const p = this.product();
+    if (!p?.topSizes.length) return false;
+    const bust  = this.calcBust();
+    const waist = this.calcWaist();
+    const bustChart  = this.isMale ? TOP_CHART_M : TOP_CHART_F;
+    const waistChart = this.isMale ? TOP_CHART_M : WAIST_TOP_CHART_F;
+    const bustSize  = bust  && bust  > 50 && bust  < 200 ? measurementToSize(bust,  bustChart)  : null;
+    const waistSize = waist && waist > 50 && waist < 200 ? measurementToSize(waist, waistChart) : null;
+    if (!bustSize && !waistSize) return false;
+    const raw = bustSize && waistSize ? largerSize(bustSize, waistSize) : (bustSize ?? waistSize!);
+    const rawIdx = SIZE_ORDER.indexOf(raw.toUpperCase());
+    const maxIdx = Math.max(...p.topSizes.map(s => SIZE_ORDER.indexOf(s.toUpperCase())).filter(i => i >= 0));
+    return rawIdx > maxIdx;
+  });
+
+  protected readonly calcBottomExceeded = computed(() => {
+    const p = this.product();
+    if (!p?.bottomSizes.length) return false;
+    const hip = this.calcHip();
+    if (!hip || hip < 50 || hip > 200) return false;
+    const raw = measurementToSize(hip, this.isMale ? BOTTOM_CHART_M : BOTTOM_CHART_F);
+    const rawIdx = SIZE_ORDER.indexOf(raw.toUpperCase());
+    const maxIdx = Math.max(...p.bottomSizes.map(s => SIZE_ORDER.indexOf(s.toUpperCase())).filter(i => i >= 0));
+    return rawIdx > maxIdx;
+  });
+
+  protected readonly calcExceeded = computed(() => this.calcTopExceeded() || this.calcBottomExceeded());
+
   applyCalcSizes() {
     const top = this.calcTopResult();
     const bot = this.calcBottomResult();
