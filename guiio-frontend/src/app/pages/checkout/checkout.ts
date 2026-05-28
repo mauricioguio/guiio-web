@@ -25,7 +25,7 @@ export class Checkout {
     name:      ['', [Validators.required, Validators.minLength(3)]],
     email:     ['', [Validators.required, Validators.email]],
     phone:     ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
-    docNumber: [''],
+    docNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{6,12}$/)]],
     address:   ['', [Validators.required, Validators.minLength(5)]],
     reference: [''],
     city:      ['', Validators.required],
@@ -34,13 +34,6 @@ export class Checkout {
 
   selectMethod(method: 'wompi' | 'addi') {
     this.paymentMethod.set(method);
-    const ctrl = this.form.get('docNumber')!;
-    if (method === 'addi') {
-      ctrl.setValidators([Validators.required, Validators.pattern(/^[0-9]{6,12}$/)]);
-    } else {
-      ctrl.clearValidators();
-    }
-    ctrl.updateValueAndValidity();
   }
 
   submit() {
@@ -73,6 +66,7 @@ export class Checkout {
         name:      v.name!,
         email:     v.email!,
         phone:     v.phone!,
+        cedula:    v.docNumber,
         address:   v.address!,
         reference: v.reference,
         city:      v.city!,

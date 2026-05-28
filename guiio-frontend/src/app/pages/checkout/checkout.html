@@ -108,21 +108,18 @@
             }
           </div>
 
-          <!-- Cédula — solo requerida para ADDI -->
-          @if (paymentMethod() === 'addi') {
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Número de cédula *</label>
-              <input formControlName="docNumber" type="text" placeholder="Ej: 1023456789"
-                class="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-colors
-                       focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
-                [class.border-red-400]="isInvalid('docNumber')"
-                [class.border-gray-200]="!isInvalid('docNumber')">
-              @if (isInvalid('docNumber')) {
-                <p class="text-xs text-red-500 mt-1">Ingresa tu número de cédula (6–12 dígitos)</p>
-              }
-              <p class="text-xs text-gray-400 mt-1">ADDI la usa para aprobar tu crédito al instante</p>
-            </div>
-          }
+          <!-- Cédula -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Número de cédula *</label>
+            <input formControlName="docNumber" type="text" placeholder="Ej: 1023456789"
+              class="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-colors
+                     focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+              [class.border-red-400]="isInvalid('docNumber')"
+              [class.border-gray-200]="!isInvalid('docNumber')">
+            @if (isInvalid('docNumber')) {
+              <p class="text-xs text-red-500 mt-1">Ingresa tu número de cédula (6–12 dígitos)</p>
+            }
+          </div>
         </div>
 
         <div class="bg-white border border-gray-100 rounded-2xl p-6 space-y-5">

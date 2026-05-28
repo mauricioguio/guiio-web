@@ -54,11 +54,12 @@ export class PaymentsService {
 
       const customer = await this.prisma.customer.upsert({
         where: { email: dto.customer.email },
-        update: { phone: dto.customer.phone },
+        update: { phone: dto.customer.phone, ...(dto.customer.cedula ? { cedula: dto.customer.cedula } : {}) },
         create: {
           name: dto.customer.name,
           email: dto.customer.email,
           phone: dto.customer.phone,
+          cedula: dto.customer.cedula ?? null,
         },
       });
 
@@ -122,6 +123,7 @@ export class PaymentsService {
         customerName: order.customer.name,
         customerEmail: order.customer.email,
         customerPhone: order.customer.phone,
+        customerCedula: order.customer.cedula,
         address: order.address,
         city: order.city,
         notes: order.notes,

@@ -31,6 +31,7 @@ export class PaymentService {
 
   createPreference(customer: {
     name: string; email: string; phone: string;
+    cedula?: string | null;
     address: string; reference?: string | null;
     city: string; notes?: string | null;
   }) {

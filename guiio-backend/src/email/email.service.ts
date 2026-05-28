@@ -16,6 +16,7 @@ interface OrderEmailData {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  customerCedula?: string | null;
   address: string;
   city: string;
   notes?: string | null;
@@ -154,6 +155,7 @@ export class EmailService {
             <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#111;">Cliente</p>
             <p style="margin:0;font-size:14px;color:#444;">${data.customerName} &nbsp;·&nbsp; ${data.customerPhone}</p>
             <p style="margin:2px 0 0;font-size:14px;color:#444;">${data.customerEmail}</p>
+            ${data.customerCedula ? `<p style="margin:2px 0 0;font-size:14px;color:#444;">CC: ${data.customerCedula}</p>` : ''}
             <p style="margin:12px 0 4px;font-size:13px;font-weight:600;color:#111;">Envío a</p>
             <p style="margin:0;font-size:14px;color:#444;">${data.address}, ${data.city}</p>
             ${data.notes ? `<p style="margin:4px 0 0;font-size:13px;color:#888;">Nota: ${data.notes}</p>` : ''}

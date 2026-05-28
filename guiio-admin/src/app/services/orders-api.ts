@@ -26,7 +26,7 @@ export interface Order {
   notes: string | null;
   wompiTxId: string | null;
   createdAt: string;
-  customer: { id: string; name: string; email: string; phone: string };
+  customer: { id: string; name: string; email: string; phone: string; cedula?: string | null };
   items: OrderItem[];
 }
 

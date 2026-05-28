@@ -143,6 +143,7 @@ model Customer {
   name      String
   email     String   @unique
   phone     String
+  cedula    String?
   createdAt DateTime @default(now())
 
   orders Order[]

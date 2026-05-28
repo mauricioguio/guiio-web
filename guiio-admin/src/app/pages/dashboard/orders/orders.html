@@ -141,6 +141,9 @@
             <p class="text-white text-sm font-medium">{{ selectedOrder()!.customer.name }}</p>
             <p class="text-gray-400 text-sm">{{ selectedOrder()!.customer.email }}</p>
             <p class="text-gray-400 text-sm">{{ selectedOrder()!.customer.phone }}</p>
+            @if (selectedOrder()!.customer.cedula) {
+              <p class="text-gray-500 text-xs mt-1">CC: {{ selectedOrder()!.customer.cedula }}</p>
+            }
           </div>
         </div>
 

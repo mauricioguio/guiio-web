@@ -13,6 +13,7 @@ export class CustomerDto {
   name: string;
   email: string;
   phone: string;
+  cedula?: string;
   address: string;
   reference?: string;
   city: string;
