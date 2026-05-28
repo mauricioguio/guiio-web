@@ -25,14 +25,18 @@ export class PaymentsService {
   async createCheckout(dto: CreatePreferenceDto) {
     const subtotal = dto.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
     const total = subtotal - dto.discount + dto.shipping;
-    const amountInCents = total * 100;
+    const amountInCents = Math.round(total * 100);
 
     const reference = `GUIIO-${Date.now()}-${randomUUID().slice(0, 8).toUpperCase()}`;
     const currency = 'COP';
     const redirectUrl = `${this.frontendUrl}/pago/resultado`;
 
+    const sigString = `${reference}${amountInCents}${currency}${this.integritySecret}`;
+    this.logger.log(`WOMPI sig string (sin secret): ${reference}${amountInCents}${currency}[SECRET]`);
+    this.logger.log(`WOMPI publicKey prefix: ${this.publicKey?.slice(0, 12)}`);
+
     const signature = createHash('sha256')
-      .update(`${reference}${amountInCents}${currency}${this.integritySecret}`)
+      .update(sigString)
       .digest('hex');
 
     const checkoutUrl =
