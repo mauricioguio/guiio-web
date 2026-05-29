@@ -25,7 +25,38 @@
     </div>
   </div>
 
-  <!-- Filtros -->
+  <!-- Filtros de fecha -->
+  <div class="mb-4">
+    <div class="flex gap-2 flex-wrap mb-2">
+      @for (p of DATE_PRESETS; track p.value) {
+        <button
+          (click)="setDatePreset(p.value)"
+          class="px-3 py-1.5 rounded-xl text-xs font-medium transition-colors"
+          [class]="datePreset() === p.value
+            ? 'bg-indigo-600 text-white'
+            : 'bg-gray-900 border border-gray-800 text-gray-400 hover:text-white'"
+        >
+          {{ p.label }}
+        </button>
+      }
+    </div>
+    @if (datePreset() === 'custom') {
+      <div class="flex gap-3 items-center mt-2">
+        <input type="date" [ngModel]="customFrom()" (ngModelChange)="customFrom.set($event)"
+          class="bg-gray-900 border border-gray-700 text-gray-300 text-xs rounded-xl px-3 py-2 outline-none focus:border-indigo-500">
+        <span class="text-gray-500 text-xs">→</span>
+        <input type="date" [ngModel]="customTo()" (ngModelChange)="customTo.set($event)"
+          class="bg-gray-900 border border-gray-700 text-gray-300 text-xs rounded-xl px-3 py-2 outline-none focus:border-indigo-500">
+        @if (filtered().length > 0) {
+          <span class="text-gray-500 text-xs ml-2">{{ filtered().length }} pedido{{ filtered().length !== 1 ? 's' : '' }} · {{ formatPrice(totalFiltered()) }}</span>
+        }
+      </div>
+    } @else if (datePreset() !== 'all') {
+      <p class="text-gray-500 text-xs mt-1">{{ filtered().length }} pedido{{ filtered().length !== 1 ? 's' : '' }} · {{ formatPrice(totalFiltered()) }} en ventas pagadas</p>
+    }
+  </div>
+
+  <!-- Filtros de estado -->
   <div class="flex gap-2 mb-4 flex-wrap">
     @for (f of FILTERS; track f.value) {
       <button

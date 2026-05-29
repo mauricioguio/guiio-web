@@ -1,6 +1,13 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { OrdersApiService, Order } from '../../../services/orders-api';
+
+type DatePreset = 'today' | 'yesterday' | 'week' | 'month' | 'custom' | 'all';
+
+function startOfDay(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING: 'Pendiente',
@@ -20,7 +27,7 @@ const STATUS_NEXT: Record<string, string[]> = {
 
 @Component({
   selector: 'app-orders',
-  imports: [DatePipe],
+  imports: [DatePipe, FormsModule],
   templateUrl: './orders.html',
 })
 export class Orders {
@@ -32,6 +39,10 @@ export class Orders {
   protected activeFilter = signal<string>('');
   protected selectedOrder = signal<Order | null>(null);
   protected updatingId = signal<string | null>(null);
+
+  protected datePreset = signal<DatePreset>('all');
+  protected customFrom = signal<string>('');
+  protected customTo = signal<string>('');
 
   protected readonly STATUS_LABELS = STATUS_LABELS;
   protected readonly STATUS_NEXT = STATUS_NEXT;
@@ -45,23 +56,71 @@ export class Orders {
     { value: 'CANCELLED', label: 'Cancelados' },
   ];
 
-  protected counts = computed(() => {
-    const all = this.orders();
-    return {
-      PENDING: all.filter(o => o.status === 'PENDING').length,
-      PAID: all.filter(o => o.status === 'PAID').length,
-      SHIPPED: all.filter(o => o.status === 'SHIPPED').length,
-    };
+  protected readonly DATE_PRESETS: { value: DatePreset; label: string }[] = [
+    { value: 'all',       label: 'Todo' },
+    { value: 'today',     label: 'Hoy' },
+    { value: 'yesterday', label: 'Ayer' },
+    { value: 'week',      label: 'Esta semana' },
+    { value: 'month',     label: 'Este mes' },
+    { value: 'custom',    label: 'Personalizado' },
+  ];
+
+  private dateRange = computed<{ from: Date | null; to: Date | null }>(() => {
+    const now = new Date();
+    const preset = this.datePreset();
+    if (preset === 'today') {
+      return { from: startOfDay(now), to: null };
+    }
+    if (preset === 'yesterday') {
+      const y = new Date(now); y.setDate(y.getDate() - 1);
+      return { from: startOfDay(y), to: startOfDay(now) };
+    }
+    if (preset === 'week') {
+      const d = new Date(now); d.setDate(d.getDate() - d.getDay());
+      return { from: startOfDay(d), to: null };
+    }
+    if (preset === 'month') {
+      return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: null };
+    }
+    if (preset === 'custom') {
+      const from = this.customFrom() ? new Date(this.customFrom() + 'T00:00:00') : null;
+      const to   = this.customTo()   ? new Date(this.customTo()   + 'T23:59:59') : null;
+      return { from, to };
+    }
+    return { from: null, to: null };
+  });
+
+  private dateFiltered = computed(() => {
+    const { from, to } = this.dateRange();
+    return this.orders().filter(o => {
+      const d = new Date(o.createdAt);
+      if (from && d < from) return false;
+      if (to   && d > to)   return false;
+      return true;
+    });
   });
 
   protected filtered = computed(() => {
     const f = this.activeFilter();
-    return f ? this.orders().filter(o => o.status === f) : this.orders();
+    return f ? this.dateFiltered().filter(o => o.status === f) : this.dateFiltered();
   });
 
-  constructor() {
-    this.load();
-  }
+  protected counts = computed(() => {
+    const all = this.dateFiltered();
+    return {
+      PENDING: all.filter(o => o.status === 'PENDING').length,
+      PAID:    all.filter(o => o.status === 'PAID').length,
+      SHIPPED: all.filter(o => o.status === 'SHIPPED').length,
+    };
+  });
+
+  protected totalFiltered = computed(() =>
+    this.filtered()
+      .filter(o => o.status === 'PAID')
+      .reduce((sum, o) => sum + o.total, 0)
+  );
+
+  constructor() { this.load(); }
 
   load() {
     this.loading.set(true);
@@ -72,17 +131,10 @@ export class Orders {
     });
   }
 
-  setFilter(value: string) {
-    this.activeFilter.set(value);
-  }
-
-  openDetail(order: Order) {
-    this.selectedOrder.set(order);
-  }
-
-  closeDetail() {
-    this.selectedOrder.set(null);
-  }
+  setFilter(value: string) { this.activeFilter.set(value); }
+  setDatePreset(p: DatePreset) { this.datePreset.set(p); }
+  openDetail(order: Order) { this.selectedOrder.set(order); }
+  closeDetail() { this.selectedOrder.set(null); }
 
   changeStatus(order: Order, newStatus: string) {
     this.updatingId.set(order.id);
