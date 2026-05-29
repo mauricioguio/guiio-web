@@ -21,17 +21,24 @@ export class CartService {
     this.items().reduce((sum, item) => sum + item.product.price * item.quantity, 0)
   );
 
-  readonly hasDiscount = computed(() => this.items().length >= 2);
+  readonly hasDiscount = computed(() => this.totalItems() >= 2);
 
   readonly discount = computed(() => {
     const items = this.items();
-    const pairs = Math.floor(items.length / 2);
-    if (pairs === 0) return 0;
-    const sorted = [...items].sort((a, b) => a.product.price - b.product.price);
-    return sorted.slice(0, pairs).reduce((sum, item) => sum + item.product.price * item.quantity * 0.2, 0);
+    // Expand each item into individual units by quantity
+    const units: number[] = [];
+    for (const item of items) {
+      for (let i = 0; i < item.quantity; i++) units.push(item.product.price);
+    }
+    if (units.length < 2) return 0;
+    // Sort descending: most expensive first — every odd-indexed unit (2nd, 4th…) gets 20% off
+    units.sort((a, b) => b - a);
+    let total = 0;
+    for (let i = 1; i < units.length; i += 2) total += units[i] * 0.2;
+    return total;
   });
 
-  readonly shipping = computed(() => this.subtotal() >= 500000 ? 0 : 10000);
+  readonly shipping = computed(() => this.subtotal() >= 300000 ? 0 : 10000);
 
   readonly total = computed(() => this.subtotal() - this.discount() + this.shipping());
 
