@@ -135,14 +135,11 @@ model Inventory {
 }
 
 model SellerCustomer {
-  id        String   @id @default(cuid())
-  phone     String
+  phone     String   @id
   empresa   String   @default("GUIIO")
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@unique([phone, empresa])
 }
 
 model Customer {

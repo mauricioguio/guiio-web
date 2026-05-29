@@ -43,12 +43,12 @@ export class SellerService {
   }
 
   async findCustomer(phone: string, empresa = 'GUIIO') {
-    return this.prisma.sellerCustomer.findUnique({ where: { phone_empresa: { phone, empresa } } });
+    return this.prisma.sellerCustomer.findUnique({ where: { phone } });
   }
 
   async createCustomer(phone: string, name: string, empresa = 'GUIIO') {
     return this.prisma.sellerCustomer.upsert({
-      where: { phone_empresa: { phone, empresa } },
+      where: { phone },
       update: { name },
       create: { phone, name, empresa },
     });
