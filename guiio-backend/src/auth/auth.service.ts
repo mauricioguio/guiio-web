@@ -35,13 +35,6 @@ export class AuthService {
       return { token, role: 'vendedor', username, empresa: 'GUIIO' };
     }
 
-    // DIMAG vendor: DIMAG_VENDOR_<USERNAME>=<password>
-    const dimagVendorPass = this.config.get<string>(`DIMAG_VENDOR_${username.toUpperCase()}`);
-    if (dimagVendorPass && password === dimagVendorPass) {
-      const token = this.jwt.sign({ sub: username, role: 'vendedor', empresa: 'DIMAG' });
-      return { token, role: 'vendedor', username, empresa: 'DIMAG' };
-    }
-
     throw new UnauthorizedException('Credenciales incorrectas');
   }
 }
