@@ -52,13 +52,16 @@ model CollectionProduct {
 
 model Sede {
   id        String      @id @default(cuid())
-  name      String      @unique
+  name      String
+  empresa   String      @default("GUIIO")
   pin       String?
   active    Boolean     @default(true)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
   inventory Inventory[]
   sales     Sale[]
+
+  @@unique([name, empresa])
 }
 
 model Sale {
@@ -132,10 +135,14 @@ model Inventory {
 }
 
 model SellerCustomer {
-  phone     String   @id
+  id        String   @id @default(cuid())
+  phone     String
+  empresa   String   @default("GUIIO")
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([phone, empresa])
 }
 
 model Customer {

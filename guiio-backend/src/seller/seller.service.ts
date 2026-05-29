@@ -13,9 +13,9 @@ export class SellerService {
     return { id: sede.id, name: sede.name };
   }
 
-  async getSedes() {
+  async getSedes(empresa = 'GUIIO') {
     return this.prisma.sede.findMany({
-      where: { active: true },
+      where: { active: true, empresa },
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
     });
@@ -42,15 +42,15 @@ export class SellerService {
     return products.map(p => ({ ...p, type: p.type.toLowerCase() }));
   }
 
-  async findCustomer(phone: string) {
-    return this.prisma.sellerCustomer.findUnique({ where: { phone } });
+  async findCustomer(phone: string, empresa = 'GUIIO') {
+    return this.prisma.sellerCustomer.findUnique({ where: { phone_empresa: { phone, empresa } } });
   }
 
-  async createCustomer(phone: string, name: string) {
+  async createCustomer(phone: string, name: string, empresa = 'GUIIO') {
     return this.prisma.sellerCustomer.upsert({
-      where: { phone },
+      where: { phone_empresa: { phone, empresa } },
       update: { name },
-      create: { phone, name },
+      create: { phone, name, empresa },
     });
   }
 
@@ -132,8 +132,9 @@ export class SellerService {
     });
   }
 
-  async getAllSales() {
+  async getAllSales(empresa = 'GUIIO') {
     return this.prisma.sale.findMany({
+      where: { sede: { empresa } },
       include: { items: true, payments: { orderBy: { createdAt: 'asc' } }, sede: { select: { id: true, name: true } } },
       orderBy: { createdAt: 'desc' },
     });
@@ -187,8 +188,9 @@ export class SellerService {
     return this.getFabricarOrder(saleId);
   }
 
-  async getNextOrderNumber(): Promise<{ nextOrderNumber: number }> {
+  async getNextOrderNumber(empresa = 'GUIIO'): Promise<{ nextOrderNumber: number }> {
     const last = await this.prisma.sale.findFirst({
+      where: { sede: { empresa } },
       orderBy: { orderNumber: 'desc' },
       select: { orderNumber: true },
     });

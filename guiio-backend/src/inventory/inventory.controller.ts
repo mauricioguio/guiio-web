@@ -1,19 +1,15 @@
-import {
-  Controller, Get, Put, Body, UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Put, Body, UseGuards, Request } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 
 @Controller('inventory')
 @UseGuards(JwtAuthGuard)
 export class InventoryController {
-  constructor(
-    private readonly inventoryService: InventoryService,
-  ) {}
+  constructor(private readonly inventoryService: InventoryService) {}
 
   @Get()
-  findAll() {
-    return this.inventoryService.findAll();
+  findAll(@Request() req: any) {
+    return this.inventoryService.findAll(req.user?.empresa ?? 'GUIIO');
   }
 
   @Put()

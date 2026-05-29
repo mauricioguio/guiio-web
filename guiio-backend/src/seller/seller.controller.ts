@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Put, Patch, Param, Body, Headers,
+  Controller, Get, Post, Put, Patch, Param, Body, Headers, Request,
   CanActivate, ExecutionContext, Injectable, UseGuards, UnauthorizedException,
 } from '@nestjs/common';
 import { SellerService } from './seller.service';
@@ -16,7 +16,8 @@ class SellerGuard implements CanActivate {
     if (!sedeId || !pin) throw new UnauthorizedException('Credenciales requeridas');
     const sede = await this.prisma.sede.findUnique({ where: { id: sedeId } });
     if (!sede || !sede.pin || sede.pin !== pin) throw new UnauthorizedException('PIN incorrecto');
-    req.sedeId = sedeId;
+    req.sedeId  = sedeId;
+    req.empresa = sede.empresa ?? 'GUIIO';
     return true;
   }
 }
@@ -30,19 +31,19 @@ export class SellerController {
 
   @Get('customers/:phone')
   @UseGuards(SellerGuard)
-  findCustomer(@Param('phone') phone: string) {
-    return this.sellerService.findCustomer(phone);
+  findCustomer(@Param('phone') phone: string, @Request() req: any) {
+    return this.sellerService.findCustomer(phone, req.empresa);
   }
 
   @Post('customers')
   @UseGuards(SellerGuard)
-  createCustomer(@Body('phone') phone: string, @Body('name') name: string) {
-    return this.sellerService.createCustomer(phone, name);
+  createCustomer(@Body('phone') phone: string, @Body('name') name: string, @Request() req: any) {
+    return this.sellerService.createCustomer(phone, name, req.empresa);
   }
 
   @Get('sedes')
-  getSedes() {
-    return this.sellerService.getSedes();
+  getSedes(@Headers('x-empresa') empresa?: string) {
+    return this.sellerService.getSedes(empresa ?? 'GUIIO');
   }
 
   @Post('auth')
@@ -88,8 +89,8 @@ export class SellerController {
 
   @Get('admin/sales')
   @UseGuards(JwtAuthGuard)
-  getAllSales() {
-    return this.sellerService.getAllSales();
+  getAllSales(@Request() req: any) {
+    return this.sellerService.getAllSales(req.user?.empresa ?? 'GUIIO');
   }
 
   @Patch('admin/sales/:id/status')
@@ -100,8 +101,8 @@ export class SellerController {
 
   @Get('next-order-number')
   @UseGuards(SellerGuard)
-  getNextOrderNumber() {
-    return this.sellerService.getNextOrderNumber();
+  getNextOrderNumber(@Request() req: any) {
+    return this.sellerService.getNextOrderNumber(req.empresa);
   }
 
 // ── Fabricar orders (seller) ──────────────────────────────────────────────

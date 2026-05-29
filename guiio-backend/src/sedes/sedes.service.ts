@@ -5,12 +5,12 @@ import { PrismaService } from '../prisma/prisma.service';
 export class SedesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
-    return this.prisma.sede.findMany({ orderBy: { name: 'asc' } });
+  findAll(empresa = 'GUIIO') {
+    return this.prisma.sede.findMany({ where: { empresa }, orderBy: { name: 'asc' } });
   }
 
-  create(data: { name: string }) {
-    return this.prisma.sede.create({ data });
+  create(data: { name: string }, empresa = 'GUIIO') {
+    return this.prisma.sede.create({ data: { ...data, empresa } });
   }
 
   update(id: string, data: { name?: string; active?: boolean; pin?: string | null }) {

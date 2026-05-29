@@ -5,8 +5,9 @@ import { PrismaService } from '../prisma/prisma.service';
 export class InventoryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(empresa = 'GUIIO') {
     const items = await this.prisma.inventory.findMany({
+      where: { sede: { empresa } },
       include: { sede: true },
       orderBy: [{ productId: 'asc' }, { size: 'asc' }],
     });
