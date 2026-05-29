@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
-import { AbandonedCartsService, SaveCartDto } from './abandoned-carts.service';
+import { AbandonedCartsService } from './abandoned-carts.service';
+import type { SaveCartDto } from './abandoned-carts.service';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 
 @Controller('abandoned-carts')
