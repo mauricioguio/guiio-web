@@ -1,4 +1,5 @@
 import { Component, inject, signal, computed, effect, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { BrandService } from '../../services/brand';
 import html2canvas from 'html2canvas';
 import { Router, RouterLink } from '@angular/router';
 import { of } from 'rxjs';
@@ -28,9 +29,10 @@ function productSizes(p: Product): string[] {
   templateUrl: './pos.html',
 })
 export class Pos implements OnInit, OnDestroy {
-  private readonly api = inject(SellerApiService);
-  readonly auth = inject(AuthService);
+  private readonly api  = inject(SellerApiService);
+  readonly auth         = inject(AuthService);
   private readonly router = inject(Router);
+  readonly brand        = inject(BrandService);
 
   protected products = signal<Product[]>([]);
   protected inventory = signal<InventoryItem[]>([]);
@@ -337,8 +339,8 @@ export class Pos implements OnInit, OnDestroy {
     const wa = digits.startsWith('57') ? digits : `57${digits}`;
     const firstName = this.customerName().trim().split(' ')[0];
     const waText = firstName
-      ? `Hola ${firstName}, aquí está tu recibo de Guiio 🛍️`
-      : 'Hola, aquí está tu recibo de Guiio 🛍️';
+      ? `Hola ${firstName}, aquí está tu recibo de ${this.brand.nombre} 🛍️`
+      : 'Hola, aquí está tu recibo de ${this.brand.nombre} 🛍️';
 
     this.api.createSale({
       type: this.saleType(),

@@ -2,15 +2,17 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { SellerApiService, Sede } from '../../services/seller-api';
 import { AuthService } from '../../services/auth';
+import { BrandService } from '../../services/brand';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.html',
 })
 export class Login implements OnInit {
-  private readonly api = inject(SellerApiService);
+  private readonly api  = inject(SellerApiService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  protected readonly brand = inject(BrandService);
 
   protected sedes = signal<Sede[]>([]);
   protected selectedSede = signal<Sede | null>(null);

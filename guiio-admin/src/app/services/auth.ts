@@ -2,7 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
-const API_URL = 'https://guiio-web-production.up.railway.app/api';
+const API_URL = 'https://api.guiiouniformes.com/api';
 const SESSION_KEY = 'guiio-admin-session';
 const VENDORS_KEY  = 'guiio-admin-vendors';
 
@@ -15,9 +15,10 @@ export interface AppUser {
 }
 
 interface SessionData {
-  token: string | null;  // JWT (admin) | null (vendedor local)
+  token: string | null;
   role: UserRole;
   username: string;
+  empresa: string;
 }
 
 interface VendorEntry { id: string; username: string; password: string; }
@@ -34,6 +35,7 @@ export class AuthService {
 
   readonly isLoggedIn = computed(() => this._session() !== null);
   readonly isAdmin   = computed(() => this._session()?.role === 'admin');
+  readonly empresa   = computed(() => this._session()?.empresa ?? 'GUIIO');
 
   getToken(): string | null {
     return this._session()?.token ?? null;
@@ -43,12 +45,12 @@ export class AuthService {
     // Try backend first (admin + env-var vendors)
     try {
       const res = await firstValueFrom(
-        this.http.post<{ token: string; role: string; username: string }>(
+        this.http.post<{ token: string; role: string; username: string; empresa: string }>(
           `${API_URL}/auth/login`,
           { username, password },
         ),
       );
-      const session: SessionData = { token: res.token, role: res.role as UserRole, username: res.username };
+      const session: SessionData = { token: res.token, role: res.role as UserRole, username: res.username, empresa: res.empresa ?? 'GUIIO' };
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
       this._session.set(session);
       return true;
@@ -57,7 +59,7 @@ export class AuthService {
     // Local vendor fallback (for vendors managed through the admin UI)
     const vendor = this.getLocalVendors().find(v => v.username === username && v.password === password);
     if (vendor) {
-      const session: SessionData = { token: null, role: 'vendedor', username: vendor.username };
+      const session: SessionData = { token: null, role: 'vendedor', username: vendor.username, empresa: 'GUIIO' };
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
       this._session.set(session);
       return true;

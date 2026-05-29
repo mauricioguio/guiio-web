@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import html2canvas from 'html2canvas';
 import { SellerApiService, FabricarOrder, FabricarItem, SalePayment } from '../../services/seller-api';
 import { AuthService } from '../../services/auth';
+import { BrandService } from '../../services/brand';
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING:   'Ingreso',
@@ -25,6 +26,7 @@ export class Pedidos implements OnInit {
 
   private readonly api  = inject(SellerApiService);
   readonly auth         = inject(AuthService);
+  readonly brand        = inject(BrandService);
 
   protected orders      = signal<FabricarOrder[]>([]);
   protected loading     = signal(true);
@@ -307,7 +309,7 @@ export class Pedidos implements OnInit {
       const digits = phone.replace(/\D/g, '');
       const wa = digits.startsWith('57') ? digits : `57${digits}`;
       const firstName = this.receiptOrder()?.customerName?.split(' ')[0] ?? '';
-      const text = firstName ? `Hola ${firstName}, aquí está tu comprobante de Guiio 🛍️` : 'Hola, aquí está tu comprobante de Guiio 🛍️';
+      const text = firstName ? `Hola ${firstName}, aquí está tu comprobante de ${this.brand.nombre} 🛍️` : 'Hola, aquí está tu comprobante de ${this.brand.nombre} 🛍️';
       if (wa.length >= 10) window.open(`https://web.whatsapp.com/send?phone=${wa}&text=${encodeURIComponent(text)}`, '_blank');
     } finally {
       this.capturingReceipt.set(false);

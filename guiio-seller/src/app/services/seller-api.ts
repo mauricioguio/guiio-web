@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth';
+import { BrandService } from './brand';
 
-const API = 'https://guiio-web-production.up.railway.app/api/seller';
+const API = 'https://api.guiiouniformes.com/api/seller';
 
 export interface Sede { id: string; name: string; }
 
@@ -75,8 +76,9 @@ export interface FabricarOrder {
 
 @Injectable({ providedIn: 'root' })
 export class SellerApiService {
-  private readonly http = inject(HttpClient);
-  private readonly auth = inject(AuthService);
+  private readonly http  = inject(HttpClient);
+  private readonly auth  = inject(AuthService);
+  private readonly brand = inject(BrandService);
 
   private get headers(): Record<string, string> {
     const s = this.auth.currentSede();
@@ -84,7 +86,9 @@ export class SellerApiService {
   }
 
   getSedes() {
-    return this.http.get<Sede[]>(`${API}/sedes`);
+    return this.http.get<Sede[]>(`${API}/sedes`, {
+      headers: { 'x-empresa': this.brand.empresa },
+    });
   }
 
   login(sedeId: string, pin: string) {

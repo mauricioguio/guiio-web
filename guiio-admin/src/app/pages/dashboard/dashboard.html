@@ -2,7 +2,7 @@
   <!-- Sidebar -->
   <aside class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
     <div class="p-6 border-b border-gray-800">
-      <h1 class="text-white font-bold text-lg">Guiio Admin</h1>
+      <h1 class="text-white font-bold text-lg">{{ auth.empresa() }} Admin</h1>
       <div class="flex items-center gap-2 mt-1">
         <span class="text-gray-500 text-xs">{{ auth.currentUser()?.username }}</span>
         @if (auth.isAdmin()) {
