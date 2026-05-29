@@ -18,7 +18,6 @@ interface SessionData {
   token: string | null;
   role: UserRole;
   username: string;
-  empresa: string;
 }
 
 interface VendorEntry { id: string; username: string; password: string; }
@@ -35,31 +34,29 @@ export class AuthService {
 
   readonly isLoggedIn = computed(() => this._session() !== null);
   readonly isAdmin   = computed(() => this._session()?.role === 'admin');
-  readonly empresa   = computed(() => this._session()?.empresa ?? 'GUIIO');
 
   getToken(): string | null {
     return this._session()?.token ?? null;
   }
 
   async login(username: string, password: string): Promise<boolean> {
-    // Try backend first (admin + env-var vendors)
     try {
       const res = await firstValueFrom(
-        this.http.post<{ token: string; role: string; username: string; empresa: string }>(
+        this.http.post<{ token: string; role: string; username: string }>(
           `${API_URL}/auth/login`,
           { username, password },
         ),
       );
-      const session: SessionData = { token: res.token, role: res.role as UserRole, username: res.username, empresa: res.empresa ?? 'GUIIO' };
+      const session: SessionData = { token: res.token, role: res.role as UserRole, username: res.username };
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
       this._session.set(session);
       return true;
     } catch { /* fall through to local vendor check */ }
 
-    // Local vendor fallback (for vendors managed through the admin UI)
+    // Local vendor fallback
     const vendor = this.getLocalVendors().find(v => v.username === username && v.password === password);
     if (vendor) {
-      const session: SessionData = { token: null, role: 'vendedor', username: vendor.username, empresa: 'GUIIO' };
+      const session: SessionData = { token: null, role: 'vendedor', username: vendor.username };
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
       this._session.set(session);
       return true;
@@ -72,8 +69,6 @@ export class AuthService {
     sessionStorage.removeItem(SESSION_KEY);
     this._session.set(null);
   }
-
-  // ── Vendor management (local storage) ─────────────────────────────────────
 
   getVendedores(): AppUser[] {
     return this.getLocalVendors().map(v => ({ id: v.id, username: v.username, role: 'vendedor' as UserRole }));
@@ -96,8 +91,6 @@ export class AuthService {
     const updated = this.getLocalVendors().map(v => v.id === id ? { ...v, password: newPassword } : v);
     localStorage.setItem(VENDORS_KEY, JSON.stringify(updated));
   }
-
-  // ── Private helpers ────────────────────────────────────────────────────────
 
   private getLocalVendors(): VendorEntry[] {
     try {
