@@ -7,6 +7,21 @@
   --font-sans: 'Inter', sans-serif;
 }
 
+/* Navbar es fixed — definimos su altura para offsetear el contenido */
+:root {
+  --navbar-h: 130px; /* móvil: promo bar puede wrappear 2–3 líneas + nav 64px */
+}
+
+@media (min-width: 640px) {
+  :root {
+    --navbar-h: 97px; /* desktop: promo bar en una sola línea (~33px) + nav 64px */
+  }
+}
+
+main {
+  padding-top: var(--navbar-h);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
