@@ -1,19 +1,8 @@
 import {
-  Controller, Get, Post, Patch, Delete, Param, Body, HttpCode,
-  CanActivate, ExecutionContext, Injectable, UseGuards,
+  Controller, Get, Post, Patch, Delete, Param, Body, HttpCode, UseGuards,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { CollectionsService } from './collections.service';
-
-@Injectable()
-class AdminKeyGuard implements CanActivate {
-  constructor(private readonly config: ConfigService) {}
-  canActivate(ctx: ExecutionContext): boolean {
-    const req = ctx.switchToHttp().getRequest();
-    const key = req.headers['x-admin-key'];
-    return key === this.config.get<string>('ADMIN_API_KEY');
-  }
-}
+import { JwtAuthGuard } from '../auth/jwt.guard';
 
 @Controller('collections')
 export class CollectionsController {
@@ -36,31 +25,31 @@ export class CollectionsController {
 
   @Post()
   @HttpCode(201)
-  @UseGuards(AdminKeyGuard)
+  @UseGuards(JwtAuthGuard)
   create(@Body() data: any) {
     return this.collectionsService.create(data);
   }
 
   @Post(':id/products')
-  @UseGuards(AdminKeyGuard)
+  @UseGuards(JwtAuthGuard)
   addProduct(@Param('id') id: string, @Body('productId') productId: string) {
     return this.collectionsService.addProduct(id, productId);
   }
 
   @Patch(':id')
-  @UseGuards(AdminKeyGuard)
+  @UseGuards(JwtAuthGuard)
   update(@Param('id') id: string, @Body() data: any) {
     return this.collectionsService.update(id, data);
   }
 
   @Delete(':id/products/:productId')
-  @UseGuards(AdminKeyGuard)
+  @UseGuards(JwtAuthGuard)
   removeProduct(@Param('id') id: string, @Param('productId') productId: string) {
     return this.collectionsService.removeProduct(id, productId);
   }
 
   @Delete(':id')
-  @UseGuards(AdminKeyGuard)
+  @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string) {
     return this.collectionsService.remove(id);
   }

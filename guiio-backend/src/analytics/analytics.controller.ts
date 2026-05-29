@@ -1,25 +1,14 @@
 import {
-  Controller, Get,
-  CanActivate, ExecutionContext, Injectable, UseGuards,
+  Controller, Get, UseGuards,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { AnalyticsService } from './analytics.service';
-
-@Injectable()
-class AdminKeyGuard implements CanActivate {
-  constructor(private readonly config: ConfigService) {}
-  canActivate(ctx: ExecutionContext): boolean {
-    const req = ctx.switchToHttp().getRequest();
-    return req.headers['x-admin-key'] === this.config.get<string>('ADMIN_API_KEY');
-  }
-}
+import { JwtAuthGuard } from '../auth/jwt.guard';
 
 @Controller('analytics')
-@UseGuards(AdminKeyGuard)
+@UseGuards(JwtAuthGuard)
 export class AnalyticsController {
   constructor(
     private readonly analyticsService: AnalyticsService,
-    private readonly config: ConfigService,
   ) {}
 
   @Get('overview')

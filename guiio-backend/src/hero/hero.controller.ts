@@ -1,18 +1,8 @@
 import {
-  Controller, Get, Patch, Body,
-  CanActivate, ExecutionContext, Injectable, UseGuards,
+  Controller, Get, Patch, Body, UseGuards,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { HeroService } from './hero.service';
-
-@Injectable()
-class AdminKeyGuard implements CanActivate {
-  constructor(private readonly config: ConfigService) {}
-  canActivate(ctx: ExecutionContext): boolean {
-    const req = ctx.switchToHttp().getRequest();
-    return req.headers['x-admin-key'] === this.config.get<string>('ADMIN_API_KEY');
-  }
-}
+import { JwtAuthGuard } from '../auth/jwt.guard';
 
 @Controller('hero')
 export class HeroController {
@@ -24,7 +14,7 @@ export class HeroController {
   }
 
   @Patch()
-  @UseGuards(AdminKeyGuard)
+  @UseGuards(JwtAuthGuard)
   update(@Body() data: any) {
     return this.heroService.update(data);
   }

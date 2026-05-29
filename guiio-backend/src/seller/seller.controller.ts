@@ -2,9 +2,9 @@ import {
   Controller, Get, Post, Put, Patch, Param, Body, Headers,
   CanActivate, ExecutionContext, Injectable, UseGuards, UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { SellerService } from './seller.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { JwtAuthGuard } from '../auth/jwt.guard';
 
 @Injectable()
 class SellerGuard implements CanActivate {
@@ -18,15 +18,6 @@ class SellerGuard implements CanActivate {
     if (!sede || !sede.pin || sede.pin !== pin) throw new UnauthorizedException('PIN incorrecto');
     req.sedeId = sedeId;
     return true;
-  }
-}
-
-@Injectable()
-class AdminKeyGuard implements CanActivate {
-  constructor(private readonly config: ConfigService) {}
-  canActivate(ctx: ExecutionContext): boolean {
-    const req = ctx.switchToHttp().getRequest();
-    return req.headers['x-admin-key'] === this.config.get<string>('ADMIN_API_KEY');
   }
 }
 
@@ -96,13 +87,13 @@ export class SellerController {
   }
 
   @Get('admin/sales')
-  @UseGuards(AdminKeyGuard)
+  @UseGuards(JwtAuthGuard)
   getAllSales() {
     return this.sellerService.getAllSales();
   }
 
   @Patch('admin/sales/:id/status')
-  @UseGuards(AdminKeyGuard)
+  @UseGuards(JwtAuthGuard)
   updateSaleStatus(@Param('id') id: string, @Body('status') status: string) {
     return this.sellerService.updateSaleStatus(id, status);
   }
@@ -155,7 +146,7 @@ export class SellerController {
   // ── Fabricar orders (admin) ───────────────────────────────────────────────
 
   @Post('admin/fabricar/:id/payment')
-  @UseGuards(AdminKeyGuard)
+  @UseGuards(JwtAuthGuard)
   addPaymentAdmin(
     @Param('id') id: string,
     @Body('amount') amount: number,
@@ -165,7 +156,7 @@ export class SellerController {
   }
 
   @Patch('admin/fabricar/:id/items')
-  @UseGuards(AdminKeyGuard)
+  @UseGuards(JwtAuthGuard)
   updateDeliveredQtyAdmin(
     @Param('id') id: string,
     @Body('items') items: { itemId: string; deliveredQty: number }[],

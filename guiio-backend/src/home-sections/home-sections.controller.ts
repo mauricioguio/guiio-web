@@ -1,15 +1,6 @@
-import { Controller, Get, Patch, Body, CanActivate, ExecutionContext, Injectable, UseGuards } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Controller, Get, Patch, Body, UseGuards } from '@nestjs/common';
 import { HomeSectionsService } from './home-sections.service';
-
-@Injectable()
-class AdminKeyGuard implements CanActivate {
-  constructor(private readonly config: ConfigService) {}
-  canActivate(ctx: ExecutionContext): boolean {
-    const req = ctx.switchToHttp().getRequest();
-    return req.headers['x-admin-key'] === this.config.get<string>('ADMIN_API_KEY');
-  }
-}
+import { JwtAuthGuard } from '../auth/jwt.guard';
 
 @Controller('home-sections')
 export class HomeSectionsController {
@@ -21,7 +12,7 @@ export class HomeSectionsController {
   }
 
   @Patch()
-  @UseGuards(AdminKeyGuard)
+  @UseGuards(JwtAuthGuard)
   update(@Body() data: any) {
     return this.service.update(data);
   }
