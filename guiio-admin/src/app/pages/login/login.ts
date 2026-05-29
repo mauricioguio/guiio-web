@@ -22,13 +22,13 @@ export class Login {
     password: ['', Validators.required],
   });
 
-  submit() {
+  async submit() {
     if (this.form.invalid) return;
     this.loading.set(true);
     this.error.set(false);
 
     const { username, password } = this.form.value;
-    const ok = this.auth.login(username!, password!);
+    const ok = await this.auth.login(username!, password!);
 
     if (ok) {
       this.router.navigate(['/dashboard']);

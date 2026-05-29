@@ -1,110 +1,120 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+
+const API_URL = 'https://guiio-web-production.up.railway.app/api';
+const SESSION_KEY = 'guiio-admin-session';
+const VENDORS_KEY  = 'guiio-admin-vendors';
 
 export type UserRole = 'admin' | 'vendedor';
 
 export interface AppUser {
   id: string;
   username: string;
-  password: string;
   role: UserRole;
 }
 
-const USERS_KEY = 'guiio-admin-users';
-const SESSION_KEY = 'guiio-admin-session';
+interface SessionData {
+  token: string | null;  // JWT (admin) | null (vendedor local)
+  role: UserRole;
+  username: string;
+}
 
-const DEFAULT_ADMIN: AppUser = {
-  id: 'admin-default',
-  username: 'admin',
-  password: 'guiio2024*',
-  role: 'admin',
-};
+interface VendorEntry { id: string; username: string; password: string; }
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly _currentUser = signal<AppUser | null>(this.loadSession());
+  private readonly http = inject(HttpClient);
+  private readonly _session = signal<SessionData | null>(this.loadSession());
 
-  readonly currentUser = this._currentUser.asReadonly();
-  readonly isLoggedIn = computed(() => this._currentUser() !== null);
-  readonly isAdmin = computed(() => this._currentUser()?.role === 'admin');
+  readonly currentUser = computed<AppUser | null>(() => {
+    const s = this._session();
+    return s ? { id: s.username, username: s.username, role: s.role } : null;
+  });
 
-  private loadSession(): AppUser | null {
+  readonly isLoggedIn = computed(() => this._session() !== null);
+  readonly isAdmin   = computed(() => this._session()?.role === 'admin');
+
+  getToken(): string | null {
+    return this._session()?.token ?? null;
+  }
+
+  async login(username: string, password: string): Promise<boolean> {
+    // Try backend first (admin + env-var vendors)
     try {
-      const raw = localStorage.getItem(SESSION_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object' && parsed.id && parsed.role) {
-        return parsed as AppUser;
-      }
-      localStorage.removeItem(SESSION_KEY);
-      return null;
-    } catch {
-      localStorage.removeItem(SESSION_KEY);
-      return null;
-    }
-  }
+      const res = await firstValueFrom(
+        this.http.post<{ token: string; role: string; username: string }>(
+          `${API_URL}/auth/login`,
+          { username, password },
+        ),
+      );
+      const session: SessionData = { token: res.token, role: res.role as UserRole, username: res.username };
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      this._session.set(session);
+      return true;
+    } catch { /* fall through to local vendor check */ }
 
-  private getUsers(): AppUser[] {
-    try {
-      const raw = localStorage.getItem(USERS_KEY);
-      const stored: AppUser[] = raw ? JSON.parse(raw) : [];
-      const hasAdmin = stored.some(u => u.id === DEFAULT_ADMIN.id);
-      return hasAdmin ? stored : [DEFAULT_ADMIN, ...stored];
-    } catch {
-      return [DEFAULT_ADMIN];
-    }
-  }
-
-  private saveUsers(users: AppUser[]) {
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  }
-
-  login(username: string, password: string): boolean {
-    const user = this.getUsers().find(u => u.username === username && u.password === password);
-    if (user) {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-      this._currentUser.set(user);
+    // Local vendor fallback (for vendors managed through the admin UI)
+    const vendor = this.getLocalVendors().find(v => v.username === username && v.password === password);
+    if (vendor) {
+      const session: SessionData = { token: null, role: 'vendedor', username: vendor.username };
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      this._session.set(session);
       return true;
     }
+
     return false;
   }
 
   logout() {
-    localStorage.removeItem(SESSION_KEY);
-    this._currentUser.set(null);
+    sessionStorage.removeItem(SESSION_KEY);
+    this._session.set(null);
   }
 
+  // ── Vendor management (local storage) ─────────────────────────────────────
+
   getVendedores(): AppUser[] {
-    return this.getUsers().filter(u => u.role === 'vendedor');
+    return this.getLocalVendors().map(v => ({ id: v.id, username: v.username, role: 'vendedor' as UserRole }));
   }
 
   createVendedor(username: string, password: string): { ok: boolean; error?: string } {
-    const users = this.getUsers();
-    if (users.some(u => u.username === username)) {
-      return { ok: false, error: 'El usuario ya existe' };
-    }
-    const newUser: AppUser = {
-      id: Date.now().toString(),
-      username,
-      password,
-      role: 'vendedor',
-    };
-    this.saveUsers([...users, newUser]);
+    const vendors = this.getLocalVendors();
+    if (vendors.some(v => v.username === username)) return { ok: false, error: 'El usuario ya existe' };
+    const updated = [...vendors, { id: Date.now().toString(), username, password }];
+    localStorage.setItem(VENDORS_KEY, JSON.stringify(updated));
     return { ok: true };
   }
 
   deleteVendedor(id: string) {
-    const users = this.getUsers().filter(u => u.id !== id);
-    this.saveUsers(users);
+    const updated = this.getLocalVendors().filter(v => v.id !== id);
+    localStorage.setItem(VENDORS_KEY, JSON.stringify(updated));
   }
 
   changePassword(id: string, newPassword: string) {
-    const users = this.getUsers().map(u => u.id === id ? { ...u, password: newPassword } : u);
-    this.saveUsers(users);
-    const current = this._currentUser();
-    if (current?.id === id) {
-      const updated = { ...current, password: newPassword };
-      localStorage.setItem(SESSION_KEY, JSON.stringify(updated));
-      this._currentUser.set(updated);
+    const updated = this.getLocalVendors().map(v => v.id === id ? { ...v, password: newPassword } : v);
+    localStorage.setItem(VENDORS_KEY, JSON.stringify(updated));
+  }
+
+  // ── Private helpers ────────────────────────────────────────────────────────
+
+  private getLocalVendors(): VendorEntry[] {
+    try {
+      const raw = localStorage.getItem(VENDORS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  }
+
+  private loadSession(): SessionData | null {
+    try {
+      const raw = sessionStorage.getItem(SESSION_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed?.role && parsed?.username) return parsed as SessionData;
+      sessionStorage.removeItem(SESSION_KEY);
+      return null;
+    } catch {
+      sessionStorage.removeItem(SESSION_KEY);
+      return null;
     }
   }
 }
