@@ -1,0 +1,129 @@
+<div class="p-8">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-white text-xl font-semibold">Carritos abandonados</h2>
+      <p class="text-gray-500 text-xs mt-1">Clientes que iniciaron el pago pero no lo completaron</p>
+    </div>
+    <button (click)="load()" class="text-gray-400 hover:text-white text-sm transition-colors flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+      Actualizar
+    </button>
+  </div>
+
+  <!-- Resumen -->
+  @if (!loading() && !error()) {
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="bg-orange-500/10 border border-orange-500/20 rounded-2xl p-4">
+        <p class="text-orange-400 text-xs">Carritos sin convertir</p>
+        <p class="text-orange-300 text-2xl font-bold mt-1">{{ carts().length }}</p>
+      </div>
+      <div class="bg-red-500/10 border border-red-500/20 rounded-2xl p-4">
+        <p class="text-red-400 text-xs">Valor potencial perdido</p>
+        <p class="text-red-300 text-2xl font-bold mt-1">{{ formatPrice(totalLost()) }}</p>
+      </div>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-400 text-sm">Cargando...</p>
+    </div>
+  } @else if (error()) {
+    <div class="bg-red-500/10 border border-red-500/20 rounded-2xl p-8 text-center">
+      <p class="text-red-400 text-sm">No se pudieron cargar los carritos.</p>
+      <button (click)="load()" class="mt-4 text-sm text-gray-400 hover:text-white transition-colors">Reintentar</button>
+    </div>
+  } @else if (carts().length === 0) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-500 text-sm">No hay carritos abandonados.</p>
+    </div>
+  } @else {
+    <div class="space-y-3">
+      @for (cart of carts(); track cart.id) {
+        <div (click)="openDetail(cart)"
+          class="bg-gray-900 border border-gray-800 rounded-2xl px-5 py-4 flex items-center justify-between cursor-pointer hover:border-gray-700 transition-colors">
+          <div class="flex items-center gap-4">
+            <div class="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0">
+              <span class="text-orange-400 text-xs font-bold">{{ cart.customerName[0].toUpperCase() }}</span>
+            </div>
+            <div>
+              <p class="text-white text-sm font-medium">{{ cart.customerName }}</p>
+              <p class="text-gray-500 text-xs mt-0.5">{{ cart.customerEmail }}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-6">
+            <div class="text-right hidden md:block">
+              <p class="text-gray-400 text-xs">{{ cart.items.length }} producto{{ cart.items.length !== 1 ? 's' : '' }}</p>
+              <p class="text-gray-500 text-xs">{{ cart.city }}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-white font-semibold text-sm">{{ formatPrice(cart.total) }}</p>
+              <p class="text-gray-500 text-xs">{{ cart.createdAt | date:'d MMM yyyy, h:mm a' }}</p>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Detalle -->
+@if (selected()) {
+  <div class="fixed inset-0 bg-black/60 z-50 flex justify-end" (click)="closeDetail()">
+    <div class="bg-gray-950 border-l border-gray-800 w-full max-w-lg h-full overflow-y-auto" (click)="$event.stopPropagation()">
+      <div class="p-6 border-b border-gray-800 flex items-center justify-between">
+        <div>
+          <h3 class="text-white font-semibold">Carrito abandonado</h3>
+          <p class="text-gray-500 text-xs mt-0.5">{{ selected()!.reference }}</p>
+        </div>
+        <button (click)="closeDetail()" class="text-gray-500 hover:text-white transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-6">
+
+        <!-- Cliente -->
+        <div>
+          <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Cliente</p>
+          <div class="bg-gray-900 rounded-xl p-4 space-y-1">
+            <p class="text-white text-sm font-medium">{{ selected()!.customerName }}</p>
+            <p class="text-gray-400 text-sm">{{ selected()!.customerEmail }}</p>
+            <p class="text-gray-400 text-sm">{{ selected()!.customerPhone }}</p>
+            @if (selected()!.city) {
+              <p class="text-gray-500 text-xs">{{ selected()!.city }}</p>
+            }
+          </div>
+        </div>
+
+        <!-- Productos -->
+        <div>
+          <p class="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Productos en el carrito</p>
+          <div class="space-y-2">
+            @for (item of selected()!.items; track item.id) {
+              <div class="bg-gray-900 rounded-xl p-4 flex items-center gap-3">
+                <div class="flex-1">
+                  <p class="text-white text-sm">{{ item.name }}</p>
+                  <p class="text-gray-500 text-xs">{{ item.topSize }} / {{ item.bottomSize }} · {{ item.color }} · x{{ item.quantity }}</p>
+                </div>
+                <p class="text-white text-sm font-medium">{{ formatPrice(item.price * item.quantity) }}</p>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Total -->
+        <div class="bg-gray-900 rounded-xl p-4 flex justify-between">
+          <span class="text-gray-400 text-sm">Total estimado</span>
+          <span class="text-white font-semibold">{{ formatPrice(selected()!.total) }}</span>
+        </div>
+
+        <p class="text-gray-600 text-xs text-center">{{ selected()!.createdAt | date:'d MMM yyyy, h:mm a' }}</p>
+      </div>
+    </div>
+  </div>
+}

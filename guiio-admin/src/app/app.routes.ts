@@ -53,6 +53,11 @@ export const routes: Routes = [
         canActivate: [adminGuard],
       },
       {
+        path: 'abandoned-carts',
+        loadComponent: () => import('./pages/dashboard/abandoned-carts/abandoned-carts').then(m => m.AbandonedCarts),
+        canActivate: [adminGuard],
+      },
+      {
         path: 'clients',
         loadComponent: () => import('./pages/dashboard/clients/clients').then(m => m.Clients),
         canActivate: [adminGuard],

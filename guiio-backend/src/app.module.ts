@@ -13,6 +13,7 @@ import { HomeSectionsModule } from './home-sections/home-sections.module';
 import { AddiModule } from './addi/addi.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { TrackingModule } from './tracking/tracking.module';
+import { AbandonedCartsModule } from './abandoned-carts/abandoned-carts.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TrackingModule } from './tracking/tracking.module';
     AuthModule,
     PaymentsModule,
     AddiModule,
+    AbandonedCartsModule,
     OrdersModule,
     ProductsModule,
     CollectionsModule,

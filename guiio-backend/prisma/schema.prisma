@@ -229,6 +229,22 @@ model HomeSections {
   updatedAt     DateTime @updatedAt
 }
 
+model AbandonedCart {
+  id            String    @id @default(cuid())
+  reference     String    @unique
+  customerName  String
+  customerEmail String
+  customerPhone String
+  city          String?
+  items         Json
+  total         Float
+  createdAt     DateTime  @default(now())
+  convertedAt   DateTime?
+
+  @@index([createdAt])
+  @@index([convertedAt])
+}
+
 model PageView {
   id        String   @id @default(cuid())
   path      String

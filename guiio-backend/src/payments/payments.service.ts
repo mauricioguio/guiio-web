@@ -4,6 +4,7 @@ import { createHash, randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePreferenceDto } from './dto/create-preference.dto';
 import { EmailService } from '../email/email.service';
+import { AbandonedCartsService } from '../abandoned-carts/abandoned-carts.service';
 
 @Injectable()
 export class PaymentsService {
@@ -16,6 +17,7 @@ export class PaymentsService {
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
     private readonly email: EmailService,
+    private readonly abandonedCarts: AbandonedCartsService,
   ) {
     this.publicKey = this.config.get<string>('WOMPI_PUBLIC_KEY')!;
     this.integritySecret = this.config.get<string>('WOMPI_INTEGRITY_SECRET')!;
@@ -132,6 +134,7 @@ export class PaymentsService {
         discount: order.discount,
         items: order.items,
       });
+      await this.abandonedCarts.markConverted(reference);
     } catch (err) {
       this.logger.error('confirmOrderByReference error:', err);
     }

@@ -29,6 +29,18 @@ export class PaymentService {
     }));
   }
 
+  saveAbandonedCart(reference: string, customer: { name: string; email: string; phone: string; city: string }, total: number) {
+    return this.http.post(`${this.apiUrl}/abandoned-carts`, {
+      reference,
+      customerName:  customer.name,
+      customerEmail: customer.email,
+      customerPhone: customer.phone,
+      city:          customer.city,
+      items:         this.buildItems(),
+      total,
+    });
+  }
+
   createPreference(customer: {
     name: string; email: string; phone: string;
     cedula?: string | null;

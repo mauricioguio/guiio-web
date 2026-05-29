@@ -59,6 +59,8 @@ export class Checkout {
 
     const v = this.form.getRawValue();
 
+    const customerBase = { name: v.name!, email: v.email!, phone: v.phone!, city: v.city! };
+
     if (this.paymentMethod() === 'addi') {
       this.paymentService.createAddiCheckout({
         name:      v.name!,
@@ -70,7 +72,10 @@ export class Checkout {
         reference: v.reference,
         notes:     v.notes,
       }).subscribe({
-        next: ({ checkoutUrl }) => { window.location.href = checkoutUrl; },
+        next: ({ checkoutUrl, reference, total }) => {
+          this.paymentService.saveAbandonedCart(reference, customerBase, total).subscribe({ error: () => null });
+          window.location.href = checkoutUrl;
+        },
         error: () => { this.loading.set(false); this.error.set(true); },
       });
     } else {
@@ -85,6 +90,7 @@ export class Checkout {
         notes:     v.notes,
       }).subscribe({
         next: ({ checkoutUrl, reference, total }) => {
+          this.paymentService.saveAbandonedCart(reference, customerBase, total).subscribe({ error: () => null });
           localStorage.setItem('pendingOrderRef', reference);
           localStorage.setItem('pendingOrderTotal', String(total));
           window.location.href = checkoutUrl;
