@@ -5,15 +5,29 @@ import { PrismaService } from '../prisma/prisma.service';
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getOverview() {
+  async getOverview(fromStr?: string, toStr?: string) {
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const [ordersToday, paidAll, paidMonth, totalCustomers, pendingOrders, recentPaidOrders, topProducts, rawHourly, adVisitsToday, addToCartToday, checkoutToday, topCarted] =
+    // Date range for filtered stats
+    const rangeFrom: Date = fromStr ? new Date(fromStr + 'T00:00:00') : thirtyDaysAgo;
+    const rangeTo:   Date = toStr   ? new Date(toStr   + 'T23:59:59') : now;
+    const rangeFilter = { gte: rangeFrom, lte: rangeTo };
+
+    // Days in range for chart buckets
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const rangeDays = Math.max(1, Math.round((rangeTo.getTime() - rangeFrom.getTime()) / msPerDay) + 1);
+
+    const [ordersInRange, paidInRange, paidAll, totalCustomers, pendingOrders, recentPaidOrders, topProducts, rawHourly, adVisitsToday, addToCartToday, checkoutToday, topCarted] =
       await Promise.all([
-        this.prisma.order.count({ where: { createdAt: { gte: startOfToday } } }),
+        this.prisma.order.count({ where: { createdAt: rangeFilter } }),
+
+        this.prisma.order.aggregate({
+          where: { status: 'PAID', createdAt: rangeFilter },
+          _sum: { total: true },
+          _count: { _all: true },
+        }),
 
         this.prisma.order.aggregate({
           where: { status: 'PAID' },
@@ -21,17 +35,12 @@ export class AnalyticsService {
           _count: { _all: true },
         }),
 
-        this.prisma.order.aggregate({
-          where: { status: 'PAID', createdAt: { gte: startOfMonth } },
-          _sum: { total: true },
-        }),
-
         this.prisma.customer.count(),
 
         this.prisma.order.count({ where: { status: 'PENDING' } }),
 
         this.prisma.order.findMany({
-          where: { status: 'PAID', createdAt: { gte: thirtyDaysAgo } },
+          where: { status: 'PAID', createdAt: rangeFilter },
           select: { createdAt: true, total: true },
         }),
 
@@ -81,10 +90,10 @@ export class AnalyticsService {
         `,
       ]);
 
-    // Build daily buckets for last 30 days (oldest → newest)
+    // Build daily buckets for selected range (oldest → newest)
     const dailySales: { date: string; total: number; count: number }[] = [];
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    for (let i = rangeDays - 1; i >= 0; i--) {
+      const d = new Date(rangeTo.getTime() - i * msPerDay);
       dailySales.push({ date: d.toISOString().slice(0, 10), total: 0, count: 0 });
     }
     for (const order of recentPaidOrders) {
@@ -98,6 +107,8 @@ export class AnalyticsService {
 
     const totalPaidCount = paidAll._count._all;
     const totalPaidSum   = paidAll._sum.total ?? 0;
+    const rangePaidCount = paidInRange._count._all;
+    const rangePaidSum   = paidInRange._sum.total ?? 0;
 
     // Build 24-hour slots (0-23)
     const hourlyMap = new Map<number, number>();
@@ -108,11 +119,11 @@ export class AnalyticsService {
     }));
 
     return {
-      ordersToday,
-      salesMonth:      paidMonth._sum.total ?? 0,
+      ordersToday:     ordersInRange,
+      salesMonth:      rangePaidSum,
       totalCustomers,
       pendingOrders,
-      avgOrderValue:   totalPaidCount > 0 ? totalPaidSum / totalPaidCount : 0,
+      avgOrderValue:   rangePaidCount > 0 ? rangePaidSum / rangePaidCount : 0,
       totalRevenue:    totalPaidSum,
       adVisitsToday,
       addToCartToday,

@@ -1,6 +1,6 @@
 <div class="p-8">
   <!-- Header -->
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex items-center justify-between mb-4">
     <h2 class="text-white text-xl font-semibold">Resumen</h2>
     <button (click)="load()" class="text-gray-400 hover:text-white text-sm transition-colors flex items-center gap-2">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -8,6 +8,32 @@
       </svg>
       Actualizar
     </button>
+  </div>
+
+  <!-- Filtros de fecha -->
+  <div class="mb-6">
+    <div class="flex gap-2 flex-wrap">
+      @for (p of DATE_PRESETS; track p.value) {
+        <button (click)="setPreset(p.value)"
+          class="px-3 py-1.5 rounded-xl text-xs font-medium transition-colors"
+          [class]="datePreset() === p.value ? 'bg-indigo-600 text-white' : 'bg-gray-900 border border-gray-800 text-gray-400 hover:text-white'">
+          {{ p.label }}
+        </button>
+      }
+    </div>
+    @if (datePreset() === 'custom') {
+      <div class="flex gap-3 items-center mt-3">
+        <input type="date" [ngModel]="customFrom()" (ngModelChange)="customFrom.set($event)"
+          class="bg-gray-900 border border-gray-700 text-gray-300 text-xs rounded-xl px-3 py-2 outline-none focus:border-indigo-500">
+        <span class="text-gray-500 text-xs">→</span>
+        <input type="date" [ngModel]="customTo()" (ngModelChange)="customTo.set($event)"
+          class="bg-gray-900 border border-gray-700 text-gray-300 text-xs rounded-xl px-3 py-2 outline-none focus:border-indigo-500">
+        <button (click)="applyCustom()"
+          class="px-4 py-2 bg-indigo-600 text-white text-xs rounded-xl hover:bg-indigo-500 transition-colors">
+          Aplicar
+        </button>
+      </div>
+    }
   </div>
 
   @if (loading()) {

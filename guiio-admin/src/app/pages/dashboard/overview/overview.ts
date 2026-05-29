@@ -1,13 +1,18 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { AnalyticsApiService, OverviewData, DailySale } from '../../../services/analytics-api';
+import { FormsModule } from '@angular/forms';
+import { AnalyticsApiService, OverviewData } from '../../../services/analytics-api';
 
 const COP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+
+type DatePreset = 'today' | 'week' | 'month' | 'custom';
+
+function toISO(d: Date) { return d.toISOString().slice(0, 10); }
 
 @Component({
   selector: 'app-overview',
   templateUrl: './overview.html',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, FormsModule],
 })
 export class Overview {
   private readonly api = inject(AnalyticsApiService);
@@ -15,6 +20,17 @@ export class Overview {
   protected data    = signal<OverviewData | null>(null);
   protected loading = signal(true);
   protected error   = signal(false);
+
+  protected datePreset  = signal<DatePreset>('month');
+  protected customFrom  = signal<string>('');
+  protected customTo    = signal<string>('');
+
+  protected readonly DATE_PRESETS: { value: DatePreset; label: string }[] = [
+    { value: 'today', label: 'Hoy' },
+    { value: 'week',  label: 'Esta semana' },
+    { value: 'month', label: 'Este mes' },
+    { value: 'custom',label: 'Personalizado' },
+  ];
 
   protected readonly CHART_W = 600;
   protected readonly CHART_H = 120;
@@ -46,14 +62,38 @@ export class Overview {
     return `${fx},${bottom} ${pts} ${lx},${bottom}`;
   });
 
-  constructor() {
-    this.load();
+  constructor() { this.load(); }
+
+  private getRange(): { from: string; to: string } {
+    const now = new Date();
+    const preset = this.datePreset();
+    if (preset === 'today') {
+      const d = toISO(now);
+      return { from: d, to: d };
+    }
+    if (preset === 'week') {
+      const start = new Date(now); start.setDate(now.getDate() - now.getDay());
+      return { from: toISO(start), to: toISO(now) };
+    }
+    if (preset === 'custom') {
+      return { from: this.customFrom() || toISO(now), to: this.customTo() || toISO(now) };
+    }
+    // month
+    return { from: toISO(new Date(now.getFullYear(), now.getMonth(), 1)), to: toISO(now) };
   }
+
+  setPreset(p: DatePreset) {
+    this.datePreset.set(p);
+    if (p !== 'custom') this.load();
+  }
+
+  applyCustom() { this.load(); }
 
   load() {
     this.loading.set(true);
     this.error.set(false);
-    this.api.getOverview().subscribe({
+    const { from, to } = this.getRange();
+    this.api.getOverview(from, to).subscribe({
       next:  d  => { this.data.set(d); this.loading.set(false); },
       error: () => { this.error.set(true); this.loading.set(false); },
     });
