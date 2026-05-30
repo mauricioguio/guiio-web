@@ -32,15 +32,17 @@ export class AddiService {
   }
 
   private async getToken(): Promise<string> {
+    const params = new URLSearchParams({
+      grant_type:    'client_credentials',
+      client_id:     this.clientId,
+      client_secret: this.clientSecret,
+      audience:      this.apiUrl,
+    });
+
     const res = await fetch(this.authUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        grant_type:    'client_credentials',
-        client_id:     this.clientId,
-        client_secret: this.clientSecret,
-        audience:      'https://api.addi.com',
-      }),
+      method:  'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body:    params.toString(),
     });
 
     if (!res.ok) {
