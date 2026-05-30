@@ -160,6 +160,14 @@ export class AddiService {
     return { checkoutUrl, reference, total };
   }
 
+  async getOrderStatus(reference: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { reference },
+      select: { status: true },
+    });
+    return { status: order?.status ?? 'PENDING' };
+  }
+
   async handleWebhook(payload: any) {
     try {
       const reference = payload?.orderId ?? payload?.clientApplicationCode;

@@ -74,6 +74,7 @@ export class Checkout {
       }).subscribe({
         next: ({ checkoutUrl, reference, total }) => {
           this.paymentService.saveAbandonedCart(reference, customerBase, total).subscribe({ error: () => null });
+          localStorage.setItem('pendingAddiRef', reference);
           window.location.href = checkoutUrl;
         },
         error: () => { this.loading.set(false); this.error.set(true); },

@@ -12,6 +12,10 @@ export class PaymentService {
     return this.http.get<{ status: string }>(`${this.apiUrl}/payments/status/${wompiId}`);
   }
 
+  getAddiOrderStatus(reference: string) {
+    return this.http.get<{ status: string }>(`${this.apiUrl}/addi/status/${reference}`);
+  }
+
   confirmOrder(reference: string) {
     return this.http.post<{ ok: boolean }>(`${this.apiUrl}/payments/confirm/${reference}`, {});
   }
