@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { SellerSalesApiService, SellerSale } from '../../../services/seller-sales-api';
 
 // Estados para pedidos FABRICAR (en orden de flujo)
-const FABRICAR_STATUSES = ['PENDING', 'PRODUCING', 'READY', 'DELIVERED', 'COMPLETED'];
+const FABRICAR_STATUSES = ['PENDING', 'PRODUCING', 'READY', 'IN_STORE', 'DELIVERED', 'COMPLETED'];
 const ALL_STATUSES = [...FABRICAR_STATUSES, 'CANCELLED'];
 
 @Component({
@@ -108,20 +108,22 @@ export class Sales implements OnInit {
 
   statusLabel(s: string) {
     const map: Record<string, string> = {
-      PENDING: 'Ingreso',
+      PENDING:   'Ingreso',
       PRODUCING: 'Cortado',
-      READY: 'Armado sin alistar',
+      READY:     'Armado sin alistar',
+      IN_STORE:  'En tienda',
       DELIVERED: 'Listo para enviar',
-      COMPLETED: 'En tienda',
+      COMPLETED: 'Entregado',
       CANCELLED: 'Cancelada',
     };
     return map[s] ?? s;
   }
 
   statusClass(s: string) {
-    if (s === 'PENDING') return 'bg-red-500/10 text-red-400 border-red-500/20';
+    if (s === 'PENDING')   return 'bg-red-500/10 text-red-400 border-red-500/20';
     if (s === 'PRODUCING') return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
-    if (s === 'READY') return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+    if (s === 'READY')     return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+    if (s === 'IN_STORE')  return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
     if (s === 'DELIVERED') return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
     if (s === 'COMPLETED') return 'bg-green-500/10 text-green-400 border-green-500/20';
     if (s === 'CANCELLED') return 'bg-red-500/10 text-red-400 border-red-500/20';
@@ -129,9 +131,10 @@ export class Sales implements OnInit {
   }
 
   selectClass(s: string) {
-    if (s === 'PENDING') return 'border-red-700 text-red-300 bg-red-500/10';
+    if (s === 'PENDING')   return 'border-red-700 text-red-300 bg-red-500/10';
     if (s === 'PRODUCING') return 'border-orange-700 text-orange-300 bg-orange-500/10';
-    if (s === 'READY') return 'border-yellow-700 text-yellow-300 bg-yellow-500/10';
+    if (s === 'READY')     return 'border-yellow-700 text-yellow-300 bg-yellow-500/10';
+    if (s === 'IN_STORE')  return 'border-purple-700 text-purple-300 bg-purple-500/10';
     if (s === 'DELIVERED') return 'border-blue-700 text-blue-300 bg-blue-500/10';
     if (s === 'COMPLETED') return 'border-green-700 text-green-300 bg-green-500/10';
     return 'border-gray-700 text-gray-300 bg-gray-800';

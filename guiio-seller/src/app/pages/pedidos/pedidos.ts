@@ -9,12 +9,13 @@ const STATUS_LABELS: Record<string, string> = {
   PENDING:   'Ingreso',
   PRODUCING: 'Cortado',
   READY:     'Armado sin alistar',
+  IN_STORE:  'En tienda',
   DELIVERED: 'Listo para enviar',
   COMPLETED: 'Entregado',
   CANCELLED: 'Cancelado',
 };
 
-const STATUSES = ['PENDING', 'PRODUCING', 'READY', 'DELIVERED', 'COMPLETED'];
+const STATUSES = ['PENDING', 'PRODUCING', 'READY', 'IN_STORE', 'DELIVERED', 'COMPLETED'];
 
 @Component({
   selector: 'app-pedidos',
@@ -340,6 +341,7 @@ export class Pedidos implements OnInit {
     if (s === 'PENDING')   return 'bg-red-500/10 text-red-400 border-red-500/20';
     if (s === 'PRODUCING') return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
     if (s === 'READY')     return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+    if (s === 'IN_STORE')  return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
     if (s === 'DELIVERED') return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
     if (s === 'COMPLETED') return 'bg-green-500/10 text-green-400 border-green-500/20';
     if (s === 'CANCELLED') return 'bg-gray-500/10 text-gray-400 border-gray-500/20';

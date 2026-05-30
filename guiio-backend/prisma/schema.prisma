@@ -118,6 +118,7 @@ enum SaleStatus {
   PENDING
   PRODUCING
   READY
+  IN_STORE
   DELIVERED
   CANCELLED
 }
