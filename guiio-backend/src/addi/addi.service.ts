@@ -15,17 +15,20 @@ export class AddiService {
   private readonly clientSecret: string;
   private readonly frontendUrl: string;
 
+  private readonly backendUrl: string;
+
   constructor(
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
     private readonly email: EmailService,
   ) {
-    this.apiUrl       = this.config.get<string>('ADDI_API_URL')   ?? 'https://api.addi.com';
-    this.authUrl      = this.config.get<string>('ADDI_AUTH_URL')  ?? 'https://auth.addi.com/oauth/token';
+    this.apiUrl       = this.config.get<string>('ADDI_API_URL')   ?? 'https://api.addi-staging.com';
+    this.authUrl      = this.config.get<string>('ADDI_AUTH_URL')  ?? 'https://auth.addi-staging.com/oauth/token';
     this.allySlug     = this.config.get<string>('ADDI_ALLY_SLUG') ?? 'guiiouniformes-ecommerce';
     this.clientId     = this.config.get<string>('ADDI_CLIENT_ID')!;
     this.clientSecret = this.config.get<string>('ADDI_CLIENT_SECRET')!;
     this.frontendUrl  = this.config.get<string>('FRONTEND_URL')   ?? 'http://localhost:4200';
+    this.backendUrl   = this.config.get<string>('BACKEND_URL')    ?? 'https://api.guiiouniformes.com';
   }
 
   private async getToken(): Promise<string> {
@@ -64,39 +67,44 @@ export class AddiService {
     const token = await this.getToken();
 
     const body = {
-      clientApplicationCode: reference,
-      allySlug:              this.allySlug,
-      totalAmount:           total,
-      currency:              'COP',
-      country:               'CO',
-      redirectUrls: {
-        successUrl:  `${this.frontendUrl}/pago/exitoso`,
-        declinedUrl: `${this.frontendUrl}/pago/fallido`,
-        canceledUrl: `${this.frontendUrl}/pago/fallido`,
-      },
-      client: {
-        idType:    'CC',
-        idNumber:  dto.customer.docNumber,
-        firstName,
-        lastName,
-        email:     dto.customer.email,
-        cellphone: dto.customer.phone,
-      },
-      shippingAddress: {
-        line1:   addressLine,
-        city:    dto.customer.city,
-        country: 'CO',
-      },
+      orderId:        reference,
+      totalAmount:    String(total),
+      shippingAmount: String(dto.shipping),
+      currency:       'COP',
       items: dto.items.map(i => ({
         sku:       i.id,
         name:      i.name,
-        quantity:  i.quantity,
+        quantity:  String(i.quantity),
         unitPrice: i.price,
       })),
+      client: {
+        idType:               'CC',
+        idNumber:             dto.customer.docNumber,
+        firstName,
+        lastName,
+        email:                dto.customer.email,
+        cellphone:            dto.customer.phone,
+        cellphoneCountryCode: '+57',
+        address: {
+          lineOne:  addressLine,
+          city:     dto.customer.city,
+          country:  'CO',
+        },
+      },
+      shippingAddress: {
+        lineOne: addressLine,
+        city:    dto.customer.city,
+        country: 'CO',
+      },
+      allyUrlRedirection: {
+        callbackUrl:    `${this.backendUrl}/api/addi/webhook`,
+        redirectionUrl: `${this.frontendUrl}/pago/pendiente`,
+      },
     };
 
-    const res = await fetch(`${this.apiUrl}/applications`, {
-      method:  'POST',
+    const res = await fetch(`${this.apiUrl}/v2/online-applications`, {
+      method:   'POST',
+      redirect: 'manual',
       headers: {
         'Content-Type':  'application/json',
         'Authorization': `Bearer ${token}`,
@@ -104,14 +112,13 @@ export class AddiService {
       body: JSON.stringify(body),
     });
 
-    if (!res.ok) {
+    if (res.status !== 301) {
       const text = await res.text();
       throw new Error(`ADDI application error: ${res.status} ${text}`);
     }
 
-    const data = await res.json() as any;
-    const checkoutUrl   = data.applicationUrl as string;
-    const applicationId = data.id             as string;
+    const checkoutUrl   = res.headers.get('location')!;
+    const applicationId = reference;
 
     try {
       const customer = await this.prisma.customer.upsert({
@@ -153,7 +160,7 @@ export class AddiService {
 
   async handleWebhook(payload: any) {
     try {
-      const reference = payload?.clientApplicationCode ?? payload?.orderId;
+      const reference = payload?.orderId ?? payload?.clientApplicationCode;
       const status    = payload?.status;
       if (!reference || !status) return { received: true };
 
