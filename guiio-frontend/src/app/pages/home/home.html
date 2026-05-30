@@ -1,6 +1,10 @@
 <!-- Hero -->
 <section class="bg-gray-900 overflow-hidden">
-  @if (hero().backgroundImage || hero().backgroundImageMobile) {
+  @if (heroLoading()) {
+    <div class="max-w-[1440px] mx-auto">
+      <div class="w-full aspect-[16/7] md:aspect-[1440/600] bg-gray-800 animate-pulse"></div>
+    </div>
+  } @else if (hero().backgroundImage || hero().backgroundImageMobile) {
     <div class="max-w-[1440px] mx-auto">
       <picture class="block w-full">
         @if (hero().backgroundImageMobile) {

@@ -22,7 +22,8 @@ export class Home {
   private readonly homeSectionsService = inject(HomeSectionsService);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly hero = this.heroService.getSettings();
+  protected readonly hero        = this.heroService.getSettings();
+  protected readonly heroLoading = this.heroService.getLoading();
   protected readonly sections = this.homeSectionsService.get();
 
   protected readonly loading = computed(() =>

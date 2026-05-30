@@ -36,14 +36,15 @@ const DEFAULT: HeroSettings = {
 export class HeroService {
   private readonly http = inject(HttpClient);
   private readonly settings = signal<HeroSettings>(DEFAULT);
+  private readonly _loading = signal(true);
 
   constructor() {
     this.http.get<HeroSettings>(`${API_URL}/hero`).subscribe({
-      next: data => this.settings.set(data),
+      next:     data => { this.settings.set(data); this._loading.set(false); },
+      error:    ()   => this._loading.set(false),
     });
   }
 
-  getSettings() {
-    return this.settings.asReadonly();
-  }
+  getSettings() { return this.settings.asReadonly(); }
+  getLoading()  { return this._loading.asReadonly(); }
 }
