@@ -1,7 +1,8 @@
 import { Component, inject, signal, computed, effect, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { BrandService } from '../../services/brand';
 import html2canvas from 'html2canvas';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Navbar } from '../../components/navbar/navbar';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { SellerApiService, Product, InventoryItem } from '../../services/seller-api';
@@ -25,7 +26,7 @@ function productSizes(p: Product): string[] {
 
 @Component({
   selector: 'app-pos',
-  imports: [RouterLink],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './pos.html',
 })
 export class Pos implements OnInit, OnDestroy {

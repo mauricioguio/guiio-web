@@ -1,0 +1,33 @@
+<nav class="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-20">
+
+  <!-- Marca + sede -->
+  <div>
+    <p class="text-white font-bold text-sm">{{ brand.name() }}</p>
+    <p class="text-gray-500 text-xs">{{ auth.currentSede()?.sedeName }}</p>
+  </div>
+
+  <!-- Links de navegación -->
+  <div class="flex items-center gap-1">
+    <a routerLink="/ventas" routerLinkActive="text-white bg-gray-800"
+       class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
+      Ventas
+    </a>
+    <a routerLink="/pedidos" routerLinkActive="text-white bg-gray-800"
+       class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
+      Pedidos
+    </a>
+    <a routerLink="/inventario" routerLinkActive="text-white bg-gray-800"
+       class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
+      Inventario
+    </a>
+    <a routerLink="/pos" routerLinkActive="text-white bg-gray-800"
+       class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
+      POS
+    </a>
+    <button (click)="logout()"
+      class="ml-2 px-3 py-1.5 rounded-lg text-xs text-gray-500 hover:text-red-400 hover:bg-gray-800 transition-colors">
+      Salir
+    </button>
+  </div>
+
+</nav>

@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { SellerApiService, Product } from '../../services/seller-api';
 import { AuthService } from '../../services/auth';
+import { Navbar } from '../../components/navbar/navbar';
 
 function productSizes(p: Product): string[] {
   if (p.type === 'bottom') return p.bottomSizes.length ? p.bottomSizes : ['Único'];
@@ -10,7 +11,7 @@ function productSizes(p: Product): string[] {
 
 @Component({
   selector: 'app-inventario',
-  imports: [RouterLink],
+  imports: [RouterLink, Navbar],
   templateUrl: './inventario.html',
 })
 export class Inventario implements OnInit {

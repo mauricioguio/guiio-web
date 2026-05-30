@@ -1,17 +1,6 @@
 <div class="min-h-screen bg-gray-950">
 
-  <!-- Navbar -->
-  <div class="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-    <div>
-      <p class="text-white font-semibold text-sm">Inventario</p>
-      <p class="text-gray-500 text-xs">{{ auth.currentSede()?.sedeName }}</p>
-    </div>
-    <div class="flex items-center gap-3">
-      <a routerLink="/pos" class="text-gray-400 hover:text-white text-sm transition-colors">POS</a>
-      <a routerLink="/ventas" class="text-gray-400 hover:text-white text-sm transition-colors">Ventas</a>
-      <button (click)="logout()" class="text-gray-600 hover:text-red-400 text-xs transition-colors">Salir</button>
-    </div>
-  </div>
+  <app-navbar />
 
   @if (loading()) {
     <div class="py-32 text-center"><p class="text-gray-500 text-sm">Cargando inventario...</p></div>

@@ -147,23 +147,28 @@
   <div class="flex-1 flex flex-col min-w-0 lg:overflow-hidden">
 
     <!-- Navbar -->
-    <div class="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-10 shrink-0">
+    <nav class="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-20 shrink-0">
       <div>
-        <p class="text-white font-semibold text-sm">Guiio</p>
+        <p class="text-white font-bold text-sm">{{ brand.name() }}</p>
         <p class="text-gray-500 text-xs">{{ auth.currentSede()?.sedeName }}</p>
       </div>
-      <div class="flex items-center gap-3">
-        <a routerLink="/ventas" class="text-gray-400 hover:text-white text-sm transition-colors">Ventas</a>
-        <a routerLink="/pedidos" class="text-gray-400 hover:text-white text-sm transition-colors">Pedidos</a>
-        <a routerLink="/inventario" class="text-gray-400 hover:text-white text-sm transition-colors">Inventario</a>
+      <div class="flex items-center gap-1">
+        <a routerLink="/ventas" routerLinkActive="text-white bg-gray-800"
+           class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">Ventas</a>
+        <a routerLink="/pedidos" routerLinkActive="text-white bg-gray-800"
+           class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">Pedidos</a>
+        <a routerLink="/inventario" routerLinkActive="text-white bg-gray-800"
+           class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">Inventario</a>
+        <a routerLink="/pos" routerLinkActive="text-white bg-gray-800"
+           class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">POS</a>
         <button
           (click)="receiptPreview.set(!receiptPreview())"
-          class="text-xs px-2.5 py-1 rounded-lg border transition-colors"
+          class="ml-1 text-xs px-2.5 py-1.5 rounded-lg border transition-colors"
           [class]="receiptPreview() ? 'bg-yellow-400 text-gray-900 border-yellow-400' : 'border-gray-700 text-gray-500 hover:text-gray-300'"
         >{{ receiptPreview() ? 'Ocultar recibo' : 'Ver recibo' }}</button>
-        <button (click)="logout()" class="text-gray-600 hover:text-red-400 text-xs transition-colors">Salir</button>
+        <button (click)="logout()" class="ml-1 px-3 py-1.5 rounded-lg text-xs text-gray-500 hover:text-red-400 hover:bg-gray-800 transition-colors">Salir</button>
       </div>
-    </div>
+    </nav>
 
     <div class="flex-1 lg:overflow-y-auto p-4">
 

@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { SellerApiService, Sale } from '../../services/seller-api';
 import { AuthService } from '../../services/auth';
+import { Navbar } from '../../components/navbar/navbar';
 
 const PRESETS = [
   { key: 'all',        label: 'Todo' },
@@ -16,7 +17,7 @@ const PRESETS = [
 
 @Component({
   selector: 'app-sales',
-  imports: [RouterLink],
+  imports: [RouterLink, Navbar],
   templateUrl: './sales.html',
 })
 export class Sales implements OnInit {

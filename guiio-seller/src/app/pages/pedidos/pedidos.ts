@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import html2canvas from 'html2canvas';
 import { SellerApiService, FabricarOrder, FabricarItem, SalePayment } from '../../services/seller-api';
 import { AuthService } from '../../services/auth';
+import { Navbar } from '../../components/navbar/navbar';
 import { BrandService } from '../../services/brand';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -19,7 +20,7 @@ const STATUSES = ['PENDING', 'PRODUCING', 'READY', 'IN_STORE', 'DELIVERED', 'COM
 
 @Component({
   selector: 'app-pedidos',
-  imports: [RouterLink],
+  imports: [RouterLink, Navbar],
   templateUrl: './pedidos.html',
 })
 export class Pedidos implements OnInit {
