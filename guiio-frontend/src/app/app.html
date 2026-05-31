@@ -5,7 +5,8 @@
 <app-footer />
 <app-cart-sidebar />
 
-<!-- Botón flotante Calcula mi talla -->
+<!-- Botón flotante Calcula mi talla (solo en páginas de producto) -->
+@if (enProducto()) {
 <a routerLink="/calculadora-de-tallas"
    class="fixed bottom-24 right-6 z-40 flex items-center gap-2.5 group">
   <span class="opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-200 bg-gray-900 text-white text-xs font-medium px-3 py-1.5 rounded-full whitespace-nowrap shadow-md pointer-events-none">
@@ -18,6 +19,7 @@
     </svg>
   </div>
 </a>
+}
 
 <!-- Botón flotante de WhatsApp -->
 <a href="https://wa.me/573108831695?text=Hola!%20Me%20gustar%C3%ADa%20obtener%20información%20sobre%20sus%20uniformes."

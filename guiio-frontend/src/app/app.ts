@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, NavigationEnd } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { filter } from 'rxjs';
@@ -15,6 +15,7 @@ import { CartSidebar } from './components/cart-sidebar/cart-sidebar';
 export class App {
   private readonly router = inject(Router);
   private readonly http   = inject(HttpClient);
+  protected readonly enProducto = signal(false);
 
   constructor() {
     // Detect Facebook ad traffic (fbclid = Meta click ID, utm_source = manual UTM)
@@ -26,6 +27,7 @@ export class App {
     this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd),
     ).subscribe(e => {
+      this.enProducto.set(e.urlAfterRedirects.startsWith('/producto/'));
       (window as any).fbq?.('track', 'PageView');
       const source = sessionStorage.getItem('trafficSource') ?? undefined;
       this.http.post('https://api.guiiouniformes.com/api/track', {
