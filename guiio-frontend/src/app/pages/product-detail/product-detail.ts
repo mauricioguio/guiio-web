@@ -8,6 +8,7 @@ import { ProductService } from '../../services/product';
 import { CartService } from '../../services/cart';
 import { ProductColor } from '../../models/product';
 import { ProductCard } from '../../components/product-card/product-card';
+import { SizeCalcService } from '../../services/size-calc';
 
 type SizeChart = { max: number; size: string }[];
 
@@ -147,8 +148,10 @@ export class ProductDetail {
   protected readonly selectedImageIndex = signal(0);
   protected readonly added = signal(false);
 
-  // Size calculator
-  protected showSizeCalc   = signal(false);
+  private readonly sizeCalcService = inject(SizeCalcService);
+
+  // Size calculator — driven by global service OR local button
+  protected showSizeCalc   = this.sizeCalcService.open;
   protected calcBust       = signal<number | null>(null);
   protected calcHip        = signal<number | null>(null);
   protected calcWaist      = signal<number | null>(null);
@@ -284,7 +287,7 @@ export class ProductDetail {
     this.aiErrored.set(false);
     const opts = this.availableFitOptions();
     this.fitPreference.set(opts.length === 1 ? opts[0].value : null);
-    this.showSizeCalc.set(true);
+    this.sizeCalcService.show();
   }
 
   private callAdvice(history: { role: 'user' | 'model'; text: string }[]) {
@@ -396,7 +399,7 @@ export class ProductDetail {
     const bot = this.calcBottomResult();
     if (top) this.selectedTopSize.set(top);
     if (bot) this.selectedBottomSize.set(bot);
-    this.showSizeCalc.set(false);
+    this.sizeCalcService.hide();
   }
 
   selectImage(index: number) { this.selectedImageIndex.set(index); }

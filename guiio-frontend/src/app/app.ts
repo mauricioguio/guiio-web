@@ -1,20 +1,22 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, RouterOutlet, RouterLink, NavigationEnd } from '@angular/router';
+import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { filter } from 'rxjs';
 import { Navbar } from './components/navbar/navbar';
 import { Footer } from './components/footer/footer';
 import { CartSidebar } from './components/cart-sidebar/cart-sidebar';
+import { SizeCalcService } from './services/size-calc';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, Navbar, Footer, CartSidebar],
+  imports: [RouterOutlet, Navbar, Footer, CartSidebar],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App {
-  private readonly router = inject(Router);
-  private readonly http   = inject(HttpClient);
+  private readonly router   = inject(Router);
+  private readonly http     = inject(HttpClient);
+  protected readonly sizeCalc   = inject(SizeCalcService);
   protected readonly enProducto = signal(false);
 
   constructor() {

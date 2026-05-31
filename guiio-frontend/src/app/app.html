@@ -7,12 +7,12 @@
 
 <!-- Botón flotante Calcula mi talla (solo en páginas de producto) -->
 @if (enProducto()) {
-<a routerLink="/calculadora-de-tallas"
+<button (click)="sizeCalc.show()"
    class="fixed bottom-24 right-6 z-40 animate-[latido_1.8s_ease-in-out_infinite]">
   <span class="bg-gray-900 hover:bg-gray-700 transition-colors duration-200 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg whitespace-nowrap">
     📏 ¿Cuál es mi talla?
   </span>
-</a>
+</button>
 }
 
 <!-- Botón flotante de WhatsApp -->
