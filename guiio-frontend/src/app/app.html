@@ -5,6 +5,20 @@
 <app-footer />
 <app-cart-sidebar />
 
+<!-- Botón flotante Calcula mi talla -->
+<a routerLink="/calculadora-de-tallas"
+   class="fixed bottom-24 right-6 z-40 flex items-center gap-2.5 group">
+  <span class="opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-200 bg-gray-900 text-white text-xs font-medium px-3 py-1.5 rounded-full whitespace-nowrap shadow-md pointer-events-none">
+    Calcula mi talla
+  </span>
+  <div class="w-12 h-12 bg-gray-900 hover:bg-gray-700 rounded-full shadow-lg hover:shadow-xl transition-colors duration-200 flex items-center justify-center animate-[latido_1.8s_ease-in-out_infinite]">
+    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-4M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2M9 7h6"/>
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6M9 15h4"/>
+    </svg>
+  </div>
+</a>
+
 <!-- Botón flotante de WhatsApp -->
 <a href="https://wa.me/573108831695?text=Hola!%20Me%20gustar%C3%ADa%20obtener%20información%20sobre%20sus%20uniformes."
    target="_blank" rel="noopener"

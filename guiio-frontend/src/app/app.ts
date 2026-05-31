@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
+import { Router, RouterOutlet, RouterLink, NavigationEnd } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { filter } from 'rxjs';
 import { Navbar } from './components/navbar/navbar';
@@ -8,7 +8,7 @@ import { CartSidebar } from './components/cart-sidebar/cart-sidebar';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Navbar, Footer, CartSidebar],
+  imports: [RouterOutlet, RouterLink, Navbar, Footer, CartSidebar],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
