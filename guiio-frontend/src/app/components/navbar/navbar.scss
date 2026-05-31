@@ -4,15 +4,24 @@
 }
 
 /* Promo bar */
+@keyframes latido-bar {
+  0%, 100% { opacity: 1; }
+  40%       { opacity: 0.7; }
+  70%       { opacity: 1; }
+}
+
 .promo-bar {
-  background-color: #1a1a1a;
-  color: rgba(255, 255, 255, 0.7);
+  background: linear-gradient(90deg, #1a1a1a 0%, #2a2218 40%, #1a1a1a 100%);
+  background-size: 200% 100%;
+  color: rgba(255, 255, 255, 0.85);
   font-size: 0.7rem;
   letter-spacing: 0.03em;
+  border-bottom: 1px solid rgba(255, 200, 80, 0.15);
+  animation: latido-bar 2.5s ease-in-out infinite;
 
   strong {
-    color: #fff;
-    font-weight: 600;
+    color: #fbbf24;
+    font-weight: 700;
   }
 }
 
