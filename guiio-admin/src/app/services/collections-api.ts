@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Product } from './products-api';
 
-const API_URL = 'https://guiio-web-production.up.railway.app/api';
+const API_URL = 'https://api.guiiouniformes.com/api';
 
 export interface Collection {
   id: string; name: string; description: string | null; image: string | null;

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-const API_URL = 'https://guiio-web-production.up.railway.app/api';
+const API_URL = 'https://api.guiiouniformes.com/api';
 
 export interface Sede {
   id: string; name: string; pin: string | null;

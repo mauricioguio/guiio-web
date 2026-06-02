@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-const API_URL = 'https://guiio-web-production.up.railway.app/api';
+const API_URL = 'https://api.guiiouniformes.com/api';
 
 export interface OrderItem {
   id: string; quantity: number; price: number;
@@ -13,6 +13,7 @@ export interface Order {
   status: 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
   total: number; shipping: number; discount: number;
   address: string; city: string; notes: string | null; wompiTxId: string | null;
+  paymentProvider: string | null;
   createdAt: string;
   customer: { id: string; name: string; email: string; phone: string; cedula?: string | null };
   items: OrderItem[];

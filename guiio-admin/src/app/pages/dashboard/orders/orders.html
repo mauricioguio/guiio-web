@@ -110,6 +110,12 @@
               <p class="text-white font-semibold text-sm">{{ formatPrice(order.total) }}</p>
               <p class="text-gray-500 text-xs">{{ order.createdAt | date:'d MMM yyyy' }}</p>
             </div>
+            <span class="text-xs px-2 py-0.5 rounded-md font-medium"
+              [class]="order.paymentProvider === 'addi'
+                ? 'bg-orange-500/15 text-orange-400'
+                : 'bg-gray-700/50 text-gray-400'">
+              {{ order.paymentProvider === 'addi' ? 'ADDI' : 'Wompi' }}
+            </span>
             <span class="text-xs px-2.5 py-1 rounded-full border" [class]="statusClass(order.status)">
               {{ STATUS_LABELS[order.status] }}
             </span>
@@ -228,9 +234,17 @@
           </div>
         </div>
 
-        @if (selectedOrder()!.wompiTxId) {
-          <p class="text-gray-600 text-xs">ID Wompi: {{ selectedOrder()!.wompiTxId }}</p>
-        }
+        <div class="flex items-center gap-3">
+          <span class="text-xs px-2 py-0.5 rounded-md font-medium"
+            [class]="selectedOrder()!.paymentProvider === 'addi'
+              ? 'bg-orange-500/15 text-orange-400'
+              : 'bg-gray-700/50 text-gray-400'">
+            {{ selectedOrder()!.paymentProvider === 'addi' ? 'ADDI' : 'Wompi' }}
+          </span>
+          @if (selectedOrder()!.wompiTxId) {
+            <p class="text-gray-600 text-xs">ID: {{ selectedOrder()!.wompiTxId }}</p>
+          }
+        </div>
       </div>
     </div>
   </div>
