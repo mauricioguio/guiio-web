@@ -33,6 +33,11 @@ export const routes: Routes = [
         canActivate: [adminGuard],
       },
       {
+        path: 'all-sales',
+        loadComponent: () => import('./pages/dashboard/all-sales/all-sales').then(m => m.AllSales),
+        canActivate: [adminGuard],
+      },
+      {
         path: 'products',
         loadComponent: () => import('./pages/dashboard/products/products').then(m => m.Products),
         canActivate: [adminGuard],

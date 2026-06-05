@@ -93,6 +93,12 @@ export class SellerController {
     return this.sellerService.getAllSales(req.user?.empresa ?? 'GUIIO');
   }
 
+  @Get('admin/unified-sales')
+  @UseGuards(JwtAuthGuard)
+  getUnifiedSales(@Request() req: any) {
+    return this.sellerService.getUnifiedSales(req.user?.empresa ?? 'GUIIO');
+  }
+
   @Patch('admin/sales/:id/status')
   @UseGuards(JwtAuthGuard)
   updateSaleStatus(@Param('id') id: string, @Body('status') status: string) {

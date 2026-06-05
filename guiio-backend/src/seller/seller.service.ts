@@ -204,4 +204,65 @@ export class SellerService {
       include: { items: true, sede: { select: { id: true, name: true } } },
     });
   }
+
+  async getUnifiedSales(empresa = 'GUIIO') {
+    const [orders, sales] = await Promise.all([
+      this.prisma.order.findMany({
+        include: { customer: true, items: true },
+      }),
+      this.prisma.sale.findMany({
+        where: { sede: { empresa } },
+        include: { items: true, sede: true },
+      }),
+    ]);
+
+    const normalized = [
+      ...orders.map(o => ({
+        id: o.id,
+        channel: 'online' as const,
+        channelName: 'Online',
+        customerName: o.customer?.name ?? null,
+        customerPhone: o.customer?.phone ?? null,
+        total: o.total,
+        status: o.status,
+        createdAt: o.createdAt.toISOString(),
+        itemCount: o.items.length,
+        items: o.items.map(i => ({
+          productName: i.productName,
+          quantity: i.quantity,
+          price: i.price,
+          size: [i.topSize, i.bottomSize].filter(Boolean).join('/'),
+        })),
+        paymentMethod: o.paymentProvider ?? null,
+        reference: o.reference,
+        orderNumber: undefined,
+        type: undefined,
+      })),
+      ...sales.map(s => ({
+        id: s.id,
+        channel: 'fisica' as const,
+        channelName: s.sede.name,
+        customerName: s.customerName ?? null,
+        customerPhone: s.customerPhone ?? null,
+        total: s.total,
+        status: s.status,
+        createdAt: s.createdAt.toISOString(),
+        itemCount: s.items.length,
+        items: s.items.map(i => ({
+          productName: i.productName,
+          quantity: i.quantity,
+          price: i.price,
+          size: i.size,
+        })),
+        paymentMethod: s.paymentMethod ?? null,
+        reference: undefined,
+        orderNumber: s.orderNumber,
+        type: s.type,
+      })),
+    ];
+
+    return normalized.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  }
 }
