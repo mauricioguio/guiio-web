@@ -38,8 +38,26 @@
                 }
               </span>
               <div>
-                <p class="text-sm font-semibold text-gray-900">Tarjeta / PSE / Nequi</p>
-                <p class="text-xs text-gray-500 mt-0.5">Pago inmediato con Wompi</p>
+                <p class="text-sm font-semibold text-gray-900">Pago seguro con Wompi</p>
+                <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                  <!-- Visa -->
+                  <svg width="36" height="22" viewBox="0 0 36 22" class="rounded shrink-0">
+                    <rect width="36" height="22" rx="3" fill="#1A1F71"/>
+                    <text x="18" y="16" text-anchor="middle" fill="white" font-size="11" font-weight="800" font-style="italic" font-family="Arial,sans-serif" letter-spacing="0.5">VISA</text>
+                  </svg>
+                  <!-- Mastercard -->
+                  <svg width="36" height="22" viewBox="0 0 36 22" class="rounded shrink-0">
+                    <rect width="36" height="22" rx="3" fill="#1c1c1c"/>
+                    <circle cx="13" cy="11" r="7" fill="#EB001B"/>
+                    <circle cx="23" cy="11" r="7" fill="#F79E1B" opacity="0.9"/>
+                  </svg>
+                  <!-- PSE -->
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-green-700 text-white shrink-0">PSE</span>
+                  <!-- Nequi -->
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold text-white shrink-0" style="background:#6B21A8">nequi</span>
+                  <!-- Daviplata -->
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold text-white shrink-0" style="background:#C8102E">Daviplata</span>
+                </div>
               </div>
             </button>
 
@@ -56,8 +74,11 @@
                 }
               </span>
               <div>
-                <p class="text-sm font-semibold text-gray-900">Paga a cuotas con ADDI</p>
-                <p class="text-xs text-gray-500 mt-0.5">Aprobación instantánea, sin tarjeta</p>
+                <!-- ADDI wordmark -->
+                <svg width="52" height="22" viewBox="0 0 52 22" class="mb-1">
+                  <text x="0" y="18" font-family="Arial,sans-serif" font-size="20" font-weight="900" fill="#FF4B26" letter-spacing="-0.5">addi</text>
+                </svg>
+                <p class="text-xs text-gray-500">Aprobación instantánea, sin tarjeta</p>
               </div>
             </button>
 

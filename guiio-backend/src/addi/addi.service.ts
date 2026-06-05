@@ -10,7 +10,6 @@ export class AddiService {
   private readonly logger = new Logger(AddiService.name);
   private readonly apiUrl: string;
   private readonly authUrl: string;
-  private readonly allySlug: string;
   private readonly clientId: string;
   private readonly clientSecret: string;
   private readonly frontendUrl: string;
@@ -24,7 +23,6 @@ export class AddiService {
   ) {
     this.apiUrl       = this.config.get<string>('ADDI_API_URL')   ?? 'https://api.addi-staging.com';
     this.authUrl      = this.config.get<string>('ADDI_AUTH_URL')  ?? 'https://auth.addi-staging.com/oauth/token';
-    this.allySlug     = this.config.get<string>('ADDI_ALLY_SLUG') ?? 'guiiouniformes-ecommerce';
     this.clientId     = this.config.get<string>('ADDI_CLIENT_ID')!;
     this.clientSecret = this.config.get<string>('ADDI_CLIENT_SECRET')!;
     this.frontendUrl  = this.config.get<string>('FRONTEND_URL')   ?? 'http://localhost:4200';
@@ -180,12 +178,12 @@ export class AddiService {
         : null;
 
       if (orderStatus) {
-        await this.prisma.order.updateMany({
-          where: { reference },
+        const updated = await this.prisma.order.updateMany({
+          where: { reference, status: { not: orderStatus as any } },
           data:  { status: orderStatus as any },
         });
 
-        if (orderStatus === 'PAID') {
+        if (orderStatus === 'PAID' && updated.count > 0) {
           const order = await this.prisma.order.findUnique({
             where: { reference },
             include: { customer: true, items: true },

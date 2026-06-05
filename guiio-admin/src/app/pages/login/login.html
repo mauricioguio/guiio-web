@@ -15,6 +15,7 @@
       <div class="space-y-1">
         <label class="block text-sm text-gray-400">Usuario</label>
         <input
+          #usernameInput
           formControlName="username"
           type="text"
           placeholder="Ingresa tu usuario"
@@ -26,6 +27,7 @@
         <label class="block text-sm text-gray-400">Contraseña</label>
         <div class="relative">
           <input
+            #passwordInput
             formControlName="password"
             [type]="showPassword ? 'text' : 'password'"
             placeholder="Ingresa tu contraseña"
@@ -54,7 +56,7 @@
 
       <button
         type="submit"
-        [disabled]="form.invalid || loading()"
+        [disabled]="loading()"
         class="w-full bg-white text-gray-900 font-semibold py-3 rounded-xl text-sm hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
         @if (loading()) {

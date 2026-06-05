@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
@@ -13,6 +13,9 @@ export class Login {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
+  @ViewChild('usernameInput') usernameInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('passwordInput') passwordInput!: ElementRef<HTMLInputElement>;
+
   protected readonly error = signal(false);
   protected readonly loading = signal(false);
   protected showPassword = false;
@@ -23,6 +26,10 @@ export class Login {
   });
 
   async submit() {
+    const u = this.usernameInput.nativeElement.value;
+    const p = this.passwordInput.nativeElement.value;
+    if (u) this.form.controls.username.setValue(u);
+    if (p) this.form.controls.password.setValue(p);
     if (this.form.invalid) return;
     this.loading.set(true);
     this.error.set(false);
