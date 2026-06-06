@@ -208,10 +208,11 @@ export class SellerService {
   async getUnifiedSales(empresa = 'GUIIO') {
     const [orders, sales] = await Promise.all([
       this.prisma.order.findMany({
+        where: { status: { not: 'CANCELLED' as any } },
         include: { customer: true, items: true },
       }),
       this.prisma.sale.findMany({
-        where: { sede: { empresa } },
+        where: { sede: { empresa }, status: { not: 'CANCELLED' as any } },
         include: { items: true, sede: true },
       }),
     ]);

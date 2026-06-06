@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
+import { AbandonedCartsService } from '../abandoned-carts/abandoned-carts.service';
 import { CreateAddiCheckoutDto } from './dto/create-addi-checkout.dto';
 
 @Injectable()
@@ -20,6 +21,7 @@ export class AddiService {
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
     private readonly email: EmailService,
+    private readonly abandonedCarts: AbandonedCartsService,
   ) {
     this.apiUrl       = this.config.get<string>('ADDI_API_URL')   ?? 'https://api.addi-staging.com';
     this.authUrl      = this.config.get<string>('ADDI_AUTH_URL')  ?? 'https://auth.addi-staging.com/oauth/token';
@@ -202,6 +204,7 @@ export class AddiService {
               discount: order.discount,
               items: order.items,
             });
+            await this.abandonedCarts.markConverted(reference);
           }
         }
       }
