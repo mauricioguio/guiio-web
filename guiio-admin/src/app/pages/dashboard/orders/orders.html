@@ -245,6 +245,55 @@
             <p class="text-gray-600 text-xs">ID: {{ selectedOrder()!.wompiTxId }}</p>
           }
         </div>
+
+        <!-- Eliminar pedido -->
+        <div class="pt-2 border-t border-gray-800 flex justify-end">
+          <button
+            (click)="confirmDelete.set(selectedOrder())"
+            class="text-xs text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-400/50 px-3 py-1.5 rounded-xl transition-colors"
+          >
+            Eliminar pedido
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal de confirmación de eliminación -->
+@if (confirmDelete()) {
+  @let order = confirmDelete()!;
+  <div
+    class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+    (click)="confirmDelete.set(null)"
+  >
+    <div
+      class="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-sm mx-4 shadow-xl"
+      (click)="$event.stopPropagation()"
+    >
+      <h3 class="text-white font-semibold text-base mb-1">Eliminar pedido</h3>
+      <p class="text-gray-400 text-sm mb-1">
+        ¿Seguro que querés eliminar el pedido de
+        <span class="text-white font-medium">{{ order.customer.name }}</span>?
+      </p>
+      <p class="text-gray-500 text-xs mb-1">Ref: {{ order.reference }}</p>
+      <p class="text-red-400 text-xs mb-5">Esta acción no se puede deshacer.</p>
+      <div class="flex gap-3 justify-end">
+        <button
+          (click)="confirmDelete.set(null)"
+          [disabled]="deletingId() === order.id"
+          class="text-sm px-4 py-2 rounded-xl border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors disabled:opacity-40"
+        >
+          Cancelar
+        </button>
+        <button
+          (click)="deleteOrder(order)"
+          [disabled]="deletingId() === order.id"
+          class="text-sm px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium transition-colors disabled:opacity-40"
+        >
+          {{ deletingId() === order.id ? 'Eliminando...' : 'Sí, eliminar' }}
+        </button>
       </div>
     </div>
   </div>

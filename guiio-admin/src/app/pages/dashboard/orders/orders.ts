@@ -39,6 +39,8 @@ export class Orders {
   protected activeFilter = signal<string>('');
   protected selectedOrder = signal<Order | null>(null);
   protected updatingId = signal<string | null>(null);
+  protected confirmDelete = signal<Order | null>(null);
+  protected deletingId = signal<string | null>(null);
 
   protected datePreset = signal<DatePreset>('all');
   protected customFrom = signal<string>('');
@@ -147,6 +149,19 @@ export class Orders {
         this.updatingId.set(null);
       },
       error: () => this.updatingId.set(null),
+    });
+  }
+
+  deleteOrder(order: Order) {
+    this.deletingId.set(order.id);
+    this.api.deleteOrder(order.id).subscribe({
+      next: () => {
+        this.orders.update(list => list.filter(o => o.id !== order.id));
+        this.confirmDelete.set(null);
+        this.deletingId.set(null);
+        if (this.selectedOrder()?.id === order.id) this.selectedOrder.set(null);
+      },
+      error: () => this.deletingId.set(null),
     });
   }
 

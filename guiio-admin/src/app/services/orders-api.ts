@@ -31,4 +31,8 @@ export class OrdersApiService {
   updateStatus(id: string, status: string) {
     return this.http.patch<Order>(`${API_URL}/orders/${id}/status`, { status });
   }
+
+  deleteOrder(id: string) {
+    return this.http.delete<void>(`${API_URL}/orders/${id}`);
+  }
 }

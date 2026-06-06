@@ -36,4 +36,8 @@ export class OrdersService {
       data: { status: status as any },
     });
   }
+
+  deleteOrder(id: string) {
+    return this.prisma.order.delete({ where: { id } });
+  }
 }
