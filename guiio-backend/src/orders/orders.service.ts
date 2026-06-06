@@ -37,7 +37,8 @@ export class OrdersService {
     });
   }
 
-  deleteOrder(id: string) {
+  async deleteOrder(id: string) {
+    await this.prisma.orderItem.deleteMany({ where: { orderId: id } });
     return this.prisma.order.delete({ where: { id } });
   }
 }
