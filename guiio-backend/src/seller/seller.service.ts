@@ -266,4 +266,10 @@ export class SellerService {
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
   }
+
+  async deleteSale(id: string) {
+    await this.prisma.saleItem.deleteMany({ where: { saleId: id } });
+    await this.prisma.salePayment.deleteMany({ where: { saleId: id } });
+    return this.prisma.sale.delete({ where: { id } });
+  }
 }

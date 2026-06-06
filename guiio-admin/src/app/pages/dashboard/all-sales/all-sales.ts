@@ -74,6 +74,7 @@ export class AllSales {
     }
 
     return this.sales().filter(s => {
+      if (s.status === 'CANCELLED') return false;
       const d = new Date(s.createdAt);
       if (from && d < from) return false;
       if (to   && d > to)   return false;
