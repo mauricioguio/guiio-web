@@ -104,7 +104,8 @@ export class Orders {
 
   protected filtered = computed(() => {
     const f = this.activeFilter();
-    return f ? this.dateFiltered().filter(o => o.status === f) : this.dateFiltered();
+    if (f) return this.dateFiltered().filter(o => o.status === f);
+    return this.dateFiltered().filter(o => o.status !== 'CANCELLED');
   });
 
   protected counts = computed(() => {
