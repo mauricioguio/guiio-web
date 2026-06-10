@@ -87,6 +87,8 @@ export class Pos implements OnInit, OnDestroy {
   protected editingOrder = signal<FabricarOrder | null>(null);
   protected addingItems = signal(false);
   protected addItemsSuccess = signal(false);
+  protected editAbonoAnswer = signal<'yes' | 'no' | null>(null);
+  protected editAbonoAmount = signal(0);
   protected registering = signal(false);
   protected adjustedItems = signal(0);
   protected receiptPreview = signal(false);
@@ -654,6 +656,8 @@ export class Pos implements OnInit, OnDestroy {
     this.orderSearchResults.set([]);
     this.cart.set([]);
     this.addItemsSuccess.set(false);
+    this.editAbonoAnswer.set(null);
+    this.editAbonoAmount.set(0);
   }
 
   clearEditingOrder() {
@@ -662,12 +666,28 @@ export class Pos implements OnInit, OnDestroy {
     this.orderSearchState.set('idle');
     this.orderSearchResults.set([]);
     this.cart.set([]);
+    this.editAbonoAnswer.set(null);
+    this.editAbonoAmount.set(0);
+  }
+
+  onEditAbonoInput(raw: string) {
+    const n = parseInt(raw.replace(/\D/g, ''), 10);
+    this.editAbonoAmount.set(isNaN(n) ? 0 : n);
+  }
+
+  editAbonoInputValue(): string {
+    const v = this.editAbonoAmount();
+    return v > 0 ? v.toLocaleString('es-CO') : '';
   }
 
   confirmAddItems() {
     const order = this.editingOrder();
     const items = this.cart();
     if (!order || !items.length || this.addingItems()) return;
+    if (this.editAbonoAnswer() === null) return;
+    const abono = this.editAbonoAnswer() === 'yes' ? this.editAbonoAmount() : 0;
+    if (this.editAbonoAnswer() === 'yes' && abono < 10000) return;
+
     this.addingItems.set(true);
     this.api.addItemsToOrder(order.id, items.map(i => ({
       productId: i.product.id,
@@ -678,14 +698,27 @@ export class Pos implements OnInit, OnDestroy {
       note: i.note || undefined,
     }))).subscribe({
       next: updated => {
-        this.editingOrder.set(updated);
-        this.cart.set([]);
-        this.addingItems.set(false);
-        this.addItemsSuccess.set(true);
-        setTimeout(() => this.addItemsSuccess.set(false), 4000);
+        if (abono >= 10000) {
+          this.api.addPayment(order.id, abono).subscribe({
+            next: () => this.finishAddItems(updated),
+            error: () => this.finishAddItems(updated),
+          });
+        } else {
+          this.finishAddItems(updated);
+        }
       },
       error: () => this.addingItems.set(false),
     });
+  }
+
+  private finishAddItems(updated: FabricarOrder) {
+    this.editingOrder.set(updated);
+    this.cart.set([]);
+    this.addingItems.set(false);
+    this.editAbonoAnswer.set(null);
+    this.editAbonoAmount.set(0);
+    this.addItemsSuccess.set(true);
+    setTimeout(() => this.addItemsSuccess.set(false), 4000);
   }
 
   editingOrderTotal = () => {
