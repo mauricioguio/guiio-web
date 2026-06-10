@@ -188,6 +188,15 @@ export class SellerService {
     return this.getFabricarOrder(saleId);
   }
 
+  async getOnlineOrders() {
+    return this.prisma.order.findMany({
+      where: { status: { not: 'CANCELLED' } },
+      include: { customer: true, items: true },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+  }
+
   async getNextOrderNumber(empresa = 'GUIIO'): Promise<{ nextOrderNumber: number }> {
     const last = await this.prisma.sale.findFirst({
       where: { sede: { empresa } },

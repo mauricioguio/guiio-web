@@ -111,6 +111,12 @@ export class SellerController {
     return this.sellerService.deleteSale(id);
   }
 
+  @Get('online-orders')
+  @UseGuards(SellerGuard)
+  getOnlineOrders() {
+    return this.sellerService.getOnlineOrders();
+  }
+
   @Get('next-order-number')
   @UseGuards(SellerGuard)
   getNextOrderNumber(@Request() req: any) {
