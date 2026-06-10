@@ -625,6 +625,13 @@ export class Pos implements OnInit, OnDestroy {
     this.orderSearchState.set('idle');
     this.orderSearchResults.set([]);
     this.addItemsSuccess.set(false);
+    this.editAbonoAnswer.set(null);
+    this.editAbonoAmount.set(0);
+    this.discountEnabled.set(false);
+    this.discountPanelOpen.set(false);
+    this.discountValue.set(0);
+    this.discountedKeys.set(new Set());
+    this.itemOverrides.set(new Map());
     if (mode === 'edit') this.saleType.set('FABRICAR');
   }
 
@@ -736,6 +743,11 @@ export class Pos implements OnInit, OnDestroy {
     this.editAbonoAmount.set(0);
     this.abonoEnabled.set(false);
     this.abonoAmount.set(0);
+    this.discountEnabled.set(false);
+    this.discountPanelOpen.set(false);
+    this.discountValue.set(0);
+    this.discountedKeys.set(new Set());
+    this.itemOverrides.set(new Map());
     this.addItemsSuccess.set(true);
     setTimeout(() => this.addItemsSuccess.set(false), 4000);
 

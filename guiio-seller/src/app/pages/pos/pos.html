@@ -655,6 +655,74 @@
           </div>
         }
 
+        <!-- Descuento (modo edición) -->
+        @if (cart().length > 0) {
+          <div class="flex gap-2">
+            <button
+              (click)="toggleDiscount()"
+              class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+              [class]="discountEnabled()
+                ? 'bg-purple-600/20 border-purple-600 text-purple-300'
+                : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-300'">
+              Descuento
+            </button>
+          </div>
+          @if (discountPanelOpen()) {
+            <div class="space-y-2">
+              <div class="flex gap-2">
+                <button
+                  (click)="discountType.set(discountType() === 'pct' ? 'value' : 'pct'); discountValue.set(0)"
+                  class="px-3 py-2.5 text-sm font-bold border rounded-xl transition-colors bg-gray-800 border-purple-700 text-purple-300 hover:bg-gray-700 min-w-[44px] text-center">
+                  {{ discountType() === 'pct' ? '%' : '$' }}
+                </button>
+                <div class="relative flex-1">
+                  @if (discountType() === 'value') {
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                  }
+                  <input type="text" inputmode="numeric" placeholder="0"
+                    [value]="discountInputValue()"
+                    (input)="onDiscountInput($any($event.target).value)"
+                    class="w-full bg-gray-800 border border-purple-700 rounded-xl py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+                    [class]="discountType() === 'value' ? 'pl-7 pr-3' : 'px-3'" />
+                </div>
+              </div>
+              @if (cart().length > 0) {
+                <div class="bg-gray-800/50 rounded-xl px-3 py-2 space-y-1.5">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" [checked]="allDiscounted()" (change)="toggleAllDiscounted($any($event.target).checked)"
+                      class="w-3.5 h-3.5 rounded accent-purple-500 cursor-pointer shrink-0" />
+                    <span class="text-xs text-gray-300 font-medium">Todos los productos</span>
+                  </label>
+                  @for (item of cart(); track item.product.id + item.size) {
+                    <div class="flex items-center gap-1.5">
+                      <input type="checkbox" [checked]="discountedKeys().has(itemKey(item))" (change)="toggleItemDiscounted(item)"
+                        class="w-3.5 h-3.5 rounded accent-purple-500 cursor-pointer shrink-0" />
+                      <span class="text-xs text-gray-400 truncate flex-1 min-w-0">{{ item.product.name }} · T.{{ item.size }}</span>
+                      @if (discountedKeys().has(itemKey(item))) {
+                        <button (click)="toggleItemOverrideType(item)"
+                          class="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-gray-700 border-purple-800 text-purple-400 w-6 text-center shrink-0 hover:bg-gray-600 transition-colors">
+                          {{ itemOverrideType(item) === 'pct' ? '%' : '$' }}
+                        </button>
+                        <input type="text" inputmode="numeric"
+                          [placeholder]="discountInputValue() || '0'"
+                          [value]="itemOverrideInputValue(item)"
+                          (input)="onItemOverrideInput(item, $any($event.target).value)"
+                          class="w-14 bg-gray-700 border border-purple-800 rounded px-1.5 py-0.5 text-xs text-white placeholder-gray-600 focus:outline-none shrink-0" />
+                        @if (itemEffectivePrice(item) < itemPrice(item)) {
+                          <span class="text-purple-400 text-[10px] shrink-0 whitespace-nowrap">−{{ formatPrice(itemPrice(item) - itemEffectivePrice(item)) }}</span>
+                        }
+                      }
+                    </div>
+                  }
+                </div>
+              }
+              @if (discountAmount() > 0) {
+                <p class="text-purple-400 text-xs text-right">− {{ formatPrice(discountAmount()) }}</p>
+              }
+            </div>
+          }
+        }
+
         <!-- Pregunta abono -->
         <div class="space-y-2">
           <p class="text-gray-400 text-xs">¿El cliente va a hacer un abono adicional?</p>
