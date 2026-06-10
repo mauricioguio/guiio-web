@@ -79,9 +79,10 @@ model Sale {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
-  sede     Sede         @relation(fields: [sedeId], references: [id])
-  items    SaleItem[]
-  payments SalePayment[]
+  sede         Sede              @relation(fields: [sedeId], references: [id])
+  items        SaleItem[]
+  payments     SalePayment[]
+  editRequests SaleEditRequest[]
 }
 
 model SaleItem {
@@ -186,6 +187,20 @@ model OrderItem {
 
   orderId String
   order   Order  @relation(fields: [orderId], references: [id])
+}
+
+model SaleEditRequest {
+  id          String            @id @default(cuid())
+  saleId      String
+  sale        Sale              @relation(fields: [saleId], references: [id])
+  status      EditRequestStatus @default(PENDING)
+  requestedBy String
+  reason      String?
+  changes     Json
+  reviewNote  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 }
 
 model OrderEditRequest {

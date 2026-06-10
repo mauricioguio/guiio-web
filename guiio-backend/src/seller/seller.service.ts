@@ -197,6 +197,63 @@ export class SellerService {
     });
   }
 
+  async createSaleEditRequest(saleId: string, requestedBy: string, changes: any, reason?: string) {
+    const sale = await this.prisma.sale.findUnique({ where: { id: saleId } });
+    if (!sale) throw new Error('Pedido no encontrado');
+    const pending = await this.prisma.saleEditRequest.findFirst({ where: { saleId, status: 'PENDING' } });
+    if (pending) throw new Error('Ya hay una solicitud pendiente para este pedido');
+    return this.prisma.saleEditRequest.create({ data: { saleId, requestedBy, reason, changes } });
+  }
+
+  async getSaleEditRequests(saleId: string) {
+    return this.prisma.saleEditRequest.findMany({ where: { saleId }, orderBy: { createdAt: 'desc' } });
+  }
+
+  async getPendingSaleEditRequests(empresa = 'GUIIO') {
+    return this.prisma.saleEditRequest.findMany({
+      where: { status: 'PENDING', sale: { sede: { empresa } } },
+      include: { sale: { include: { items: true, sede: { select: { id: true, name: true } } } } },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async reviewSaleEditRequest(id: string, approved: boolean, reviewNote?: string) {
+    const req = await this.prisma.saleEditRequest.findUnique({ where: { id }, include: { sale: { include: { items: true } } } });
+    if (!req) throw new Error('Solicitud no encontrada');
+    if (req.status !== 'PENDING') throw new Error('Esta solicitud ya fue revisada');
+
+    await this.prisma.saleEditRequest.update({
+      where: { id },
+      data: { status: approved ? 'APPROVED' : 'REJECTED', reviewNote, reviewedAt: new Date() },
+    });
+
+    if (!approved) return { success: true };
+
+    const changes = req.changes as any;
+
+    if (changes.itemsToRemove?.length) {
+      await this.prisma.saleItem.deleteMany({ where: { id: { in: changes.itemsToRemove }, saleId: req.saleId } });
+    }
+    for (const mod of changes.itemsToModify ?? []) {
+      await this.prisma.saleItem.update({
+        where: { id: mod.itemId },
+        data: {
+          ...(mod.quantity !== undefined && { quantity: mod.quantity }),
+          ...(mod.price !== undefined && { price: mod.price }),
+        },
+      });
+    }
+    if (changes.itemsToAdd?.length) {
+      await this.prisma.saleItem.createMany({ data: changes.itemsToAdd.map((i: any) => ({ ...i, saleId: req.saleId })) });
+    }
+
+    const updatedItems = await this.prisma.saleItem.findMany({ where: { saleId: req.saleId } });
+    const newTotal = updatedItems.reduce((s, i) => s + i.price * i.quantity, 0);
+    await this.prisma.sale.update({ where: { id: req.saleId }, data: { total: newTotal } });
+
+    return { success: true };
+  }
+
   async getNextOrderNumber(empresa = 'GUIIO'): Promise<{ nextOrderNumber: number }> {
     const last = await this.prisma.sale.findFirst({
       where: { sede: { empresa } },

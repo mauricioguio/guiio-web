@@ -19,6 +19,24 @@ export interface Order {
   items: OrderItem[];
 }
 
+export interface EditRequestChanges {
+  itemsToAdd?: { productName: string; topSize: string; bottomSize: string; color: string; quantity: number; price: number }[];
+  itemsToModify?: { itemId: string; quantity?: number; price?: number }[];
+  itemsToRemove?: string[];
+}
+
+export interface EditRequest {
+  id: string;
+  orderId: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  requestedBy: string;
+  reason: string | null;
+  changes: EditRequestChanges;
+  reviewNote: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class OrdersApiService {
   private readonly http = inject(HttpClient);
@@ -34,5 +52,17 @@ export class OrdersApiService {
 
   deleteOrder(id: string) {
     return this.http.delete<void>(`${API_URL}/orders/${id}`);
+  }
+
+  getEditRequests(orderId: string) {
+    return this.http.get<EditRequest[]>(`${API_URL}/order-edit-requests/order/${orderId}`);
+  }
+
+  createEditRequest(orderId: string, changes: EditRequestChanges, reason?: string) {
+    return this.http.post<EditRequest>(`${API_URL}/order-edit-requests/admin`, { orderId, changes, reason });
+  }
+
+  reviewEditRequest(id: string, approved: boolean, reviewNote?: string) {
+    return this.http.patch<{ success: boolean }>(`${API_URL}/order-edit-requests/${id}/review`, { approved, reviewNote });
   }
 }

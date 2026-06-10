@@ -244,6 +244,154 @@
           }
         </div>
 
+        <!-- Modificaciones -->
+        <div class="border-t border-gray-800 pt-4">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-gray-400 text-xs font-medium uppercase tracking-wider">Modificaciones</p>
+            @if (!hasPendingRequest() && !showEditForm()) {
+              <button
+                (click)="openEditForm()"
+                class="text-xs px-3 py-1.5 rounded-xl border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors"
+              >
+                Solicitar modificación
+              </button>
+            }
+          </div>
+
+          <!-- Formulario de solicitud -->
+          @if (showEditForm()) {
+            <div class="bg-gray-900 rounded-xl p-4 space-y-4">
+              <!-- Ítems existentes -->
+              <div>
+                <p class="text-gray-500 text-xs mb-2">Ítems actuales</p>
+                <div class="space-y-2">
+                  @for (item of selectedOrder()!.items; track item.id) {
+                    <div class="flex items-center gap-2 text-xs"
+                      [class.opacity-40]="itemRemovals().has(item.id)">
+                      <input type="checkbox" class="accent-red-500"
+                        [checked]="itemRemovals().has(item.id)"
+                        (change)="toggleRemoval(item.id)" />
+                      <span class="text-gray-300 flex-1 truncate">{{ item.productName }} · {{ item.topSize }}/{{ item.bottomSize }} · {{ item.color }}</span>
+                      @if (!itemRemovals().has(item.id)) {
+                        <input type="number" min="1"
+                          class="w-14 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-white text-center"
+                          [value]="itemModifications().get(item.id)?.quantity ?? item.quantity"
+                          (change)="setItemMod(item.id, 'quantity', +$any($event.target).value)" />
+                        <span class="text-gray-600">x</span>
+                        <input type="number" min="0"
+                          class="w-20 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-white text-center"
+                          [value]="itemModifications().get(item.id)?.price ?? item.price"
+                          (change)="setItemMod(item.id, 'price', +$any($event.target).value)" />
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Nuevos ítems -->
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <p class="text-gray-500 text-xs">Nuevos ítems</p>
+                  <button (click)="addNewItem()" class="text-xs text-blue-400 hover:text-blue-300">+ Agregar</button>
+                </div>
+                @for (item of newItems(); track $index; let i = $index) {
+                  <div class="space-y-1.5 bg-gray-800 rounded-lg p-3 mb-2">
+                    <div class="flex gap-2">
+                      <input [(ngModel)]="item.productName" placeholder="Producto"
+                        class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-white text-xs" />
+                      <input [(ngModel)]="item.color" placeholder="Color"
+                        class="w-20 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-white text-xs" />
+                      <button (click)="removeNewItem(i)" class="text-red-400 hover:text-red-300 text-xs">✕</button>
+                    </div>
+                    <div class="flex gap-2">
+                      <input [(ngModel)]="item.topSize" placeholder="Talla top"
+                        class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-white text-xs" />
+                      <input [(ngModel)]="item.bottomSize" placeholder="Talla bot"
+                        class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-white text-xs" />
+                      <input type="number" [(ngModel)]="item.quantity" placeholder="Cant"
+                        class="w-14 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-white text-xs" />
+                      <input type="number" [(ngModel)]="item.price" placeholder="Precio"
+                        class="w-20 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-white text-xs" />
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Razón -->
+              <textarea [(ngModel)]="editReason" placeholder="Razón del cambio (opcional)" rows="2"
+                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-xs resize-none placeholder-gray-600">
+              </textarea>
+
+              <!-- Acciones -->
+              <div class="flex gap-2 justify-end">
+                <button (click)="showEditForm.set(false)"
+                  class="text-xs px-3 py-1.5 rounded-xl border border-gray-700 text-gray-400 hover:bg-gray-800">
+                  Cancelar
+                </button>
+                <button (click)="submitEditRequest()" [disabled]="submittingEdit()"
+                  class="text-xs px-3 py-1.5 rounded-xl bg-white text-black font-medium hover:bg-gray-200 disabled:opacity-40">
+                  {{ submittingEdit() ? 'Enviando...' : 'Enviar solicitud' }}
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Historial de solicitudes -->
+          @if (loadingEditRequests()) {
+            <p class="text-gray-600 text-xs">Cargando historial...</p>
+          } @else if (editRequests().length > 0) {
+            <div class="space-y-3">
+              @for (req of editRequests(); track req.id) {
+                <div class="bg-gray-900 rounded-xl p-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-medium"
+                      [class]="req.status === 'PENDING' ? 'text-yellow-400' : req.status === 'APPROVED' ? 'text-green-400' : 'text-red-400'">
+                      {{ req.status === 'PENDING' ? 'Pendiente' : req.status === 'APPROVED' ? 'Aprobada' : 'Rechazada' }}
+                    </span>
+                    <span class="text-gray-600 text-xs">{{ req.createdAt | date:'d MMM, h:mm a' }}</span>
+                  </div>
+                  <p class="text-gray-400 text-xs">Por: {{ req.requestedBy }}</p>
+                  @if (req.reason) {
+                    <p class="text-gray-500 text-xs mt-1">{{ req.reason }}</p>
+                  }
+                  @if (req.changes.itemsToAdd?.length) {
+                    <p class="text-gray-500 text-xs mt-1">+ {{ req.changes.itemsToAdd!.length }} ítem(s) nuevo(s)</p>
+                  }
+                  @if (req.changes.itemsToModify?.length) {
+                    <p class="text-gray-500 text-xs">~ {{ req.changes.itemsToModify!.length }} ítem(s) modificado(s)</p>
+                  }
+                  @if (req.changes.itemsToRemove?.length) {
+                    <p class="text-gray-500 text-xs">- {{ req.changes.itemsToRemove!.length }} ítem(s) eliminado(s)</p>
+                  }
+
+                  @if (req.status === 'PENDING') {
+                    <div class="mt-3 space-y-2">
+                      <textarea [(ngModel)]="reviewNote" placeholder="Nota (opcional)" rows="1"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-xs resize-none placeholder-gray-600">
+                      </textarea>
+                      <div class="flex gap-2">
+                        <button (click)="reviewRequest(req.id, false)" [disabled]="!!reviewingId()"
+                          class="flex-1 text-xs py-1.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 disabled:opacity-40">
+                          Rechazar
+                        </button>
+                        <button (click)="reviewRequest(req.id, true)" [disabled]="!!reviewingId()"
+                          class="flex-1 text-xs py-1.5 rounded-xl bg-green-600 text-white hover:bg-green-500 disabled:opacity-40">
+                          {{ reviewingId() === req.id ? 'Aplicando...' : 'Aprobar y aplicar' }}
+                        </button>
+                      </div>
+                    </div>
+                  }
+                  @if (req.reviewNote) {
+                    <p class="text-gray-500 text-xs mt-2 italic">Nota: {{ req.reviewNote }}</p>
+                  }
+                </div>
+              }
+            </div>
+          } @else if (!showEditForm()) {
+            <p class="text-gray-700 text-xs">Sin modificaciones registradas.</p>
+          }
+        </div>
+
         <!-- Eliminar pedido -->
         <div class="pt-2 border-t border-gray-800 flex justify-end">
           <button

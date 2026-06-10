@@ -3,7 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth';
 import { BrandService } from './brand';
 
-const API = 'https://api.guiiouniformes.com/api/seller';
+const API     = 'https://api.guiiouniformes.com/api/seller';
+const API_BASE = 'https://api.guiiouniformes.com/api';
 
 export interface Sede { id: string; name: string; }
 
@@ -55,6 +56,27 @@ export interface SalePayment {
   amount: number;
   note: string | null;
   createdAt: string;
+}
+
+export interface OnlineOrderItem {
+  id: string; quantity: number; price: number;
+  productName: string; topSize: string; bottomSize: string; color: string;
+}
+
+export interface OnlineOrder {
+  id: string; reference: string;
+  status: string; total: number; shipping: number;
+  address: string; city: string; notes: string | null;
+  paymentProvider: string | null;
+  createdAt: string;
+  customer: { name: string; email: string; phone: string };
+  items: OnlineOrderItem[];
+}
+
+export interface EditRequestChanges {
+  itemsToAdd?: { productName: string; topSize: string; bottomSize: string; color: string; quantity: number; price: number }[];
+  itemsToModify?: { itemId: string; quantity?: number; price?: number }[];
+  itemsToRemove?: string[];
 }
 
 export interface FabricarOrder {
@@ -153,5 +175,17 @@ export class SellerApiService {
 
   getNextOrderNumber() {
     return this.http.get<{ nextOrderNumber: number }>(`${API}/next-order-number`, { headers: this.headers });
+  }
+
+  getOnlineOrders() {
+    return this.http.get<OnlineOrder[]>(`${API}/online-orders`, { headers: this.headers });
+  }
+
+  createEditRequest(orderId: string, changes: EditRequestChanges, reason?: string) {
+    return this.http.post<any>(
+      `${API_BASE}/order-edit-requests`,
+      { orderId, changes, reason, requestedBy: this.auth.currentSede()?.sedeName ?? this.auth.currentSede()?.sedeId },
+      { headers: this.headers },
+    );
   }
 }

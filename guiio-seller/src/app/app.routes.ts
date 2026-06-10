@@ -36,5 +36,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/pedidos/pedidos').then(m => m.Pedidos),
     canActivate: [authGuard],
   },
+  {
+    path: 'pedidos-online',
+    loadComponent: () => import('./pages/pedidos-online/pedidos-online').then(m => m.PedidosOnline),
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: 'pos' },
 ];

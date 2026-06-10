@@ -117,6 +117,44 @@ export class SellerController {
     return this.sellerService.getOnlineOrders();
   }
 
+  // ── Sale edit requests (seller) ───────────────────────────────────────────
+
+  @Post('fabricar/:id/edit-request')
+  @UseGuards(SellerGuard)
+  createSaleEditRequest(
+    @Param('id') saleId: string,
+    @Body('changes') changes: any,
+    @Body('reason') reason: string,
+    @Request() req: any,
+  ) {
+    const sedeName = req.sedeName ?? req.sedeId;
+    return this.sellerService.createSaleEditRequest(saleId, sedeName, changes, reason);
+  }
+
+  @Get('fabricar/:id/edit-requests')
+  @UseGuards(SellerGuard)
+  getSaleEditRequests(@Param('id') saleId: string) {
+    return this.sellerService.getSaleEditRequests(saleId);
+  }
+
+  // ── Sale edit requests (admin) ────────────────────────────────────────────
+
+  @Get('admin/sale-edit-requests/pending')
+  @UseGuards(JwtAuthGuard)
+  getPendingSaleEditRequests(@Request() req: any) {
+    return this.sellerService.getPendingSaleEditRequests(req.user?.empresa ?? 'GUIIO');
+  }
+
+  @Patch('admin/sale-edit-requests/:id/review')
+  @UseGuards(JwtAuthGuard)
+  reviewSaleEditRequest(
+    @Param('id') id: string,
+    @Body('approved') approved: boolean,
+    @Body('reviewNote') reviewNote?: string,
+  ) {
+    return this.sellerService.reviewSaleEditRequest(id, approved, reviewNote);
+  }
+
   @Get('next-order-number')
   @UseGuards(SellerGuard)
   getNextOrderNumber(@Request() req: any) {

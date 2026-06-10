@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { OrdersApiService, Order } from '../../../services/orders-api';
+import { OrdersApiService, Order, EditRequest, EditRequestChanges } from '../../../services/orders-api';
 
 type DatePreset = 'today' | 'yesterday' | 'week' | 'month' | 'custom' | 'all';
 
@@ -41,6 +41,20 @@ export class Orders {
   protected updatingId = signal<string | null>(null);
   protected confirmDelete = signal<Order | null>(null);
   protected deletingId = signal<string | null>(null);
+
+  // Edit requests
+  protected editRequests = signal<EditRequest[]>([]);
+  protected loadingEditRequests = signal(false);
+  protected showEditForm = signal(false);
+  protected submittingEdit = signal(false);
+  protected reviewingId = signal<string | null>(null);
+  protected reviewNote = signal('');
+
+  // Edit form state
+  protected editReason = signal('');
+  protected itemRemovals = signal<Set<string>>(new Set());
+  protected itemModifications = signal<Map<string, { quantity?: number; price?: number }>>(new Map());
+  protected newItems = signal<{ productName: string; topSize: string; bottomSize: string; color: string; quantity: number; price: number }[]>([]);
 
   protected datePreset = signal<DatePreset>('all');
   protected customFrom = signal<string>('');
@@ -136,8 +150,122 @@ export class Orders {
 
   setFilter(value: string) { this.activeFilter.set(value); }
   setDatePreset(p: DatePreset) { this.datePreset.set(p); }
-  openDetail(order: Order) { this.selectedOrder.set(order); }
-  closeDetail() { this.selectedOrder.set(null); }
+
+  openDetail(order: Order) {
+    this.selectedOrder.set(order);
+    this.showEditForm.set(false);
+    this.editRequests.set([]);
+    this.loadEditRequests(order.id);
+  }
+
+  closeDetail() {
+    this.selectedOrder.set(null);
+    this.showEditForm.set(false);
+    this.editRequests.set([]);
+  }
+
+  loadEditRequests(orderId: string) {
+    this.loadingEditRequests.set(true);
+    this.api.getEditRequests(orderId).subscribe({
+      next: list => { this.editRequests.set(list); this.loadingEditRequests.set(false); },
+      error: () => this.loadingEditRequests.set(false),
+    });
+  }
+
+  openEditForm() {
+    const order = this.selectedOrder();
+    if (!order) return;
+    this.editReason.set('');
+    this.itemRemovals.set(new Set());
+    this.itemModifications.set(new Map(order.items.map(i => [i.id, { quantity: i.quantity, price: i.price }])));
+    this.newItems.set([]);
+    this.showEditForm.set(true);
+  }
+
+  toggleRemoval(itemId: string) {
+    this.itemRemovals.update(s => {
+      const n = new Set(s);
+      n.has(itemId) ? n.delete(itemId) : n.add(itemId);
+      return n;
+    });
+  }
+
+  setItemMod(itemId: string, field: 'quantity' | 'price', value: number) {
+    this.itemModifications.update(m => {
+      const n = new Map(m);
+      n.set(itemId, { ...n.get(itemId), [field]: value });
+      return n;
+    });
+  }
+
+  addNewItem() {
+    this.newItems.update(list => [...list, { productName: '', topSize: '', bottomSize: '', color: '', quantity: 1, price: 0 }]);
+  }
+
+  removeNewItem(i: number) {
+    this.newItems.update(list => list.filter((_, idx) => idx !== i));
+  }
+
+  submitEditRequest() {
+    const order = this.selectedOrder();
+    if (!order || this.submittingEdit()) return;
+
+    const changes: EditRequestChanges = {};
+
+    const removals = [...this.itemRemovals()];
+    if (removals.length) changes.itemsToRemove = removals;
+
+    const mods = [...this.itemModifications().entries()]
+      .filter(([id]) => !this.itemRemovals().has(id))
+      .filter(([id, mod]) => {
+        const orig = order.items.find(i => i.id === id);
+        return orig && (mod.quantity !== orig.quantity || mod.price !== orig.price);
+      })
+      .map(([itemId, mod]) => ({ itemId, ...mod }));
+    if (mods.length) changes.itemsToModify = mods;
+
+    const newItems = this.newItems().filter(i => i.productName.trim());
+    if (newItems.length) changes.itemsToAdd = newItems;
+
+    if (!removals.length && !mods.length && !newItems.length) return;
+
+    this.submittingEdit.set(true);
+    this.api.createEditRequest(order.id, changes, this.editReason() || undefined).subscribe({
+      next: req => {
+        this.editRequests.update(list => [req, ...list]);
+        this.showEditForm.set(false);
+        this.submittingEdit.set(false);
+      },
+      error: () => this.submittingEdit.set(false),
+    });
+  }
+
+  reviewRequest(id: string, approved: boolean) {
+    if (this.reviewingId()) return;
+    const order = this.selectedOrder();
+    this.reviewingId.set(id);
+    this.api.reviewEditRequest(id, approved, this.reviewNote() || undefined).subscribe({
+      next: () => {
+        this.editRequests.update(list => list.map(r =>
+          r.id === id ? { ...r, status: approved ? 'APPROVED' : 'REJECTED', reviewedAt: new Date().toISOString() } : r,
+        ));
+        if (approved && order) {
+          this.api.getOrders().subscribe(orders => {
+            this.orders.set(orders);
+            const updated = orders.find(o => o.id === order.id);
+            if (updated) this.selectedOrder.set(updated);
+          });
+        }
+        this.reviewNote.set('');
+        this.reviewingId.set(null);
+      },
+      error: () => this.reviewingId.set(null),
+    });
+  }
+
+  hasPendingRequest() {
+    return this.editRequests().some(r => r.status === 'PENDING');
+  }
 
   changeStatus(order: Order, newStatus: string) {
     this.updatingId.set(order.id);

@@ -77,7 +77,8 @@
       "WebFetch(domain:support.addi.com)",
       "WebFetch(domain:api-docs.addi-staging.com)",
       "Bash(xargs grep -l \"GUIIO-\")",
-      "Bash(vercel --prod)"
+      "Bash(vercel --prod)",
+      "Bash(vercel alias *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\tempo\\.claude\\projects\\c--Users-tempo-OneDrive-Desktop-Guiio-web\\memory",
