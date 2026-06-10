@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Preview Recibo Guiio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #111; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; gap: 2rem; flex-wrap: wrap; }
+    h2 { color: #9ca3af; font-family: sans-serif; font-size: 12px; text-align: center; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+
+  <!-- VENTA STOCK -->
+  <div>
+    <h2>STOCK</h2>
+    <div style="width:360px;font-family:sans-serif" class="bg-white text-gray-900 overflow-hidden shadow-2xl">
+
+      <!-- Cabecera -->
+      <div class="bg-gray-900 px-6 py-5 flex flex-col items-center gap-2">
+        <img src="guiio-seller/public/assets/logo-guiio.png" alt="Guiio" style="height:36px;width:auto" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+        <span style="display:none;color:#fff;font-size:20px;font-weight:700;letter-spacing:2px">GUIIO</span>
+        <span style="color:#22c55e;font-size:13px;font-weight:500;margin-top:4px">Venta confirmada</span>
+      </div>
+
+      <!-- Info del pedido -->
+      <div class="px-6 py-4 border-b border-gray-100 space-y-1.5 text-sm">
+        <div class="flex justify-between">
+          <span class="text-gray-500">Fecha</span>
+          <span class="font-medium">16 may 2026, 3:45 p. m.</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Cliente</span>
+          <span class="font-medium">Valentina García</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Teléfono</span>
+          <span class="font-medium">3001234567</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Notas</span>
+          <span class="font-medium text-right" style="max-width:60%">Entregar en la tarde</span>
+        </div>
+      </div>
+
+      <!-- Productos -->
+      <div class="px-6 py-4 border-b border-gray-100">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Productos</p>
+        <div class="space-y-3">
+          <div class="flex justify-between items-start gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 leading-snug">Blusa Isabella Floral</p>
+              <p class="text-xs text-gray-500 mt-0.5">Talla S · x2</p>
+            </div>
+            <span class="text-sm font-semibold text-gray-900 shrink-0 whitespace-nowrap">$120.000</span>
+          </div>
+          <div class="flex justify-between items-start gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 leading-snug">Pantalón Luciana Wide Leg</p>
+              <p class="text-xs text-gray-500 mt-0.5">Talla 28 · 1 und</p>
+              <p class="text-xs text-yellow-600 mt-0.5 italic">Con dobles en el ruedo</p>
+            </div>
+            <span class="text-sm font-semibold text-gray-900 shrink-0 whitespace-nowrap">$89.900</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div class="px-6 py-4 bg-gray-50 flex items-center justify-between">
+        <span class="font-semibold text-gray-600">Total</span>
+        <span class="text-xl font-bold text-gray-900">$209.900</span>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-6 py-4 text-center bg-gray-900">
+        <p class="text-gray-400 text-xs">¡Gracias por tu compra! 🙏</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PEDIDO FABRICAR -->
+  <div>
+    <h2>FABRICAR</h2>
+    <div style="width:360px;font-family:sans-serif" class="bg-white text-gray-900 overflow-hidden shadow-2xl">
+
+      <!-- Cabecera -->
+      <div class="bg-gray-900 px-6 py-5 flex flex-col items-center gap-2">
+        <img src="guiio-seller/public/assets/logo-guiio.png" alt="Guiio" style="height:36px;width:auto" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+        <span style="display:none;color:#fff;font-size:20px;font-weight:700;letter-spacing:2px">GUIIO</span>
+        <span style="color:#facc15;font-size:13px;font-weight:600;margin-top:4px">
+          Pedido a fabricar
+        </span>
+      </div>
+
+      <!-- Info del pedido -->
+      <div class="px-6 py-4 border-b border-gray-100 space-y-1.5 text-sm">
+        <div class="flex justify-between">
+          <span class="text-gray-500">Creación</span>
+          <span class="font-medium">16 may 2026</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Entrega estimada</span>
+          <span class="font-semibold text-yellow-600">26 may 2026</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Cliente</span>
+          <span class="font-medium">Valentina García</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Teléfono</span>
+          <span class="font-medium">3001234567</span>
+        </div>
+      </div>
+
+      <!-- Productos -->
+      <div class="px-6 py-4 border-b border-gray-100">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Productos</p>
+        <div class="space-y-3">
+          <div class="flex justify-between items-start gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 leading-snug">Blusa Isabella Floral</p>
+              <p class="text-xs text-gray-500 mt-0.5">Talla M · 1 und</p>
+            </div>
+            <span class="text-sm font-semibold text-gray-900 shrink-0 whitespace-nowrap">$60.000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div class="px-6 py-4 bg-gray-50 flex items-center justify-between">
+        <span class="font-semibold text-gray-600">Total</span>
+        <span class="text-xl font-bold text-gray-900">$60.000</span>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-6 py-4 text-center bg-gray-900">
+        <p class="text-gray-400 text-xs">Te avisaremos cuando tu pedido esté listo ✨</p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

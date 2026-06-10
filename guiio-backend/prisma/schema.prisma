@@ -169,9 +169,10 @@ model Order {
   createdAt       DateTime @default(now())
   updatedAt  DateTime    @updatedAt
 
-  customerId String
-  customer   Customer    @relation(fields: [customerId], references: [id])
-  items      OrderItem[]
+  customerId   String
+  customer     Customer           @relation(fields: [customerId], references: [id])
+  items        OrderItem[]
+  editRequests OrderEditRequest[]
 }
 
 model OrderItem {
@@ -185,6 +186,26 @@ model OrderItem {
 
   orderId String
   order   Order  @relation(fields: [orderId], references: [id])
+}
+
+model OrderEditRequest {
+  id          String            @id @default(cuid())
+  orderId     String
+  order       Order             @relation(fields: [orderId], references: [id])
+  status      EditRequestStatus @default(PENDING)
+  requestedBy String
+  reason      String?
+  changes     Json
+  reviewNote  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+enum EditRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum ProductType {

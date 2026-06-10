@@ -14,6 +14,7 @@ import { AddiModule } from './addi/addi.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { TrackingModule } from './tracking/tracking.module';
 import { AbandonedCartsModule } from './abandoned-carts/abandoned-carts.module';
+import { OrderEditRequestsModule } from './order-edit-requests/order-edit-requests.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AbandonedCartsModule } from './abandoned-carts/abandoned-carts.module';
     AddiModule,
     AbandonedCartsModule,
     OrdersModule,
+    OrderEditRequestsModule,
     ProductsModule,
     CollectionsModule,
     SedesModule,
