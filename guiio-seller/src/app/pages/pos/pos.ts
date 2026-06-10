@@ -700,25 +700,59 @@ export class Pos implements OnInit, OnDestroy {
       next: updated => {
         if (abono >= 10000) {
           this.api.addPayment(order.id, abono).subscribe({
-            next: () => this.finishAddItems(updated),
-            error: () => this.finishAddItems(updated),
+            next: () => this.finishAddItems(updated, abono),
+            error: () => this.finishAddItems(updated, abono),
           });
         } else {
-          this.finishAddItems(updated);
+          this.finishAddItems(updated, 0);
         }
       },
       error: () => this.addingItems.set(false),
     });
   }
 
-  private finishAddItems(updated: FabricarOrder) {
+  private async finishAddItems(updated: FabricarOrder, abono: number) {
+    // Populate receipt signals so the receipt div renders the new items
+    this.savedOrderNumber.set(updated.orderNumber);
+    this.customerName.set(updated.customerName ?? '');
+    this.customerPhone.set(updated.customerPhone ?? '');
+    if (updated.deliveryDate) {
+      const d = new Date(updated.deliveryDate);
+      this.deliveryDate.set(d);
+    }
+    if (abono > 0) {
+      this.abonoEnabled.set(true);
+      this.abonoAmount.set(abono);
+    }
+
+    // Capture receipt while cart still has new items
+    const blob = await this.captureReceipt();
+
+    // Clear state
     this.editingOrder.set(updated);
     this.cart.set([]);
     this.addingItems.set(false);
     this.editAbonoAnswer.set(null);
     this.editAbonoAmount.set(0);
+    this.abonoEnabled.set(false);
+    this.abonoAmount.set(0);
     this.addItemsSuccess.set(true);
     setTimeout(() => this.addItemsSuccess.set(false), 4000);
+
+    if (blob) {
+      this.receiptBlob = blob;
+      const phone = updated.customerPhone ?? '';
+      const digits = phone.replace(/\D/g, '');
+      const wa = digits.startsWith('57') ? digits : `57${digits}`;
+      const firstName = (updated.customerName ?? '').trim().split(' ')[0];
+      const waText = firstName
+        ? `Hola ${firstName}, aquí está el comprobante de los nuevos ítems agregados a tu pedido en ${this.brand.nombre} 🛍️`
+        : `Hola, aquí está el comprobante de los nuevos ítems de tu pedido en ${this.brand.nombre} 🛍️`;
+      if (phone && wa.length >= 10) {
+        this.receiptWaUrl.set(`https://web.whatsapp.com/send?phone=${wa}&text=${encodeURIComponent(waText)}`);
+      }
+      this.receiptImageUrl.set(URL.createObjectURL(blob));
+    }
   }
 
   editingOrderTotal = () => {
