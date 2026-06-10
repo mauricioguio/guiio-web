@@ -38,6 +38,17 @@ export class OrderEditRequestsController {
     return this.service.createRequest(orderId, requestedBy ?? sedeId, changes, reason);
   }
 
+  // Admin: crear solicitud (desde panel admin)
+  @Post('admin')
+  @UseGuards(JwtAuthGuard)
+  createAdmin(
+    @Body('orderId') orderId: string,
+    @Body('changes') changes: any,
+    @Body('reason') reason?: string,
+  ) {
+    return this.service.createRequest(orderId, 'Admin', changes, reason);
+  }
+
   // Admin: ver solicitudes pendientes
   @Get('pending')
   @UseGuards(JwtAuthGuard)
