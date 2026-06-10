@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Put, Patch, Delete, Param, Body, Headers, Request,
+  Controller, Get, Post, Put, Patch, Delete, Param, Body, Headers, Request, Query,
   CanActivate, ExecutionContext, Injectable, UseGuards, UnauthorizedException,
 } from '@nestjs/common';
 import { SellerService } from './seller.service';
@@ -167,6 +167,18 @@ export class SellerController {
   @UseGuards(SellerGuard)
   getFabricarOrders(@Headers('x-sede-id') sedeId: string) {
     return this.sellerService.getFabricarOrders(sedeId);
+  }
+
+  @Get('fabricar/search')
+  @UseGuards(SellerGuard)
+  searchFabricarOrders(@Headers('x-sede-id') sedeId: string, @Query('q') q: string) {
+    return this.sellerService.searchFabricarOrders(sedeId, q ?? '');
+  }
+
+  @Post('fabricar/:id/add-items')
+  @UseGuards(SellerGuard)
+  addItemsToOrder(@Param('id') id: string, @Body('items') items: any[]) {
+    return this.sellerService.addItemsToOrder(id, items);
   }
 
   @Get('fabricar/:id')

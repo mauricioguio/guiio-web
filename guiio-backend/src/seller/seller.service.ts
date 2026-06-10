@@ -338,4 +338,53 @@ export class SellerService {
     await this.prisma.salePayment.deleteMany({ where: { saleId: id } });
     return this.prisma.sale.delete({ where: { id } });
   }
+
+  async searchFabricarOrders(sedeId: string, q: string) {
+    const orderNum = parseInt(q.trim(), 10);
+    const searchOr: any[] = [
+      { customerName: { contains: q, mode: 'insensitive' } },
+      { customerPhone: { contains: q } },
+    ];
+    if (!isNaN(orderNum)) searchOr.push({ orderNumber: orderNum });
+
+    return this.prisma.sale.findMany({
+      where: {
+        sedeId,
+        AND: [
+          {
+            OR: [
+              { type: 'FABRICAR', status: { notIn: ['COMPLETED', 'CANCELLED'] } },
+              { type: 'STOCK', status: 'PENDING' },
+            ],
+          },
+          { OR: searchOr },
+        ],
+      },
+      include: { items: true, payments: { orderBy: { createdAt: 'asc' } }, sede: { select: { id: true, name: true } } },
+      take: 5,
+      orderBy: [{ deliveryDate: 'asc' }, { createdAt: 'desc' }],
+    });
+  }
+
+  async addItemsToOrder(saleId: string, items: { productId: string; productName: string; size: string; quantity: number; price: number; note?: string }[]) {
+    await this.prisma.saleItem.createMany({
+      data: items.map(i => ({
+        saleId,
+        productId: i.productId,
+        productName: i.productName,
+        size: i.size,
+        quantity: i.quantity,
+        price: i.price,
+        note: i.note || null,
+        deliveredQty: 0,
+      })),
+    });
+    const allItems = await this.prisma.saleItem.findMany({ where: { saleId } });
+    const newTotal = allItems.reduce((s, i) => s + i.price * i.quantity, 0);
+    return this.prisma.sale.update({
+      where: { id: saleId },
+      data: { total: newTotal },
+      include: { items: true, payments: { orderBy: { createdAt: 'asc' } }, sede: { select: { id: true, name: true } } },
+    });
+  }
 }

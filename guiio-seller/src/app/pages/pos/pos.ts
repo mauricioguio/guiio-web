@@ -5,7 +5,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Navbar } from '../../components/navbar/navbar';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { SellerApiService, Product, InventoryItem } from '../../services/seller-api';
+import { SellerApiService, Product, InventoryItem, FabricarOrder } from '../../services/seller-api';
 import { AuthService } from '../../services/auth';
 
 export interface CartItem {
@@ -78,6 +78,15 @@ export class Pos implements OnInit, OnDestroy {
   protected itemOverrides = signal<Map<string, { value: number; type: 'pct' | 'value' }>>(new Map());
 
   protected customerSearchState = signal<'idle' | 'searching' | 'found' | 'notfound'>('idle');
+
+  // Modo edición de pedido existente
+  protected posMode = signal<'new' | 'edit'>('new');
+  protected orderSearch = signal('');
+  protected orderSearchState = signal<'idle' | 'searching' | 'found' | 'notfound'>('idle');
+  protected orderSearchResults = signal<FabricarOrder[]>([]);
+  protected editingOrder = signal<FabricarOrder | null>(null);
+  protected addingItems = signal(false);
+  protected addItemsSuccess = signal(false);
   protected registering = signal(false);
   protected adjustedItems = signal(0);
   protected receiptPreview = signal(false);
@@ -605,6 +614,85 @@ export class Pos implements OnInit, OnDestroy {
   formatDateShort(d: Date) {
     return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium' }).format(d);
   }
+
+  setMode(mode: 'new' | 'edit') {
+    this.posMode.set(mode);
+    this.cart.set([]);
+    this.editingOrder.set(null);
+    this.orderSearch.set('');
+    this.orderSearchState.set('idle');
+    this.orderSearchResults.set([]);
+    this.addItemsSuccess.set(false);
+    if (mode === 'edit') this.saleType.set('FABRICAR');
+  }
+
+  onOrderSearch(value: string) {
+    this.orderSearch.set(value);
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    const q = value.trim();
+    if (q.length >= 2) {
+      this.orderSearchState.set('searching');
+      this.searchTimer = setTimeout(() => this.doSearchOrders(q), 400);
+    } else {
+      this.orderSearchState.set('idle');
+      this.orderSearchResults.set([]);
+    }
+  }
+
+  private doSearchOrders(q: string) {
+    this.api.searchFabricarOrders(q).subscribe({
+      next: orders => {
+        this.orderSearchResults.set(orders);
+        this.orderSearchState.set(orders.length > 0 ? 'found' : 'notfound');
+      },
+      error: () => this.orderSearchState.set('notfound'),
+    });
+  }
+
+  selectOrderToEdit(order: FabricarOrder) {
+    this.editingOrder.set(order);
+    this.orderSearchResults.set([]);
+    this.cart.set([]);
+    this.addItemsSuccess.set(false);
+  }
+
+  clearEditingOrder() {
+    this.editingOrder.set(null);
+    this.orderSearch.set('');
+    this.orderSearchState.set('idle');
+    this.orderSearchResults.set([]);
+    this.cart.set([]);
+  }
+
+  confirmAddItems() {
+    const order = this.editingOrder();
+    const items = this.cart();
+    if (!order || !items.length || this.addingItems()) return;
+    this.addingItems.set(true);
+    this.api.addItemsToOrder(order.id, items.map(i => ({
+      productId: i.product.id,
+      productName: i.product.name,
+      size: i.size,
+      quantity: i.quantity,
+      price: this.itemEffectivePrice(i),
+      note: i.note || undefined,
+    }))).subscribe({
+      next: updated => {
+        this.editingOrder.set(updated);
+        this.cart.set([]);
+        this.addingItems.set(false);
+        this.addItemsSuccess.set(true);
+        setTimeout(() => this.addItemsSuccess.set(false), 4000);
+      },
+      error: () => this.addingItems.set(false),
+    });
+  }
+
+  editingOrderTotal = () => {
+    const order = this.editingOrder();
+    if (!order) return 0;
+    return order.items.reduce((s, i) => s + i.price * i.quantity, 0);
+  };
 
   logout() { this.auth.logout(); this.router.navigate(['/login']); }
 }

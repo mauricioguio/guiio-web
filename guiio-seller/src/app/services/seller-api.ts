@@ -181,6 +181,17 @@ export class SellerApiService {
     return this.http.get<OnlineOrder[]>(`${API}/online-orders`, { headers: this.headers });
   }
 
+  searchFabricarOrders(q: string) {
+    return this.http.get<FabricarOrder[]>(`${API}/fabricar/search`, {
+      params: { q },
+      headers: this.headers,
+    });
+  }
+
+  addItemsToOrder(orderId: string, items: { productId: string; productName: string; size: string; quantity: number; price: number; note?: string }[]) {
+    return this.http.post<FabricarOrder>(`${API}/fabricar/${orderId}/add-items`, { items }, { headers: this.headers });
+  }
+
   createEditRequest(orderId: string, changes: EditRequestChanges, reason?: string) {
     return this.http.post<any>(
       `${API_BASE}/order-edit-requests`,
