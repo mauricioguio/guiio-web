@@ -87,7 +87,7 @@ export class Pos implements OnInit, OnDestroy {
   protected editingOrder = signal<FabricarOrder | null>(null);
   protected addingItems = signal(false);
   protected addItemsSuccess = signal(false);
-  protected editAbonoAnswer = signal<'yes' | 'no' | null>(null);
+  protected editAbonoAnswer = signal<'yes' | 'no' | null>('no');
   protected editAbonoAmount = signal(0);
   protected editingItemId = signal<string | null>(null);
   protected savingItem = signal(false);
@@ -780,7 +780,7 @@ export class Pos implements OnInit, OnDestroy {
     this.orderSearchState.set('idle');
     this.orderSearchResults.set([]);
     this.addItemsSuccess.set(false);
-    this.editAbonoAnswer.set(null);
+    this.editAbonoAnswer.set('no');
     this.editAbonoAmount.set(0);
     this.discountEnabled.set(false);
     this.discountPanelOpen.set(false);
@@ -821,7 +821,7 @@ export class Pos implements OnInit, OnDestroy {
     this.orderSearchResults.set([]);
     this.cart.set([]);
     this.addItemsSuccess.set(false);
-    this.editAbonoAnswer.set(null);
+    this.editAbonoAnswer.set('no');
     this.editAbonoAmount.set(0);
   }
 
@@ -831,7 +831,7 @@ export class Pos implements OnInit, OnDestroy {
     this.orderSearchState.set('idle');
     this.orderSearchResults.set([]);
     this.cart.set([]);
-    this.editAbonoAnswer.set(null);
+    this.editAbonoAnswer.set('no');
     this.editAbonoAmount.set(0);
   }
 
@@ -903,7 +903,7 @@ export class Pos implements OnInit, OnDestroy {
     this.editingOrder.set(updated);
     this.cart.set([]);
     this.addingItems.set(false);
-    this.editAbonoAnswer.set(null);
+    this.editAbonoAnswer.set('no');
     this.editAbonoAmount.set(0);
     this.abonoEnabled.set(false);
     this.abonoAmount.set(0);
