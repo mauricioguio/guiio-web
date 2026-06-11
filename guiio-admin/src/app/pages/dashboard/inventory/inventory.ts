@@ -53,6 +53,14 @@ export class Inventory {
   protected savingBatch = signal(false);
   protected batchSaved = signal(false);
 
+  // ── Per-cell editing ──
+  protected editingCell = signal<{ productId: string; size: string } | null>(null);
+  protected editCellOriginalValue = signal(0);
+  protected pendingConfirm = signal<{
+    productId: string; productName: string; size: string; oldValue: number; newValue: number;
+  } | null>(null);
+  protected savingCell = signal(false);
+
   protected productCollections = computed(() => {
     const seen = new Set<string>();
     const result: string[] = [];
@@ -377,5 +385,62 @@ export class Inventory {
         error: () => { if (--remaining === 0) this.savingBatch.set(false); },
       });
     }
+  }
+
+  // ── Per-cell editing ──
+
+  startEdit(productId: string, size: string) {
+    const prev = this.editingCell();
+    if (prev) this.cancelEdit();
+    const current = this.batchDraft()[productId]?.[size] ?? 0;
+    this.editingCell.set({ productId, size });
+    this.editCellOriginalValue.set(current);
+  }
+
+  cancelEdit() {
+    const cell = this.editingCell();
+    if (!cell) return;
+    this.batchDraft.update(d => ({
+      ...d,
+      [cell.productId]: { ...d[cell.productId], [cell.size]: this.editCellOriginalValue() },
+    }));
+    this.editingCell.set(null);
+    this.editCellOriginalValue.set(0);
+  }
+
+  requestSave(productId: string, size: string, productName: string) {
+    const newValue = this.batchDraft()[productId]?.[size] ?? 0;
+    const oldValue = this.editCellOriginalValue();
+    if (newValue === oldValue) {
+      this.editingCell.set(null);
+      return;
+    }
+    this.pendingConfirm.set({ productId, productName, size, oldValue, newValue });
+  }
+
+  confirmSave() {
+    const confirm = this.pendingConfirm();
+    const sedeId = this.selectedSedeId();
+    if (!confirm || !sedeId || this.savingCell()) return;
+    this.savingCell.set(true);
+    this.inventoryApi.upsert(sedeId, confirm.productId, confirm.size, confirm.newValue).subscribe({
+      next: item => {
+        this.inventoryItems.update(items => {
+          const idx = items.findIndex(
+            i => i.productId === item.productId && i.size === item.size && i.sedeId === item.sedeId,
+          );
+          return idx >= 0 ? items.map((it, i) => i === idx ? item : it) : [...items, item];
+        });
+        this.editingCell.set(null);
+        this.editCellOriginalValue.set(0);
+        this.pendingConfirm.set(null);
+        this.savingCell.set(false);
+      },
+      error: () => this.savingCell.set(false),
+    });
+  }
+
+  cancelConfirm() {
+    this.pendingConfirm.set(null);
   }
 }

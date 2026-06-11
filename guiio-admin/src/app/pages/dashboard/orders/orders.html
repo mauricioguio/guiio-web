@@ -202,7 +202,7 @@
               <div class="bg-gray-900 rounded-xl p-4 flex items-center gap-3">
                 <div class="flex-1">
                   <p class="text-white text-sm">{{ item.productName }}</p>
-                  <p class="text-gray-500 text-xs">{{ item.topSize }} / {{ item.bottomSize }} · {{ item.color }} · x{{ item.quantity }}</p>
+                  <p class="text-gray-500 text-xs">{{ formatOnlineSize(item.topSize, item.bottomSize) }} · {{ item.color }} · x{{ item.quantity }}</p>
                 </div>
                 <p class="text-white text-sm font-medium">{{ formatPrice(item.price * item.quantity) }}</p>
               </div>
@@ -271,7 +271,7 @@
                       <input type="checkbox" class="accent-red-500"
                         [checked]="itemRemovals().has(item.id)"
                         (change)="toggleRemoval(item.id)" />
-                      <span class="text-gray-300 flex-1 truncate">{{ item.productName }} · {{ item.topSize }}/{{ item.bottomSize }} · {{ item.color }}</span>
+                      <span class="text-gray-300 flex-1 truncate">{{ item.productName }} · {{ formatOnlineSize(item.topSize, item.bottomSize) }} · {{ item.color }}</span>
                       @if (!itemRemovals().has(item.id)) {
                         <input type="number" min="1"
                           class="w-14 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-white text-center"

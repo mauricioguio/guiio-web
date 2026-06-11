@@ -309,4 +309,11 @@ export class Orders {
       style: 'currency', currency: 'COP', maximumFractionDigits: 0,
     }).format(value);
   }
+
+  formatOnlineSize(topSize: string, bottomSize: string): string {
+    if (topSize && bottomSize) return `Blusa ${topSize} / Pantalón ${bottomSize}`;
+    if (topSize) return `Blusa ${topSize}`;
+    if (bottomSize) return `Pantalón ${bottomSize}`;
+    return '';
+  }
 }

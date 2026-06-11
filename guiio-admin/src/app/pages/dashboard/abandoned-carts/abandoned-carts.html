@@ -108,7 +108,7 @@
               <div class="bg-gray-900 rounded-xl p-4 flex items-center gap-3">
                 <div class="flex-1">
                   <p class="text-white text-sm">{{ item.name }}</p>
-                  <p class="text-gray-500 text-xs">{{ item.topSize }} / {{ item.bottomSize }} · {{ item.color }} · x{{ item.quantity }}</p>
+                  <p class="text-gray-500 text-xs">{{ formatOnlineSize(item.topSize, item.bottomSize) }} · {{ item.color }} · x{{ item.quantity }}</p>
                 </div>
                 <p class="text-white text-sm font-medium">{{ formatPrice(item.price * item.quantity) }}</p>
               </div>

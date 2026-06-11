@@ -129,19 +129,41 @@
                 }
               </div>
 
-              <!-- Inputs por talla -->
+              <!-- Inputs por talla (per-cell editing) -->
               <div class="flex items-center gap-3 flex-wrap flex-1">
                 @for (size of row.sizes; track size) {
                   <div class="flex flex-col items-center gap-1">
                     <span class="text-gray-500 text-xs">{{ size }}</span>
-                    <input
-                      type="number" min="0"
-                      [value]="batchDraft()[row.product.id]?.[size] ?? 0"
-                      (input)="setBatchQty(row.product.id, size, +$any($event.target).value)"
-                      class="w-14 text-center bg-gray-800 border border-gray-700 rounded-lg px-1 py-1.5 text-sm text-white focus:outline-none focus:border-gray-500 transition-colors"
-                      [class.border-gray-700]="(batchDraft()[row.product.id]?.[size] ?? 0) > 0"
-                      [class.border-red-900]="(batchDraft()[row.product.id]?.[size] ?? 0) === 0"
-                    />
+                    @if (editingCell()?.productId === row.product.id && editingCell()?.size === size) {
+                      <!-- Edit mode -->
+                      <input
+                        type="number" min="0"
+                        [value]="batchDraft()[row.product.id]?.[size] ?? 0"
+                        (input)="setBatchQty(row.product.id, size, +$any($event.target).value)"
+                        class="w-14 text-center bg-gray-700 border border-blue-500 rounded-lg px-1 py-1.5 text-sm text-white focus:outline-none transition-colors"
+                      />
+                      <div class="flex gap-1 mt-0.5">
+                        <button
+                          (click)="requestSave(row.product.id, size, row.product.name)"
+                          class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded-md transition-colors"
+                        >Guardar</button>
+                        <button
+                          (click)="cancelEdit()"
+                          class="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-2 py-0.5 rounded-md transition-colors"
+                        >✕</button>
+                      </div>
+                    } @else {
+                      <!-- Read mode -->
+                      <span
+                        class="w-14 text-center rounded-lg py-1.5 text-sm font-medium"
+                        [class.text-white]="(batchDraft()[row.product.id]?.[size] ?? 0) > 0"
+                        [class.text-gray-600]="(batchDraft()[row.product.id]?.[size] ?? 0) === 0"
+                      >{{ batchDraft()[row.product.id]?.[size] ?? 0 }}</span>
+                      <button
+                        (click)="startEdit(row.product.id, size)"
+                        class="text-xs text-gray-500 hover:text-gray-300 underline transition-colors"
+                      >Editar</button>
+                    }
                   </div>
                 }
               </div>
@@ -179,24 +201,6 @@
           </div>
       }
 
-      <!-- Botón guardar fijo al fondo -->
-      <div class="fixed bottom-0 left-0 right-0 z-40 pointer-events-none">
-        <div class="max-w-screen-xl mx-auto px-8 pb-6 flex justify-end pointer-events-auto">
-          @if (batchSaved()) {
-            <div class="bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-medium px-6 py-3 rounded-xl">
-              Inventario guardado
-            </div>
-          } @else if (batchChangesCount() > 0 || savingBatch()) {
-            <button
-              (click)="saveBatch()"
-              [disabled]="savingBatch()"
-              class="bg-white text-gray-900 text-sm font-medium px-8 py-3 rounded-xl shadow-2xl hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {{ savingBatch() ? 'Guardando...' : 'Guardar ' + batchChangesCount() + ' cambios' }}
-            </button>
-          }
-        </div>
-      </div>
 
     }
 
@@ -402,6 +406,43 @@
         </button>
       </div>
 
+    </div>
+  </div>
+}
+
+<!-- Popup confirmación per-cell -->
+@if (pendingConfirm()) {
+  <div class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+      <h3 class="text-white font-semibold text-base mb-1">Confirmar cambio</h3>
+      <p class="text-gray-400 text-sm mb-4">
+        {{ pendingConfirm()!.productName }} · {{ pendingConfirm()!.size }}
+      </p>
+      <div class="flex items-center justify-center gap-4 mb-6">
+        <div class="flex flex-col items-center gap-1">
+          <span class="text-gray-500 text-xs">Antes</span>
+          <span class="text-white text-2xl font-bold">{{ pendingConfirm()!.oldValue }}</span>
+        </div>
+        <svg class="text-gray-600 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+        <div class="flex flex-col items-center gap-1">
+          <span class="text-gray-500 text-xs">Después</span>
+          <span class="text-blue-400 text-2xl font-bold">{{ pendingConfirm()!.newValue }}</span>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <button
+          (click)="cancelConfirm()"
+          [disabled]="savingCell()"
+          class="flex-1 text-sm font-medium bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl py-2.5 transition-colors disabled:opacity-40"
+        >Cancelar</button>
+        <button
+          (click)="confirmSave()"
+          [disabled]="savingCell()"
+          class="flex-1 text-sm font-medium bg-white hover:bg-gray-100 text-gray-900 rounded-xl py-2.5 transition-colors disabled:opacity-40"
+        >{{ savingCell() ? 'Guardando...' : 'Confirmar' }}</button>
+      </div>
     </div>
   </div>
 }

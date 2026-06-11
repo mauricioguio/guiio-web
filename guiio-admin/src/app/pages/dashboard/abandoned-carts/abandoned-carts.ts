@@ -53,6 +53,13 @@ export class AbandonedCarts {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v);
   }
 
+  formatOnlineSize(topSize: string, bottomSize: string): string {
+    if (topSize && bottomSize) return `Blusa ${topSize} / Pantalón ${bottomSize}`;
+    if (topSize) return `Blusa ${topSize}`;
+    if (bottomSize) return `Pantalón ${bottomSize}`;
+    return '';
+  }
+
   openDetail(c: AbandonedCart) { this.selected.set(c); }
   closeDetail() { this.selected.set(null); }
 }
