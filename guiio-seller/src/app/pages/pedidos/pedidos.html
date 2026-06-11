@@ -53,7 +53,7 @@
           <div class="flex items-start justify-between gap-3">
             <div class="flex-1 min-w-0">
               <p class="text-sm font-medium text-gray-900 leading-snug">{{ item.productName }}</p>
-              <p class="text-xs text-gray-500">Talla {{ item.size }}</p>
+              <p class="text-xs text-gray-500">Talla {{ formatItemSize(item.size) }}</p>
               @if (item.note) {
                 <p class="text-xs text-yellow-600 mt-0.5 italic">{{ item.note }}</p>
               }
@@ -271,7 +271,7 @@
                 <div class="flex items-start justify-between gap-3 mb-2">
                   <div class="min-w-0 flex-1">
                     <p class="text-sm font-medium text-white truncate">{{ item.productName }}</p>
-                    <p class="text-xs text-gray-500">Talla {{ item.size }}
+                    <p class="text-xs text-gray-500">Talla {{ formatItemSize(item.size) }}
                       @if (item.note) { · <span class="text-yellow-500">{{ item.note }}</span>}
                     </p>
                   </div>

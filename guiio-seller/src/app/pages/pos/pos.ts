@@ -91,6 +91,8 @@ export class Pos implements OnInit, OnDestroy {
   protected editAbonoAmount = signal(0);
   protected editingItemId = signal<string | null>(null);
   protected savingItem = signal(false);
+  protected editDiscountEnabled = signal(false);
+  protected editDiscountPct = signal(0);
   protected registering = signal(false);
   protected adjustedItems = signal(0);
   protected receiptPreview = signal(false);
@@ -267,6 +269,8 @@ export class Pos implements OnInit, OnDestroy {
 
   openProduct(p: Product) {
     this.editingItemId.set(null);
+    this.editDiscountEnabled.set(false);
+    this.editDiscountPct.set(0);
     this.selectedProduct.set(p);
     const sizes = productSizes(p);
     this.selectedSize.set(sizes[0] ?? '');
@@ -324,6 +328,23 @@ export class Pos implements OnInit, OnDestroy {
       this.selectedBottomSize.set('');
       this.selectedPriceOverride.set(null);
     }
+
+    // Detectar descuento previo
+    const bordadoExtra = !!bordadoPart ? 10000 : 0;
+    const basePrice = product.price + bordadoExtra;
+    if (item.price > 0 && item.price < basePrice) {
+      const inferredPct = Math.round((1 - item.price / basePrice) * 100);
+      if (inferredPct >= 1 && inferredPct <= 80) {
+        this.editDiscountEnabled.set(true);
+        this.editDiscountPct.set(inferredPct);
+      } else {
+        this.editDiscountEnabled.set(false);
+        this.editDiscountPct.set(0);
+      }
+    } else {
+      this.editDiscountEnabled.set(false);
+      this.editDiscountPct.set(0);
+    }
   }
 
   addToCart() {
@@ -359,7 +380,9 @@ export class Pos implements OnInit, OnDestroy {
     if (editId && this.posMode() === 'edit') {
       const order = this.editingOrder();
       if (!order || this.savingItem()) return;
-      const price = priceOverride != null ? priceOverride : p.price + (bordado ? 10000 : 0);
+      const basePrice = priceOverride != null ? priceOverride : p.price + (bordado ? 10000 : 0);
+      const discPct = this.editDiscountEnabled() ? this.editDiscountPct() : 0;
+      const price = discPct > 0 ? Math.round(basePrice * (1 - discPct / 100)) : basePrice;
       this.savingItem.set(true);
       this.selectedProduct.set(null);
       this.api.editSaleItem(order.id, editId, { size, note: fullNote, price }).subscribe({
@@ -677,6 +700,20 @@ export class Pos implements OnInit, OnDestroy {
 
   formatPrice(v: number) {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v);
+  }
+
+  formatItemSize(size: string): string {
+    if (!size) return size;
+    if (size.startsWith('Blusa') || size.startsWith('Pantalón')) return size;
+    if (size.includes(' / ')) {
+      const [top, bottom] = size.split(' / ');
+      return `Blusa ${top.trim()} / Pantalón ${bottom.trim()}`;
+    }
+    if (size.includes('/')) {
+      const [top, bottom] = size.split('/');
+      return `Blusa ${top.trim()} / Pantalón ${bottom.trim()}`;
+    }
+    return size;
   }
 
   formatDate(d: Date) {

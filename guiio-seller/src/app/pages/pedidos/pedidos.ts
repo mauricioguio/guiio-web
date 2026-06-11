@@ -324,6 +324,20 @@ export class Pedidos implements OnInit {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v);
   }
 
+  formatItemSize(size: string): string {
+    if (!size) return size;
+    if (size.startsWith('Blusa') || size.startsWith('Pantalón')) return size;
+    if (size.includes(' / ')) {
+      const [top, bottom] = size.split(' / ');
+      return `Blusa ${top.trim()} / Pantalón ${bottom.trim()}`;
+    }
+    if (size.includes('/')) {
+      const [top, bottom] = size.split('/');
+      return `Blusa ${top.trim()} / Pantalón ${bottom.trim()}`;
+    }
+    return size;
+  }
+
   formatDate(iso: string) {
     return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
   }
