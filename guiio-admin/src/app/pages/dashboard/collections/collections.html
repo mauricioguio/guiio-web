@@ -47,20 +47,17 @@
               <button (click)="openEdit(col)" class="flex-1 text-xs text-gray-300 bg-gray-800 hover:bg-gray-700 rounded-xl py-1.5 transition-colors">
                 Editar
               </button>
-              <button
-                (click)="toggleActive(col)"
-                class="text-xs px-3 rounded-xl py-1.5 transition-colors"
-                [class.text-green-400]="!col.active"
-                [class.bg-green-500]="!col.active"
-                [class.bg-opacity-10]="!col.active"
-                [class.hover:bg-green-500]="!col.active"
-                [class.hover:bg-opacity-20]="!col.active"
-                [class.text-gray-400]="col.active"
-                [class.bg-gray-800]="col.active"
-                [class.hover:bg-gray-700]="col.active"
-              >
-                {{ col.active ? 'Ocultar' : 'Mostrar' }}
-              </button>
+              @if (col.active) {
+                <button (click)="toggleActive(col)"
+                  class="text-xs text-gray-400 bg-gray-800 hover:bg-gray-700 px-3 rounded-xl py-1.5 transition-colors">
+                  Ocultar
+                </button>
+              } @else {
+                <button (click)="toggleActive(col)"
+                  class="text-xs text-green-400 bg-green-500/10 hover:bg-green-500/20 px-3 rounded-xl py-1.5 transition-colors">
+                  Mostrar
+                </button>
+              }
               <button (click)="confirmDelete(col.id)" class="text-xs text-red-400 bg-red-500/10 hover:bg-red-500/20 px-3 rounded-xl py-1.5 transition-colors">
                 Eliminar
               </button>
