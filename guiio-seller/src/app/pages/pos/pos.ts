@@ -520,7 +520,7 @@ export class Pos implements OnInit, OnDestroy {
         this.canceladoEnabled() ? 'Cancelado' : '',
       ].filter(Boolean).join(' | ') || undefined,
       deliveryDate: this.saleType() === 'FABRICAR' ? this.deliveryDateInput() : undefined,
-      initialPayment: this.abonoEnabled() && this.abonoAmount() > 0 ? Math.min(this.abonoAmount(), this.grandTotal()) : undefined,
+      initialPayment: this.canceladoEnabled() ? this.grandTotal() : (this.abonoEnabled() && this.abonoAmount() > 0 ? Math.min(this.abonoAmount(), this.grandTotal()) : undefined),
       items: [
         ...items.map(i => ({
           productId: i.product.id,
