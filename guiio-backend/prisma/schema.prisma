@@ -34,6 +34,7 @@ model Collection {
   description String?
   image       String?
   featured    Boolean  @default(false)
+  active      Boolean  @default(true)
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

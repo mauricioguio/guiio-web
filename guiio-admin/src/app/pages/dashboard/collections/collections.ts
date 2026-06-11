@@ -205,6 +205,12 @@ export class Collections {
     });
   }
 
+  toggleActive(col: Collection) {
+    this.api.patchActive(col.id, !col.active).subscribe({
+      next: updated => this.collections.update(list => list.map(c => c.id === updated.id ? updated : c)),
+    });
+  }
+
   confirmDelete(id: string) { this.deletingId.set(id); }
   cancelDelete() { this.deletingId.set(null); }
 

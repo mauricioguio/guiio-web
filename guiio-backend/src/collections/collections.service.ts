@@ -5,10 +5,15 @@ import { PrismaService } from '../prisma/prisma.service';
 export class CollectionsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
+  findAll(onlyActive = false) {
     return this.prisma.collection.findMany({
+      where: onlyActive ? { active: true } : undefined,
       orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
     });
+  }
+
+  patchActive(id: string, active: boolean) {
+    return this.prisma.collection.update({ where: { id }, data: { active } });
   }
 
   create(data: any) {
@@ -51,7 +56,7 @@ export class CollectionsService {
       .map(p => this.serialize(p));
 
     // Also include products explicitly assigned via join table (extra assignments from admin)
-    const cols = await this.prisma.collection.findMany();
+    const cols = await this.prisma.collection.findMany({ where: { active: true } });
     const col = cols.find(c => normalize(c.name) === target);
     const byJoin = col ? await this.getProducts(col.id, true) : [];
     const seenIds = new Set(byField.map(p => p.id));

@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Patch, Delete, Param, Body, HttpCode, UseGuards,
+  Controller, Get, Post, Patch, Delete, Param, Body, HttpCode, UseGuards, Req,
 } from '@nestjs/common';
 import { CollectionsService } from './collections.service';
 import { JwtAuthGuard } from '../auth/jwt.guard';
@@ -9,8 +9,15 @@ export class CollectionsController {
   constructor(private readonly collectionsService: CollectionsService) {}
 
   @Get()
-  findAll() {
-    return this.collectionsService.findAll();
+  findAll(@Req() req: any) {
+    const isAdmin = req.headers['authorization']?.startsWith('Bearer ');
+    return this.collectionsService.findAll(!isAdmin);
+  }
+
+  @Patch(':id/active')
+  @UseGuards(JwtAuthGuard)
+  patchActive(@Param('id') id: string, @Body('active') active: boolean) {
+    return this.collectionsService.patchActive(id, active);
   }
 
   @Get('name/:name/products')
