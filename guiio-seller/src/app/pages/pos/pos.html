@@ -71,7 +71,7 @@
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-900 leading-snug">{{ item.product.name }}</p>
             <p class="text-xs text-gray-500 mt-0.5">
-              Talla {{ item.size }} · {{ item.quantity > 1 ? 'x' + item.quantity : '1 und' }}
+              Talla {{ formatItemSize(item.size) }} · {{ item.quantity > 1 ? 'x' + item.quantity : '1 und' }}
             </p>
             @if (item.bordado) {
               <p class="text-xs mt-0.5" style="color:#16a34a;font-style:italic">✦ Bordado: {{ item.bordadoText }}</p>
@@ -503,7 +503,7 @@
                     <span class="text-gray-500 text-xs line-through">{{ formatPrice(itemPrice(item)) }}</span>
                     <span class="text-purple-400 text-xs font-semibold">{{ formatPrice(itemEffectivePrice(item)) }}</span>
                   } @else {
-                    <span class="text-gray-500 text-xs">T. {{ item.size }} · {{ formatPrice(itemPrice(item)) }}</span>
+                    <span class="text-gray-500 text-xs">T. {{ formatItemSize(item.size) }} · {{ formatPrice(itemPrice(item)) }}</span>
                   }
                 </div>
                 @if (item.bordado) {
@@ -645,7 +645,7 @@
                    style="grid-template-columns: 1fr auto auto auto">
                 <div class="min-w-0">
                   <p class="text-white text-xs font-medium truncate">{{ item.product.name }}</p>
-                  <span class="text-orange-400/70 text-xs">T. {{ item.size }} · {{ formatPrice(itemEffectivePrice(item)) }}</span>
+                  <span class="text-orange-400/70 text-xs">T. {{ formatItemSize(item.size) }} · {{ formatPrice(itemEffectivePrice(item)) }}</span>
                   @if (item.note) {
                     <p class="text-yellow-500/80 text-xs mt-0.5 italic truncate">{{ item.note }}</p>
                   }
@@ -727,7 +727,7 @@
                     <div class="flex items-center gap-1.5">
                       <input type="checkbox" [checked]="discountedKeys().has(itemKey(item))" (change)="toggleItemDiscounted(item)"
                         class="w-3.5 h-3.5 rounded accent-purple-500 cursor-pointer shrink-0" />
-                      <span class="text-xs text-gray-400 truncate flex-1 min-w-0">{{ item.product.name }} · T.{{ item.size }}</span>
+                      <span class="text-xs text-gray-400 truncate flex-1 min-w-0">{{ item.product.name }} · T.{{ formatItemSize(item.size) }}</span>
                       @if (discountedKeys().has(itemKey(item))) {
                         <button (click)="toggleItemOverrideType(item)"
                           class="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-gray-700 border-purple-800 text-purple-400 w-6 text-center shrink-0 hover:bg-gray-600 transition-colors">
@@ -891,7 +891,7 @@
                 <div class="flex items-center gap-1.5">
                   <input type="checkbox" [checked]="discountedKeys().has(itemKey(item))" (change)="toggleItemDiscounted(item)"
                     class="w-3.5 h-3.5 rounded accent-purple-500 cursor-pointer shrink-0" />
-                  <span class="text-xs text-gray-400 truncate flex-1 min-w-0">{{ item.product.name }} · T.{{ item.size }}</span>
+                  <span class="text-xs text-gray-400 truncate flex-1 min-w-0">{{ item.product.name }} · T.{{ formatItemSize(item.size) }}</span>
                   @if (discountedKeys().has(itemKey(item))) {
                     <button (click)="toggleItemOverrideType(item)"
                       class="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-gray-700 border-purple-800 text-purple-400 w-6 text-center shrink-0 hover:bg-gray-600 transition-colors">
@@ -1190,7 +1190,7 @@
                   <span class="text-gray-500 text-xs line-through">{{ formatPrice(itemPrice(item)) }}</span>
                   <span class="text-purple-400 text-xs font-semibold">{{ formatPrice(itemEffectivePrice(item)) }}</span>
                 } @else {
-                  <span class="text-gray-500 text-xs">T. {{ item.size }} · {{ formatPrice(itemPrice(item)) }}</span>
+                  <span class="text-gray-500 text-xs">T. {{ formatItemSize(item.size) }} · {{ formatPrice(itemPrice(item)) }}</span>
                 }
               </div>
               @if (item.bordado) {
@@ -1296,7 +1296,7 @@
                   <div class="flex items-center gap-1.5">
                     <input type="checkbox" [checked]="discountedKeys().has(itemKey(item))" (change)="toggleItemDiscounted(item)"
                       class="w-3.5 h-3.5 rounded accent-purple-500 cursor-pointer shrink-0" />
-                    <span class="text-xs text-gray-400 truncate flex-1 min-w-0">{{ item.product.name }} · T.{{ item.size }}</span>
+                    <span class="text-xs text-gray-400 truncate flex-1 min-w-0">{{ item.product.name }} · T.{{ formatItemSize(item.size) }}</span>
                     @if (discountedKeys().has(itemKey(item))) {
                       <button (click)="toggleItemOverrideType(item)"
                         class="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-gray-700 border-purple-800 text-purple-400 w-6 text-center shrink-0 hover:bg-gray-600 transition-colors">
