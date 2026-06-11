@@ -1500,24 +1500,30 @@
         @if (editingItemId()) {
           <div class="mb-5">
             <button
-              (click)="editDiscountEnabled.set(!editDiscountEnabled())"
+              (click)="editDiscountEnabled.set(!editDiscountEnabled()); editDiscountValue.set(0)"
               class="w-full py-2 text-xs font-medium rounded-xl border transition-colors"
               [class]="editDiscountEnabled()
-                ? 'bg-red-500/20 text-red-400 border-red-500/40'
-                : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600'"
-            >
-              {{ editDiscountEnabled() ? 'Descuento activado' : 'Aplicar descuento' }}
+                ? 'bg-purple-600/20 border-purple-600 text-purple-300'
+                : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-300'">
+              Descuento
             </button>
             @if (editDiscountEnabled()) {
-              <div class="mt-2 relative">
-                <input
-                  type="number" min="1" max="80"
-                  [value]="editDiscountPct()"
-                  (input)="editDiscountPct.set(+$any($event.target).value || 0)"
-                  placeholder="10"
-                  class="w-full bg-gray-800 border border-red-500/40 rounded-xl px-3 pr-10 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-400"
-                />
-                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">%</span>
+              <div class="flex gap-2 mt-2">
+                <button
+                  (click)="editDiscountType.set(editDiscountType() === 'pct' ? 'value' : 'pct'); editDiscountValue.set(0)"
+                  class="px-3 py-2.5 text-sm font-bold border rounded-xl transition-colors bg-gray-800 border-purple-700 text-purple-300 hover:bg-gray-700 min-w-[44px] text-center">
+                  {{ editDiscountType() === 'pct' ? '%' : '$' }}
+                </button>
+                <div class="relative flex-1">
+                  @if (editDiscountType() === 'value') {
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                  }
+                  <input type="text" inputmode="numeric" placeholder="0"
+                    [value]="editDiscountInputValue()"
+                    (input)="onEditDiscountInput($any($event.target).value)"
+                    class="w-full bg-gray-800 border border-purple-700 rounded-xl py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+                    [class]="editDiscountType() === 'value' ? 'pl-7 pr-3' : 'px-3'" />
+                </div>
               </div>
             }
           </div>

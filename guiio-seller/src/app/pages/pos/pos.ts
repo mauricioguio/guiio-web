@@ -92,7 +92,8 @@ export class Pos implements OnInit, OnDestroy {
   protected editingItemId = signal<string | null>(null);
   protected savingItem = signal(false);
   protected editDiscountEnabled = signal(false);
-  protected editDiscountPct = signal(0);
+  protected editDiscountType = signal<'pct' | 'value'>('pct');
+  protected editDiscountValue = signal(0);
   protected registering = signal(false);
   protected adjustedItems = signal(0);
   protected receiptPreview = signal(false);
@@ -270,7 +271,8 @@ export class Pos implements OnInit, OnDestroy {
   openProduct(p: Product) {
     this.editingItemId.set(null);
     this.editDiscountEnabled.set(false);
-    this.editDiscountPct.set(0);
+    this.editDiscountType.set('pct');
+    this.editDiscountValue.set(0);
     this.selectedProduct.set(p);
     const sizes = productSizes(p);
     this.selectedSize.set(sizes[0] ?? '');
@@ -336,14 +338,17 @@ export class Pos implements OnInit, OnDestroy {
       const inferredPct = Math.round((1 - item.price / basePrice) * 100);
       if (inferredPct >= 1 && inferredPct <= 80) {
         this.editDiscountEnabled.set(true);
-        this.editDiscountPct.set(inferredPct);
+        this.editDiscountType.set('pct');
+        this.editDiscountValue.set(inferredPct);
       } else {
         this.editDiscountEnabled.set(false);
-        this.editDiscountPct.set(0);
+        this.editDiscountType.set('pct');
+        this.editDiscountValue.set(0);
       }
     } else {
       this.editDiscountEnabled.set(false);
-      this.editDiscountPct.set(0);
+      this.editDiscountType.set('pct');
+      this.editDiscountValue.set(0);
     }
   }
 
@@ -381,8 +386,11 @@ export class Pos implements OnInit, OnDestroy {
       const order = this.editingOrder();
       if (!order || this.savingItem()) return;
       const basePrice = priceOverride != null ? priceOverride : p.price + (bordado ? 10000 : 0);
-      const discPct = this.editDiscountEnabled() ? this.editDiscountPct() : 0;
-      const price = discPct > 0 ? Math.round(basePrice * (1 - discPct / 100)) : basePrice;
+      const dType = this.editDiscountType();
+      const dVal = this.editDiscountEnabled() ? this.editDiscountValue() : 0;
+      const price = dVal > 0
+        ? (dType === 'value' ? Math.max(0, basePrice - dVal) : Math.max(0, Math.round(basePrice * (1 - Math.min(dVal, 100) / 100))))
+        : basePrice;
       this.savingItem.set(true);
       this.selectedProduct.set(null);
       this.api.editSaleItem(order.id, editId, { size, note: fullNote, price }).subscribe({
@@ -635,6 +643,18 @@ export class Pos implements OnInit, OnDestroy {
 
   discountInputValue(): string {
     const v = this.discountValue();
+    return v > 0 ? v.toLocaleString('es-CO') : '';
+  }
+
+  onEditDiscountInput(value: string) {
+    let n = parseInt(value.replace(/\D/g, ''), 10);
+    if (isNaN(n)) n = 0;
+    if (this.editDiscountType() === 'pct') n = Math.min(n, 100);
+    this.editDiscountValue.set(n);
+  }
+
+  editDiscountInputValue(): string {
+    const v = this.editDiscountValue();
     return v > 0 ? v.toLocaleString('es-CO') : '';
   }
 
