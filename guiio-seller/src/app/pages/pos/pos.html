@@ -93,6 +93,15 @@
           </div>
         </div>
       }
+      @if (addlServiceEnabled() && addlServicePrice() > 0 && addlServiceDesc()) {
+        <div class="flex justify-between items-start gap-3 pt-2 border-t border-gray-100 mt-1">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-900 leading-snug">{{ addlServiceDesc() }}</p>
+            <p class="text-xs mt-0.5" style="color:#f97316">Servicio adicional</p>
+          </div>
+          <span class="text-sm font-semibold text-gray-900 whitespace-nowrap">{{ formatPrice(addlServicePrice()) }}</span>
+        </div>
+      }
     </div>
   </div>
 
@@ -101,12 +110,18 @@
     @if (discountAmount() > 0 || (abonoEnabled() && abonoAmount() > 0)) {
       <div class="px-6 pt-4 pb-1 flex items-center justify-between text-sm">
         <span class="text-gray-500">Subtotal</span>
-        <span class="text-gray-600">{{ formatPrice(cartTotal() + discountAmount()) }}</span>
+        <span class="text-gray-600">{{ formatPrice(grandTotal() + discountAmount()) }}</span>
       </div>
       @if (discountAmount() > 0) {
         <div class="px-6 py-1 flex items-center justify-between text-sm">
           <span style="color:#9333ea">Descuento {{ discountType() === 'pct' ? discountValue() + '%' : '' }}</span>
           <span style="color:#9333ea">− {{ formatPrice(discountAmount()) }}</span>
+        </div>
+      }
+      @if (servicePrice() > 0) {
+        <div class="px-6 py-1 flex items-center justify-between text-sm">
+          <span style="color:#f97316">Servicio adicional</span>
+          <span style="color:#f97316">+ {{ formatPrice(servicePrice()) }}</span>
         </div>
       }
       @if (abonoEnabled() && abonoAmount() > 0) {
@@ -117,12 +132,12 @@
       }
       <div class="px-6 pt-1 pb-4 flex items-center justify-between border-t border-gray-200 mt-1">
         <span class="font-semibold text-gray-600">{{ abonoEnabled() && abonoAmount() > 0 ? 'Por pagar' : 'Total' }}</span>
-        <span class="text-xl font-bold text-gray-900">{{ formatPrice(abonoEnabled() && abonoAmount() > 0 ? netTotal() : cartTotal()) }}</span>
+        <span class="text-xl font-bold text-gray-900">{{ formatPrice(abonoEnabled() && abonoAmount() > 0 ? netTotal() : grandTotal()) }}</span>
       </div>
     } @else {
       <div class="px-6 pt-4 flex items-center justify-between" [class.pb-4]="!canceladoEnabled()" [class.pb-2]="canceladoEnabled()">
         <span class="font-semibold text-gray-600">Total</span>
-        <span class="text-xl font-bold text-gray-900">{{ formatPrice(cartTotal()) }}</span>
+        <span class="text-xl font-bold text-gray-900">{{ formatPrice(grandTotal()) }}</span>
       </div>
       @if (canceladoEnabled()) {
         <div class="px-6 pb-4 flex items-center justify-between">
@@ -777,12 +792,44 @@
           }
         </div>
 
+        <!-- Servicio adicional (modo edición) -->
+        <div class="space-y-2">
+          <p class="text-gray-400 text-xs">¿Requiere servicio adicional?</p>
+          <div class="flex gap-2">
+            <button
+              (click)="addlServiceEnabled.set(true)"
+              class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+              [class]="addlServiceEnabled()
+                ? 'bg-orange-500/20 border-orange-500 text-orange-300'
+                : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-300'">Sí</button>
+            <button
+              (click)="addlServiceEnabled.set(false); addlServiceDesc.set(''); addlServicePrice.set(0)"
+              class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+              [class]="!addlServiceEnabled()
+                ? 'bg-gray-600/40 border-gray-500 text-gray-200'
+                : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-300'">No</button>
+          </div>
+          @if (addlServiceEnabled()) {
+            <input type="text" placeholder="Descripción del servicio..."
+              [value]="addlServiceDesc()"
+              (input)="addlServiceDesc.set($any($event.target).value)"
+              class="w-full bg-gray-800 border border-orange-500/40 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-400" />
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+              <input type="text" inputmode="numeric" placeholder="0"
+                [value]="addlServicePriceInputValue()"
+                (input)="onAddlServicePriceInput($any($event.target).value)"
+                class="w-full bg-gray-800 border border-orange-500/40 rounded-xl pl-7 pr-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-400" />
+            </div>
+          }
+        </div>
+
         <button
           (click)="confirmAddItems()"
-          [disabled]="cart().length === 0 || addingItems() || editAbonoAnswer() === null || (editAbonoAnswer() === 'yes' && editAbonoAmount() < 10000)"
+          [disabled]="(cart().length === 0 && !(addlServiceEnabled() && addlServicePrice() > 0 && addlServiceDesc().trim())) || addingItems() || editAbonoAnswer() === null || (editAbonoAnswer() === 'yes' && editAbonoAmount() < 10000)"
           class="w-full bg-orange-400 text-gray-900 font-semibold rounded-xl py-3.5 text-sm transition-colors hover:bg-orange-300 disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {{ addingItems() ? 'Guardando...' : 'Agregar ' + cart().length + ' ítem' + (cart().length !== 1 ? 's' : '') + ' al pedido' }}
+          {{ addingItems() ? 'Guardando...' : 'Agregar ' + (cart().length + (addlServiceEnabled() && addlServicePrice() > 0 ? 1 : 0)) + ' ítem' + ((cart().length + (addlServiceEnabled() && addlServicePrice() > 0 ? 1 : 0)) !== 1 ? 's' : '') + ' al pedido' }}
         </button>
       } @else if (posMode() === 'new') {
 
@@ -886,16 +933,48 @@
           }
         </div>
       }
+      <!-- Servicio adicional (nueva venta) -->
+      <div class="space-y-2">
+        <p class="text-gray-400 text-xs">¿Requiere servicio adicional?</p>
+        <div class="flex gap-2">
+          <button (click)="addlServiceEnabled.set(true)"
+            class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+            [class]="addlServiceEnabled() ? 'bg-orange-500/20 border-orange-500 text-orange-300' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-300'">Sí</button>
+          <button (click)="addlServiceEnabled.set(false); addlServiceDesc.set(''); addlServicePrice.set(0)"
+            class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+            [class]="!addlServiceEnabled() ? 'bg-gray-600/40 border-gray-500 text-gray-200' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-300'">No</button>
+        </div>
+        @if (addlServiceEnabled()) {
+          <input type="text" placeholder="Descripción del servicio..."
+            [value]="addlServiceDesc()"
+            (input)="addlServiceDesc.set($any($event.target).value)"
+            class="w-full bg-gray-800 border border-orange-500/40 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-400" />
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+            <input type="text" inputmode="numeric" placeholder="0"
+              [value]="addlServicePriceInputValue()"
+              (input)="onAddlServicePriceInput($any($event.target).value)"
+              class="w-full bg-gray-800 border border-orange-500/40 rounded-xl pl-7 pr-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-400" />
+          </div>
+        }
+      </div>
+
       <!-- Totales -->
-      @if (discountAmount() > 0 || (abonoEnabled() && abonoAmount() > 0)) {
+      @if (discountAmount() > 0 || (abonoEnabled() && abonoAmount() > 0) || servicePrice() > 0) {
         <div class="flex items-center justify-between text-sm">
           <span class="text-gray-500">Subtotal</span>
-          <span class="text-gray-400">{{ formatPrice(cartTotal() + discountAmount()) }}</span>
+          <span class="text-gray-400">{{ formatPrice(grandTotal() + discountAmount()) }}</span>
         </div>
         @if (discountAmount() > 0) {
           <div class="flex items-center justify-between text-sm">
             <span class="text-purple-400">Descuento</span>
             <span class="text-purple-400">− {{ formatPrice(discountAmount()) }}</span>
+          </div>
+        }
+        @if (servicePrice() > 0) {
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-orange-400">Servicio adicional</span>
+            <span class="text-orange-400">+ {{ formatPrice(servicePrice()) }}</span>
           </div>
         }
         @if (abonoEnabled() && abonoAmount() > 0) {
@@ -906,12 +985,12 @@
         }
         <div class="flex items-center justify-between border-t border-gray-800 pt-2">
           <span class="text-gray-400 text-sm">{{ abonoEnabled() && abonoAmount() > 0 ? 'Por pagar' : 'Total' }}</span>
-          <span class="text-white font-bold text-xl">{{ formatPrice(abonoEnabled() && abonoAmount() > 0 ? netTotal() : cartTotal()) }}</span>
+          <span class="text-white font-bold text-xl">{{ formatPrice(abonoEnabled() && abonoAmount() > 0 ? netTotal() : grandTotal()) }}</span>
         </div>
       } @else {
         <div class="flex items-center justify-between">
           <span class="text-gray-400 text-sm">Total</span>
-          <span class="text-white font-bold text-xl">{{ formatPrice(cartTotal()) }}</span>
+          <span class="text-white font-bold text-xl">{{ formatPrice(grandTotal()) }}</span>
         </div>
       }
       <div class="flex gap-2">
@@ -931,7 +1010,7 @@
         </select>
         <button
           (click)="confirmSale()"
-          [disabled]="cart().length === 0 || saving() || !customerPhone().trim() || !customerName().trim() || (!abonoEnabled() && !canceladoEnabled()) || (abonoEnabled() && abonoAmount() < 10000) || abonoExceedsTotal() || !paymentMethod()"
+          [disabled]="cart().length === 0 || saving() || !customerPhone().trim() || !customerName().trim() || (!abonoEnabled() && !canceladoEnabled()) || (abonoEnabled() && abonoAmount() < 10000) || abonoExceedsTotal() || !paymentMethod() || (addlServiceEnabled() && (!addlServiceDesc().trim() || addlServicePrice() <= 0))"
           class="flex-1 font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           [class]="saleType() === 'FABRICAR'
             ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'
@@ -1253,22 +1332,54 @@
                 [class]="(abonoAmount() > 0 && abonoAmount() < 10000) || abonoExceedsTotal() ? 'border-red-600 focus:border-red-500' : 'border-blue-700 focus:border-blue-500'" />
             </div>
             @if (abonoExceedsTotal()) {
-              <p class="text-red-400 text-xs font-medium">El abono no puede superar el total ({{ formatPrice(cartTotal()) }})</p>
+              <p class="text-red-400 text-xs font-medium">El abono no puede superar el total ({{ formatPrice(grandTotal()) }})</p>
             } @else if (abonoAmount() > 0 && abonoAmount() < 10000) {
               <p class="text-red-400 text-xs">Mínimo $10.000</p>
             }
           </div>
         }
+        <!-- Servicio adicional (móvil) -->
+        <div class="space-y-2">
+          <p class="text-gray-400 text-xs">¿Requiere servicio adicional?</p>
+          <div class="flex gap-2">
+            <button (click)="addlServiceEnabled.set(true)"
+              class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+              [class]="addlServiceEnabled() ? 'bg-orange-500/20 border-orange-500 text-orange-300' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-300'">Sí</button>
+            <button (click)="addlServiceEnabled.set(false); addlServiceDesc.set(''); addlServicePrice.set(0)"
+              class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+              [class]="!addlServiceEnabled() ? 'bg-gray-600/40 border-gray-500 text-gray-200' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-300'">No</button>
+          </div>
+          @if (addlServiceEnabled()) {
+            <input type="text" placeholder="Descripción del servicio..."
+              [value]="addlServiceDesc()"
+              (input)="addlServiceDesc.set($any($event.target).value)"
+              class="w-full bg-gray-800 border border-orange-500/40 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-400" />
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+              <input type="text" inputmode="numeric" placeholder="0"
+                [value]="addlServicePriceInputValue()"
+                (input)="onAddlServicePriceInput($any($event.target).value)"
+                class="w-full bg-gray-800 border border-orange-500/40 rounded-xl pl-7 pr-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-400" />
+            </div>
+          }
+        </div>
+
         <!-- Totales -->
-        @if (discountAmount() > 0 || (abonoEnabled() && abonoAmount() > 0)) {
+        @if (discountAmount() > 0 || (abonoEnabled() && abonoAmount() > 0) || servicePrice() > 0) {
           <div class="flex items-center justify-between text-sm">
             <span class="text-gray-500">Subtotal</span>
-            <span class="text-gray-400">{{ formatPrice(cartTotal() + discountAmount()) }}</span>
+            <span class="text-gray-400">{{ formatPrice(grandTotal() + discountAmount()) }}</span>
           </div>
           @if (discountAmount() > 0) {
             <div class="flex items-center justify-between text-sm">
               <span class="text-purple-400">Descuento</span>
               <span class="text-purple-400">− {{ formatPrice(discountAmount()) }}</span>
+            </div>
+          }
+          @if (servicePrice() > 0) {
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-orange-400">Servicio adicional</span>
+              <span class="text-orange-400">+ {{ formatPrice(servicePrice()) }}</span>
             </div>
           }
           @if (abonoEnabled() && abonoAmount() > 0) {
@@ -1279,12 +1390,12 @@
           }
           <div class="flex items-center justify-between border-t border-gray-800 pt-2">
             <span class="text-gray-400 text-sm">{{ abonoEnabled() && abonoAmount() > 0 ? 'Por pagar' : 'Total' }}</span>
-            <span class="text-white font-bold text-xl">{{ formatPrice(abonoEnabled() && abonoAmount() > 0 ? netTotal() : cartTotal()) }}</span>
+            <span class="text-white font-bold text-xl">{{ formatPrice(abonoEnabled() && abonoAmount() > 0 ? netTotal() : grandTotal()) }}</span>
           </div>
         } @else {
           <div class="flex items-center justify-between">
             <span class="text-gray-400 text-sm">Total</span>
-            <span class="text-white font-bold text-xl">{{ formatPrice(cartTotal()) }}</span>
+            <span class="text-white font-bold text-xl">{{ formatPrice(grandTotal()) }}</span>
           </div>
         }
         <div class="flex gap-2">
@@ -1304,7 +1415,7 @@
           </select>
           <button
             (click)="confirmSale()"
-            [disabled]="cart().length === 0 || saving() || abonoExceedsTotal() || !paymentMethod()"
+            [disabled]="cart().length === 0 || saving() || abonoExceedsTotal() || !paymentMethod() || (addlServiceEnabled() && (!addlServiceDesc().trim() || addlServicePrice() <= 0))"
             class="flex-1 font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             [class]="saleType() === 'FABRICAR'
               ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'

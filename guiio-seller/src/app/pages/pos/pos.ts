@@ -94,6 +94,9 @@ export class Pos implements OnInit, OnDestroy {
   protected editDiscountEnabled = signal(false);
   protected editDiscountType = signal<'pct' | 'value'>('pct');
   protected editDiscountValue = signal(0);
+  protected addlServiceEnabled = signal(false);
+  protected addlServiceDesc = signal('');
+  protected addlServicePrice = signal(0);
   protected registering = signal(false);
   protected adjustedItems = signal(0);
   protected receiptPreview = signal(false);
@@ -157,7 +160,13 @@ export class Pos implements OnInit, OnDestroy {
     this.cart().reduce((s, i) => s + this.itemEffectivePrice(i) * i.quantity, 0)
   );
 
-  protected abonoExceedsTotal = computed(() => this.abonoEnabled() && this.abonoAmount() > this.cartTotal());
+  protected servicePrice = computed(() =>
+    this.addlServiceEnabled() && this.addlServicePrice() > 0 ? this.addlServicePrice() : 0
+  );
+
+  protected grandTotal = computed(() => this.cartTotal() + this.servicePrice());
+
+  protected abonoExceedsTotal = computed(() => this.abonoEnabled() && this.abonoAmount() > this.grandTotal());
 
   protected discountAmount = computed(() =>
     this.cart().reduce((s, i) => {
@@ -171,7 +180,7 @@ export class Pos implements OnInit, OnDestroy {
     this.cart().length > 0 && this.cart().every(i => this.discountedKeys().has(this.itemKey(i)))
   );
 
-  protected netTotal = computed(() => Math.max(0, this.cartTotal() - this.abonoAmount()));
+  protected netTotal = computed(() => Math.max(0, this.grandTotal() - this.abonoAmount()));
 
   protected cartCount = computed(() =>
     this.cart().reduce((s, i) => s + i.quantity, 0)
@@ -468,15 +477,20 @@ export class Pos implements OnInit, OnDestroy {
         this.canceladoEnabled() ? 'Cancelado' : '',
       ].filter(Boolean).join(' | ') || undefined,
       deliveryDate: this.saleType() === 'FABRICAR' ? this.deliveryDateInput() : undefined,
-      initialPayment: this.abonoEnabled() && this.abonoAmount() > 0 ? Math.min(this.abonoAmount(), this.cartTotal()) : undefined,
-      items: items.map(i => ({
-        productId: i.product.id,
-        productName: i.product.name,
-        size: i.size,
-        quantity: i.quantity,
-        price: this.itemEffectivePrice(i),
-        note: [i.note, i.bordadoText ? `Bordado: ${i.bordadoText}` : ''].filter(Boolean).join(' | ') || undefined,
-      })),
+      initialPayment: this.abonoEnabled() && this.abonoAmount() > 0 ? Math.min(this.abonoAmount(), this.grandTotal()) : undefined,
+      items: [
+        ...items.map(i => ({
+          productId: i.product.id,
+          productName: i.product.name,
+          size: i.size,
+          quantity: i.quantity,
+          price: this.itemEffectivePrice(i),
+          note: [i.note, i.bordadoText ? `Bordado: ${i.bordadoText}` : ''].filter(Boolean).join(' | ') || undefined,
+        })),
+        ...(this.addlServiceEnabled() && this.addlServicePrice() > 0 && this.addlServiceDesc().trim()
+          ? [{ productId: '__servicio__', productName: this.addlServiceDesc().trim(), size: 'Servicio adicional', quantity: 1, price: this.addlServicePrice() }]
+          : []),
+      ],
     }).subscribe({
       next: async sale => {
         this.savedOrderNumber.set(sale.orderNumber);
@@ -502,6 +516,9 @@ export class Pos implements OnInit, OnDestroy {
         this.discountValue.set(0);
         this.discountedKeys.set(new Set());
         this.itemOverrides.set(new Map());
+        this.addlServiceEnabled.set(false);
+        this.addlServiceDesc.set('');
+        this.addlServicePrice.set(0);
         this.predictedOrderNumber.set(null);
         this.loadData();
 
@@ -658,6 +675,17 @@ export class Pos implements OnInit, OnDestroy {
     return v > 0 ? v.toLocaleString('es-CO') : '';
   }
 
+  onAddlServicePriceInput(value: string) {
+    let n = parseInt(value.replace(/\D/g, ''), 10);
+    if (isNaN(n)) n = 0;
+    this.addlServicePrice.set(n);
+  }
+
+  addlServicePriceInputValue(): string {
+    const v = this.addlServicePrice();
+    return v > 0 ? v.toLocaleString('es-CO') : '';
+  }
+
   toggleDiscount() {
     if (this.discountPanelOpen()) {
       this.discountPanelOpen.set(false);
@@ -759,6 +787,9 @@ export class Pos implements OnInit, OnDestroy {
     this.discountValue.set(0);
     this.discountedKeys.set(new Set());
     this.itemOverrides.set(new Map());
+    this.addlServiceEnabled.set(false);
+    this.addlServiceDesc.set('');
+    this.addlServicePrice.set(0);
     if (mode === 'edit') this.saleType.set('FABRICAR');
   }
 
@@ -817,20 +848,26 @@ export class Pos implements OnInit, OnDestroy {
   confirmAddItems() {
     const order = this.editingOrder();
     const items = this.cart();
-    if (!order || !items.length || this.addingItems()) return;
+    const hasService = this.addlServiceEnabled() && this.addlServicePrice() > 0 && this.addlServiceDesc().trim().length > 0;
+    if (!order || (!items.length && !hasService) || this.addingItems()) return;
     if (this.editAbonoAnswer() === null) return;
     const abono = this.editAbonoAnswer() === 'yes' ? this.editAbonoAmount() : 0;
     if (this.editAbonoAnswer() === 'yes' && abono < 10000) return;
 
     this.addingItems.set(true);
-    this.api.addItemsToOrder(order.id, items.map(i => ({
-      productId: i.product.id,
-      productName: i.product.name,
-      size: i.size,
-      quantity: i.quantity,
-      price: this.itemEffectivePrice(i),
-      note: i.note || undefined,
-    }))).subscribe({
+    this.api.addItemsToOrder(order.id, [
+      ...items.map(i => ({
+        productId: i.product.id,
+        productName: i.product.name,
+        size: i.size,
+        quantity: i.quantity,
+        price: this.itemEffectivePrice(i),
+        note: i.note || undefined,
+      })),
+      ...(hasService
+        ? [{ productId: '__servicio__', productName: this.addlServiceDesc().trim(), size: 'Servicio adicional', quantity: 1, price: this.addlServicePrice() }]
+        : []),
+    ]).subscribe({
       next: updated => {
         if (abono >= 10000) {
           this.api.addPayment(order.id, abono).subscribe({
@@ -875,6 +912,9 @@ export class Pos implements OnInit, OnDestroy {
     this.discountValue.set(0);
     this.discountedKeys.set(new Set());
     this.itemOverrides.set(new Map());
+    this.addlServiceEnabled.set(false);
+    this.addlServiceDesc.set('');
+    this.addlServicePrice.set(0);
     this.addItemsSuccess.set(true);
     setTimeout(() => this.addItemsSuccess.set(false), 4000);
 
