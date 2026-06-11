@@ -9,7 +9,7 @@ export interface Collection {
   featured: boolean; active: boolean; order: number; createdAt: string; updatedAt: string;
 }
 
-export type CollectionPayload = Omit<Collection, 'id' | 'createdAt' | 'updatedAt'>;
+export type CollectionPayload = Omit<Collection, 'id' | 'createdAt' | 'updatedAt' | 'active'>;
 
 @Injectable({ providedIn: 'root' })
 export class CollectionsApiService {
