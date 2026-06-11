@@ -175,6 +175,16 @@ export class SellerController {
     return this.sellerService.searchFabricarOrders(sedeId, q ?? '');
   }
 
+  @Patch('fabricar/:id/edit-item/:itemId')
+  @UseGuards(SellerGuard)
+  editSaleItem(
+    @Param('id') saleId: string,
+    @Param('itemId') itemId: string,
+    @Body() data: { size?: string; note?: string | null; price?: number },
+  ) {
+    return this.sellerService.editSaleItem(saleId, itemId, data);
+  }
+
   @Post('fabricar/:id/add-items')
   @UseGuards(SellerGuard)
   addItemsToOrder(@Param('id') id: string, @Body('items') items: any[]) {

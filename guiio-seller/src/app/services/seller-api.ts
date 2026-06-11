@@ -192,6 +192,10 @@ export class SellerApiService {
     return this.http.post<FabricarOrder>(`${API}/fabricar/${orderId}/add-items`, { items }, { headers: this.headers });
   }
 
+  editSaleItem(orderId: string, itemId: string, data: { size?: string; note?: string | null; price?: number }) {
+    return this.http.patch<FabricarOrder>(`${API}/fabricar/${orderId}/edit-item/${itemId}`, data, { headers: this.headers });
+  }
+
   createEditRequest(orderId: string, changes: EditRequestChanges, reason?: string) {
     return this.http.post<any>(
       `${API_BASE}/order-edit-requests`,

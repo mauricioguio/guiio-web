@@ -339,6 +339,24 @@ export class SellerService {
     return this.prisma.sale.delete({ where: { id } });
   }
 
+  async editSaleItem(saleId: string, itemId: string, data: { size?: string; note?: string | null; price?: number }) {
+    await this.prisma.saleItem.update({
+      where: { id: itemId, saleId },
+      data: {
+        ...(data.size !== undefined && { size: data.size }),
+        ...(data.note !== undefined && { note: data.note || null }),
+        ...(data.price !== undefined && { price: data.price }),
+      },
+    });
+    const allItems = await this.prisma.saleItem.findMany({ where: { saleId } });
+    const newTotal = allItems.reduce((s, i) => s + i.price * i.quantity, 0);
+    return this.prisma.sale.update({
+      where: { id: saleId },
+      data: { total: newTotal },
+      include: { items: true, payments: { orderBy: { createdAt: 'asc' } }, sede: { select: { id: true, name: true } } },
+    });
+  }
+
   async searchFabricarOrders(sedeId: string, q: string) {
     const orderNum = parseInt(q.trim(), 10);
     const searchOr: any[] = [

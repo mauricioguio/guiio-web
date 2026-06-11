@@ -89,6 +89,8 @@ export class Pos implements OnInit, OnDestroy {
   protected addItemsSuccess = signal(false);
   protected editAbonoAnswer = signal<'yes' | 'no' | null>(null);
   protected editAbonoAmount = signal(0);
+  protected editingItemId = signal<string | null>(null);
+  protected savingItem = signal(false);
   protected registering = signal(false);
   protected adjustedItems = signal(0);
   protected receiptPreview = signal(false);
@@ -264,6 +266,7 @@ export class Pos implements OnInit, OnDestroy {
   sizesFor(p: Product): string[] { return productSizes(p); }
 
   openProduct(p: Product) {
+    this.editingItemId.set(null);
     this.selectedProduct.set(p);
     const sizes = productSizes(p);
     this.selectedSize.set(sizes[0] ?? '');
@@ -275,6 +278,52 @@ export class Pos implements OnInit, OnDestroy {
     this.selectedBottomSize.set('');
     this.selectedBordado.set(false);
     this.selectedBordadoText.set('');
+  }
+
+  openEditItem(item: { id: string; productId: string; productName: string; size: string; price: number; note: string | null }) {
+    const product = this.products().find(p => p.id === item.productId);
+    if (!product) return;
+
+    this.editingItemId.set(item.id);
+    this.selectedProduct.set(product);
+
+    // Parsear nota y bordado
+    const parts = (item.note ?? '').split(' | ');
+    const bordadoPart = parts.find(p => p.startsWith('Bordado: '));
+    const plainNote = parts.filter(p => !p.startsWith('Bordado: ')).join(' | ');
+    this.selectedNote.set(plainNote);
+    this.selectedBordado.set(!!bordadoPart);
+    this.selectedBordadoText.set(bordadoPart ? bordadoPart.replace('Bordado: ', '') : '');
+
+    // Parsear talla
+    const size = item.size;
+    if (size.startsWith('Blusa') || size.startsWith('Pantalón')) {
+      this.tallaCompleta.set(false);
+      if (size.includes(' / ')) {
+        const [top, bottom] = size.split(' / ');
+        this.selectedPiezas.set('conjunto');
+        this.selectedTopSize.set(top.replace('Blusa ', ''));
+        this.selectedBottomSize.set(bottom.replace('Pantalón ', ''));
+        this.selectedPriceOverride.set(null);
+      } else if (size.startsWith('Blusa')) {
+        this.selectedPiezas.set('top');
+        this.selectedTopSize.set(size.replace('Blusa ', ''));
+        this.selectedBottomSize.set('');
+        this.selectedPriceOverride.set(item.price);
+      } else {
+        this.selectedPiezas.set('bottom');
+        this.selectedBottomSize.set(size.replace('Pantalón ', ''));
+        this.selectedTopSize.set('');
+        this.selectedPriceOverride.set(item.price);
+      }
+    } else {
+      this.tallaCompleta.set(true);
+      this.selectedSize.set(size);
+      this.selectedPiezas.set('conjunto');
+      this.selectedTopSize.set('');
+      this.selectedBottomSize.set('');
+      this.selectedPriceOverride.set(null);
+    }
   }
 
   addToCart() {
@@ -299,11 +348,32 @@ export class Pos implements OnInit, OnDestroy {
       size = this.selectedSize();
       if (!size) return;
     }
-    if (this.saleType() === 'STOCK' && this.stockFor(p.id, size) <= 0) return;
     const note = this.selectedNote().trim();
     const bordado = this.selectedBordado();
     const bordadoText = bordado ? this.selectedBordadoText().trim() : '';
     const priceOverride = this.selectedPriceOverride();
+    const fullNote = [note, bordadoText ? `Bordado: ${bordadoText}` : ''].filter(Boolean).join(' | ') || null;
+
+    // Modo edición de ítem existente
+    const editId = this.editingItemId();
+    if (editId && this.posMode() === 'edit') {
+      const order = this.editingOrder();
+      if (!order || this.savingItem()) return;
+      const price = priceOverride != null ? priceOverride : p.price + (bordado ? 10000 : 0);
+      this.savingItem.set(true);
+      this.selectedProduct.set(null);
+      this.api.editSaleItem(order.id, editId, { size, note: fullNote, price }).subscribe({
+        next: updated => {
+          this.editingOrder.set(updated);
+          this.editingItemId.set(null);
+          this.savingItem.set(false);
+        },
+        error: () => this.savingItem.set(false),
+      });
+      return;
+    }
+
+    if (this.saleType() === 'STOCK' && this.stockFor(p.id, size) <= 0) return;
     const newItem: CartItem = { product: p, size, quantity: 1, note, bordado, bordadoText, ...(priceOverride != null ? { priceOverride } : {}) };
     this.cart.update(items => {
       const idx = items.findIndex(i => i.product.id === p.id && i.size === size && i.note === note && !!i.bordado === bordado);
