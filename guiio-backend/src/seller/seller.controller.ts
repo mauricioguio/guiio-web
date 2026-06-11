@@ -180,7 +180,7 @@ export class SellerController {
   editSaleItem(
     @Param('id') saleId: string,
     @Param('itemId') itemId: string,
-    @Body() data: { size?: string; note?: string | null; price?: number },
+    @Body() data: { size?: string; note?: string | null; price?: number; productName?: string },
   ) {
     return this.sellerService.editSaleItem(saleId, itemId, data);
   }

@@ -339,10 +339,11 @@ export class SellerService {
     return this.prisma.sale.delete({ where: { id } });
   }
 
-  async editSaleItem(saleId: string, itemId: string, data: { size?: string; note?: string | null; price?: number }) {
+  async editSaleItem(saleId: string, itemId: string, data: { size?: string; note?: string | null; price?: number; productName?: string }) {
     await this.prisma.saleItem.update({
       where: { id: itemId, saleId },
       data: {
+        ...(data.productName !== undefined && { productName: data.productName }),
         ...(data.size !== undefined && { size: data.size }),
         ...(data.note !== undefined && { note: data.note || null }),
         ...(data.price !== undefined && { price: data.price }),

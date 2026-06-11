@@ -91,6 +91,9 @@ export class Pos implements OnInit, OnDestroy {
   protected editAbonoAmount = signal(0);
   protected editingItemId = signal<string | null>(null);
   protected savingItem = signal(false);
+  protected editingServiceId = signal<string | null>(null);
+  protected serviceEditDesc = signal('');
+  protected serviceEditPrice = signal(0);
   protected editDiscountEnabled = signal(false);
   protected editDiscountType = signal<'pct' | 'value'>('pct');
   protected editDiscountValue = signal(0);
@@ -359,6 +362,46 @@ export class Pos implements OnInit, OnDestroy {
       this.editDiscountType.set('pct');
       this.editDiscountValue.set(0);
     }
+  }
+
+  openEditService(item: { id: string; productName: string; price: number }) {
+    this.editingServiceId.set(item.id);
+    this.serviceEditDesc.set(item.productName);
+    this.serviceEditPrice.set(item.price);
+  }
+
+  cancelEditService() {
+    this.editingServiceId.set(null);
+    this.serviceEditDesc.set('');
+    this.serviceEditPrice.set(0);
+  }
+
+  saveEditService() {
+    const id = this.editingServiceId();
+    const order = this.editingOrder();
+    if (!id || !order || this.savingItem()) return;
+    const desc = this.serviceEditDesc().trim();
+    const price = this.serviceEditPrice();
+    if (!desc || price <= 0) return;
+    this.savingItem.set(true);
+    this.api.editSaleItem(order.id, id, { productName: desc, price }).subscribe({
+      next: updated => {
+        this.editingOrder.set(updated);
+        this.cancelEditService();
+        this.savingItem.set(false);
+      },
+      error: () => this.savingItem.set(false),
+    });
+  }
+
+  onServiceEditPriceInput(value: string) {
+    const n = parseInt(value.replace(/\D/g, ''), 10);
+    this.serviceEditPrice.set(isNaN(n) ? 0 : n);
+  }
+
+  serviceEditPriceInputValue(): string {
+    const v = this.serviceEditPrice();
+    return v > 0 ? v.toLocaleString('es-CO') : '';
   }
 
   addToCart() {
