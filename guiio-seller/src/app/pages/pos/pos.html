@@ -608,11 +608,15 @@
             <div class="px-5 py-3 border-b border-gray-800/50 flex items-center gap-2">
               <div class="flex-1 min-w-0 opacity-50">
                 <p class="text-white text-xs font-medium">{{ item.productName }}</p>
-                <p class="text-gray-500 text-xs mt-0.5">T. {{ formatItemSize(item.size) }} · x{{ item.quantity }} · {{ formatPrice(item.price * item.quantity) }}</p>
+                <p class="text-gray-500 text-xs mt-0.5">
+                  @if (item.productId !== '__servicio__') { T. {{ formatItemSize(item.size) }} · }
+                  x{{ item.quantity }} · {{ formatPrice(item.price * item.quantity) }}
+                </p>
                 @if (item.note) {
                   <p class="text-gray-600 text-xs italic truncate">{{ item.note }}</p>
                 }
               </div>
+              @if (item.productId !== '__servicio__') {
               <button
                 (click)="openEditItem(item)"
                 [disabled]="savingItem() && editingItemId() === item.id"
@@ -623,6 +627,7 @@
                   Editar
                 }
               </button>
+              }
             </div>
           }
 
