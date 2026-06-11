@@ -146,7 +146,7 @@ export class Inventory {
     let pending = 3;
     const done = () => { if (--pending === 0) this.loading.set(false); };
     this.sedesApi.getAll().subscribe({ next: list => { this.sedes.set(list); done(); }, error: done });
-    this.productsApi.getAll().subscribe({ next: list => { this.products.set(list); done(); }, error: done });
+    this.productsApi.getAllAdmin().subscribe({ next: list => { this.products.set(list); done(); }, error: done });
     this.inventoryApi.getAll().subscribe({ next: list => { this.inventoryItems.set(list); done(); }, error: done });
   }
 

@@ -21,6 +21,7 @@ export class ProductsApiService {
   private readonly http = inject(HttpClient);
 
   getAll() { return this.http.get<Product[]>(`${API_URL}/products`); }
+  getAllAdmin() { return this.http.get<Product[]>(`${API_URL}/products/admin/all`); }
   create(data: ProductPayload) { return this.http.post<Product>(`${API_URL}/products`, data); }
   update(id: string, data: ProductPayload) { return this.http.patch<Product>(`${API_URL}/products/${id}`, data); }
   patchActive(id: string, active: boolean) { return this.http.patch<Product>(`${API_URL}/products/${id}/active`, { active }); }
