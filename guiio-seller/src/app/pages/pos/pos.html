@@ -862,7 +862,7 @@
 
         <button
           (click)="confirmAddItems()"
-          [disabled]="(cart().length === 0 && !(addlServiceEnabled() && addlServicePrice() > 0 && addlServiceDesc().trim())) || addingItems() || editAbonoAnswer() === null || (editAbonoAnswer() === 'yes' && editAbonoAmount() < 10000)"
+          [disabled]="(cart().length === 0 && !(addlServiceEnabled() && addlServicePrice() > 0 && addlServiceDesc().trim()) && !(editAbonoAnswer() === 'yes' && editAbonoAmount() >= 10000)) || addingItems() || editAbonoAnswer() === null || (editAbonoAnswer() === 'yes' && editAbonoAmount() < 10000)"
           class="w-full bg-orange-400 text-gray-900 font-semibold rounded-xl py-3.5 text-sm transition-colors hover:bg-orange-300 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {{ addingItems() ? 'Guardando...' : 'Actualizar pedido' }}

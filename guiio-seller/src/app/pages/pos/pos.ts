@@ -892,12 +892,32 @@ export class Pos implements OnInit, OnDestroy {
     const order = this.editingOrder();
     const items = this.cart();
     const hasService = this.addlServiceEnabled() && this.addlServicePrice() > 0 && this.addlServiceDesc().trim().length > 0;
-    if (!order || (!items.length && !hasService) || this.addingItems()) return;
+    if (!order || this.addingItems()) return;
     if (this.editAbonoAnswer() === null) return;
     const abono = this.editAbonoAnswer() === 'yes' ? this.editAbonoAmount() : 0;
     if (this.editAbonoAnswer() === 'yes' && abono < 10000) return;
 
+    const hasNewItems = items.length > 0 || hasService;
+
     this.addingItems.set(true);
+
+    const doAbono = (updated: any) => {
+      if (abono >= 10000) {
+        this.api.addPayment(order.id, abono).subscribe({
+          next: () => this.finishAddItems(updated, abono),
+          error: () => this.finishAddItems(updated, abono),
+        });
+      } else {
+        this.finishAddItems(updated, 0);
+      }
+    };
+
+    if (!hasNewItems) {
+      // Solo abono, sin ítems nuevos
+      doAbono(order);
+      return;
+    }
+
     this.api.addItemsToOrder(order.id, [
       ...items.map(i => ({
         productId: i.product.id,
@@ -911,16 +931,7 @@ export class Pos implements OnInit, OnDestroy {
         ? [{ productId: '__servicio__', productName: this.addlServiceDesc().trim(), size: 'Servicio adicional', quantity: 1, price: this.addlServicePrice() }]
         : []),
     ]).subscribe({
-      next: updated => {
-        if (abono >= 10000) {
-          this.api.addPayment(order.id, abono).subscribe({
-            next: () => this.finishAddItems(updated, abono),
-            error: () => this.finishAddItems(updated, abono),
-          });
-        } else {
-          this.finishAddItems(updated, 0);
-        }
-      },
+      next: updated => doAbono(updated),
       error: () => this.addingItems.set(false),
     });
   }
