@@ -904,8 +904,11 @@ export class Pos implements OnInit, OnDestroy {
     const doAbono = (updated: any) => {
       if (abono >= 10000) {
         this.api.addPayment(order.id, abono).subscribe({
-          next: () => this.finishAddItems(updated, abono),
-          error: () => this.finishAddItems(updated, abono),
+          next: (payment) => this.finishAddItems(
+            { ...updated, payments: [...(updated.payments ?? []), payment] },
+            abono
+          ),
+          error: () => this.finishAddItems(updated, 0),
         });
       } else {
         this.finishAddItems(updated, 0);
