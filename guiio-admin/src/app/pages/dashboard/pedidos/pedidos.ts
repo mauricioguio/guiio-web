@@ -69,6 +69,21 @@ export class Pedidos implements OnInit {
     return 'salitre';
   }
 
+  // 0=activo (arriba), 1=entregado, 2=listo/enviado, 3=cancelado (abajo)
+  private physicalGroup(s: SellerSale): number {
+    if (s.status === 'CANCELLED') return 3;
+    if (s.status === 'DELIVERED') return 2; // Listo para enviar
+    if (s.status === 'COMPLETED') return 1; // Entregado
+    return 0;
+  }
+
+  private onlineGroup(o: Order): number {
+    if (o.status === 'CANCELLED') return 3;
+    if (o.status === 'SHIPPED')   return 2;
+    if (o.status === 'DELIVERED') return 1;
+    return 0;
+  }
+
   protected filteredSales = computed(() => {
     const ch = this.filterChannel();
     const st = this.filterStatus();
@@ -81,12 +96,9 @@ export class Pedidos implements OnInit {
         return true;
       })
       .sort((a, b) => {
-        const aD = a.type === 'FABRICAR' && a.deliveryDate ? new Date(a.deliveryDate).getTime() : null;
-        const bD = b.type === 'FABRICAR' && b.deliveryDate ? new Date(b.deliveryDate).getTime() : null;
-        if (aD !== null && bD !== null) return aD - bD;
-        if (aD !== null) return -1;
-        if (bD !== null) return 1;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        const ga = this.physicalGroup(a), gb = this.physicalGroup(b);
+        if (ga !== gb) return ga - gb;
+        return b.orderNumber - a.orderNumber;
       });
   });
 
@@ -94,7 +106,13 @@ export class Pedidos implements OnInit {
     const ch = this.filterChannel();
     const st = this.filterStatus();
     if (ch !== 'ALL' && ch !== 'online') return [];
-    return this.orders().filter(o => st === 'ALL' || o.status === st);
+    return this.orders()
+      .filter(o => st === 'ALL' || o.status === st)
+      .sort((a, b) => {
+        const ga = this.onlineGroup(a), gb = this.onlineGroup(b);
+        if (ga !== gb) return ga - gb;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
   });
 
   protected totalResults = computed(() => this.filteredSales().length + this.filteredOrders().length);
