@@ -65,6 +65,9 @@ export class Pedidos implements OnInit {
   protected confirmDelete = signal<SellerSale | null>(null);
   protected deletingId   = signal<string | null>(null);
 
+  protected updatingOrderId = signal<string | null>(null);
+  protected emailSentPopup  = signal<{ email: string; reference: string } | null>(null);
+
   protected shippingPopup = signal<ShippingData | null>(null);
 
   protected readonly physicalStatuses = PHYSICAL_STATUSES;
@@ -168,6 +171,22 @@ export class Pedidos implements OnInit {
     });
   }
 
+  updateOnlineStatus(order: Order, status: string) {
+    if (order.status === status) return;
+    this.updatingOrderId.set(order.id);
+    this.onlineApi.updateStatus(order.id, status).subscribe({
+      next: updated => {
+        this.orders.update(list => list.map(o => o.id === updated.id ? { ...o, status: updated.status } : o));
+        this.updatingOrderId.set(null);
+        if (status === 'SHIPPED' && order.customer.email) {
+          this.emailSentPopup.set({ email: order.customer.email, reference: order.reference });
+          setTimeout(() => this.emailSentPopup.set(null), 6000);
+        }
+      },
+      error: () => this.updatingOrderId.set(null),
+    });
+  }
+
   openShippingPopup(data: ShippingData) {
     this.shippingPopup.set(data);
   }
@@ -232,6 +251,14 @@ export class Pedidos implements OnInit {
     if (s === 'DELIVERED') return 'bg-green-500/10 text-green-400 border-green-500/20';
     if (s === 'CANCELLED') return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
     return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+  }
+
+  selectOnlineClass(s: string) {
+    if (s === 'PENDING')   return 'border-yellow-700 text-yellow-300 bg-yellow-500/10';
+    if (s === 'PAID')      return 'border-blue-700 text-blue-300 bg-blue-500/10';
+    if (s === 'SHIPPED')   return 'border-purple-700 text-purple-300 bg-purple-500/10';
+    if (s === 'DELIVERED') return 'border-green-700 text-green-300 bg-green-500/10';
+    return 'border-gray-700 text-gray-300 bg-gray-800';
   }
 
   selectClass(s: string) {
