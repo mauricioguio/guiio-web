@@ -1,0 +1,450 @@
+<div class="p-8">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-white text-xl font-semibold">Pedidos</h2>
+    <span class="text-xs text-gray-500">{{ totalResults() }} resultado{{ totalResults() !== 1 ? 's' : '' }}</span>
+  </div>
+
+  <!-- Filtro Canal -->
+  <div class="flex gap-1.5 flex-wrap mb-3">
+    @for (tab of [
+      ['ALL',      'Todos'],
+      ['salitre',  'Salitre'],
+      ['veraguas', 'Veraguas'],
+      ['whatsapp', 'WhatsApp'],
+      ['online',   'Online']
+    ]; track tab[0]) {
+      <button
+        (click)="onChannelChange($any(tab[0]))"
+        class="text-xs px-3 py-1.5 rounded-xl border transition-colors"
+        [class]="filterChannel() === tab[0]
+          ? 'bg-white text-gray-900 border-white'
+          : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-600'"
+      >{{ tab[1] }}</button>
+    }
+  </div>
+
+  <!-- Filtro Estado (físico) -->
+  @if (filterChannel() !== 'online') {
+    <div class="flex gap-1 flex-wrap mb-6">
+      <button
+        (click)="filterStatus.set('ALL')"
+        class="text-xs px-3 py-1.5 rounded-xl border transition-colors"
+        [class]="filterStatus() === 'ALL'
+          ? 'bg-white text-gray-900 border-white'
+          : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-600'"
+      >Todos</button>
+      @for (s of physicalStatuses; track s) {
+        <button
+          (click)="filterStatus.set(s)"
+          class="text-xs px-3 py-1.5 rounded-xl border transition-colors"
+          [class]="filterStatus() === s
+            ? 'bg-white text-gray-900 border-white'
+            : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-600'"
+        >{{ physicalStatusLabel(s) }}</button>
+      }
+    </div>
+  }
+
+  <!-- Filtro Estado (online) -->
+  @if (filterChannel() === 'online') {
+    <div class="flex gap-1 flex-wrap mb-6">
+      <button
+        (click)="filterStatus.set('ALL')"
+        class="text-xs px-3 py-1.5 rounded-xl border transition-colors"
+        [class]="filterStatus() === 'ALL'
+          ? 'bg-white text-gray-900 border-white'
+          : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-600'"
+      >Todos</button>
+      @for (s of onlineStatuses; track s) {
+        <button
+          (click)="filterStatus.set(s)"
+          class="text-xs px-3 py-1.5 rounded-xl border transition-colors"
+          [class]="filterStatus() === s
+            ? 'bg-white text-gray-900 border-white'
+            : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-600'"
+        >{{ onlineStatusLabel(s) }}</button>
+      }
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-400 text-sm">Cargando pedidos...</p>
+    </div>
+  } @else if (totalResults() === 0) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-500 text-sm">No hay pedidos con esos filtros.</p>
+    </div>
+  } @else {
+    <div class="space-y-3">
+
+      <!-- ══ VENTAS FÍSICAS ══ -->
+      @for (sale of filteredSales(); track sale.id) {
+        @let badge  = urgencyBadge(sale);
+        @let chBadge = saleChannelBadge(sale);
+
+        <div class="bg-gray-900 border rounded-2xl overflow-hidden transition-colors" [class]="urgencyBorder(sale)">
+
+          <!-- Fila principal -->
+          <div
+            class="p-5 flex items-center gap-4 cursor-pointer hover:bg-gray-800/30 transition-colors relative"
+            (click)="expandedId.set(expandedId() === sale.id ? null : sale.id)"
+          >
+            <!-- Urgencia (esquina superior derecha) -->
+            @if (badge) {
+              <span class="absolute top-3 right-10 text-[10px] font-semibold px-2 py-0.5 rounded-full" [class]="badge.cls">
+                {{ badge.text }}
+              </span>
+            }
+
+            <!-- Info -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1 flex-wrap">
+                <!-- Badge canal/sede -->
+                <span class="text-xs border px-2 py-0.5 rounded-full font-medium" [class]="chBadge.cls">
+                  @if (sale.channel === 'whatsapp') {
+                    <svg viewBox="0 0 24 24" class="w-3 h-3 fill-current inline mr-0.5 -mt-0.5"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                  }
+                  {{ chBadge.text }}
+                </span>
+                @if (sale.type === 'FABRICAR') {
+                  <span class="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-0.5 rounded-full">A fabricar</span>
+                  <span class="text-xs text-gray-600 font-mono">Factura N° {{ sale.orderNumber.toString().padStart(4, '0') }}</span>
+                }
+                @if (sale.customerName) {
+                  <span class="text-gray-400 text-xs">{{ sale.customerName }}</span>
+                }
+                @if (sale.customerPhone) {
+                  <span class="text-gray-600 text-xs">· {{ sale.customerPhone }}</span>
+                }
+              </div>
+              <div class="flex items-center gap-3 flex-wrap">
+                <p class="text-gray-500 text-xs">{{ formatDate(sale.createdAt) }}</p>
+                @if (sale.type === 'FABRICAR' && sale.deliveryDate) {
+                  <p class="text-gray-400 text-xs">Entrega: <span class="font-medium text-gray-300">{{ formatDateShort(sale.deliveryDate) }}</span></p>
+                }
+                <p class="text-gray-600 text-xs">{{ sale.items.length }} producto{{ sale.items.length !== 1 ? 's' : '' }}</p>
+              </div>
+            </div>
+
+            <!-- Total -->
+            <span class="text-white font-semibold text-sm shrink-0">{{ formatPrice(sale.total) }}</span>
+
+            <!-- Estado -->
+            <div class="shrink-0">
+              <span class="text-xs border px-2.5 py-1 rounded-full {{ physicalStatusClass(sale.status) }}">
+                {{ physicalStatusLabel(sale.status) }}
+              </span>
+            </div>
+
+            <!-- Chevron -->
+            <svg class="w-4 h-4 text-gray-600 shrink-0 transition-transform" [class.rotate-180]="expandedId() === sale.id"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+
+          <!-- Detalle expandido -->
+          @if (expandedId() === sale.id) {
+            <div class="border-t border-gray-800 p-5">
+
+              <!-- Datos de envío WhatsApp -->
+              @if (sale.channel === 'whatsapp') {
+                <div class="mb-4 p-3 bg-[#25D366]/5 border border-[#25D366]/20 rounded-xl flex items-start justify-between gap-3">
+                  <div>
+                    <p class="text-[#25D366] text-xs font-semibold mb-1">Venta por WhatsApp</p>
+                    @if (sale.shippingName || sale.shippingAddress) {
+                      <p class="text-gray-300 text-xs">
+                        {{ sale.shippingName }}
+                        @if (sale.shippingCity) { · {{ sale.shippingCity }} }
+                      </p>
+                    } @else {
+                      <p class="text-gray-500 text-xs">Sin envío — recoge en tienda</p>
+                    }
+                  </div>
+                  @if (sale.shippingName || sale.shippingCedula || sale.shippingPhone || sale.shippingAddress) {
+                    <button
+                      (click)="$event.stopPropagation(); openShippingPopup({ label: 'Factura N° ' + sale.orderNumber.toString().padStart(4,'0'), name: sale.shippingName, cedula: sale.shippingCedula, phone: sale.shippingPhone, address: sale.shippingAddress, city: sale.shippingCity })"
+                      class="text-xs text-[#25D366] border border-[#25D366]/30 px-2.5 py-1 rounded-xl hover:bg-[#25D366]/10 transition-colors shrink-0"
+                    >Ver datos</button>
+                  }
+                </div>
+              }
+
+              <!-- Items -->
+              <div class="space-y-3 mb-5">
+                @for (item of sale.items; track item.id) {
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="min-w-0 flex-1">
+                      <p class="text-gray-300 text-sm font-medium">{{ item.productName }}</p>
+                      <p class="text-gray-600 text-xs">
+                        Talla {{ item.size }} × {{ item.quantity }}
+                        @if (sale.type === 'FABRICAR' && item.deliveredQty > 0) {
+                          · <span class="text-green-400">✓ {{ item.deliveredQty }} entregado{{ item.deliveredQty > 1 ? 's' : '' }}</span>
+                          @if (item.quantity - item.deliveredQty > 0) {
+                            · <span class="text-yellow-500">{{ item.quantity - item.deliveredQty }} pendiente{{ item.quantity - item.deliveredQty > 1 ? 's' : '' }}</span>
+                          }
+                        }
+                      </p>
+                      @if (item.note) {
+                        <p class="text-yellow-400/80 text-xs mt-0.5 italic">{{ item.note }}</p>
+                      }
+                    </div>
+                    <p class="text-gray-400 text-sm shrink-0">{{ formatPrice(item.price * item.quantity) }}</p>
+                  </div>
+                }
+                @if (sale.paymentMethod) {
+                  <p class="text-gray-500 text-xs pt-2 border-t border-gray-800">
+                    Pago: <span class="text-gray-300 font-medium">{{ sale.paymentMethod }}</span>
+                  </p>
+                }
+                @if (sale.notes) {
+                  <p class="text-gray-500 text-xs pt-1">{{ sale.notes }}</p>
+                }
+              </div>
+
+              <!-- Abonos (solo FABRICAR) -->
+              @if (sale.type === 'FABRICAR' && sale.payments.length > 0) {
+                <div class="mb-5 p-3 bg-gray-800/50 rounded-xl space-y-1.5">
+                  <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Abonos</p>
+                  @for (p of sale.payments; track p.id) {
+                    <div class="flex justify-between items-center text-xs">
+                      <span class="text-gray-500">{{ formatDate(p.createdAt) }}@if (p.note) { · {{ p.note }}}</span>
+                      <span class="text-green-400 font-semibold">{{ formatPrice(p.amount) }}</span>
+                    </div>
+                  }
+                  <div class="border-t border-gray-700 pt-1.5 flex justify-between text-xs font-semibold">
+                    <span class="text-gray-400">Saldo pendiente</span>
+                    @let paid = totalPaid(sale); @let balance = sale.total - paid;
+                    <span [class]="balance > 0 ? 'text-red-400' : 'text-green-400'">
+                      {{ balance > 0 ? formatPrice(balance) : 'Pagado' }}
+                    </span>
+                  </div>
+                </div>
+              }
+
+              <!-- Cambiar estado (solo FABRICAR) -->
+              @if (sale.type === 'FABRICAR') {
+                <div class="flex items-center gap-3">
+                  <p class="text-gray-500 text-xs uppercase tracking-wider shrink-0">Estado</p>
+                  <select
+                    [value]="sale.status"
+                    (change)="updateStatus(sale, $any($event.target).value)"
+                    [disabled]="updatingId() === sale.id"
+                    class="flex-1 rounded-xl px-3 py-2 text-sm font-medium border focus:outline-none transition-colors disabled:opacity-40 cursor-pointer"
+                    [class]="selectClass(sale.status)"
+                  >
+                    @for (s of fabricarStatuses; track s) {
+                      <option [value]="s" class="bg-gray-900 text-white">{{ physicalStatusLabel(s) }}</option>
+                    }
+                  </select>
+                  @if (updatingId() === sale.id) {
+                    <span class="text-gray-500 text-xs shrink-0">Guardando...</span>
+                  }
+                </div>
+              }
+
+              <!-- Eliminar -->
+              <div class="mt-4 pt-4 border-t border-gray-800 flex justify-end">
+                <button
+                  (click)="$event.stopPropagation(); confirmDelete.set(sale)"
+                  class="text-xs text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-400/50 px-3 py-1.5 rounded-xl transition-colors"
+                >Eliminar pedido</button>
+              </div>
+
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ══ PEDIDOS ONLINE ══ -->
+      @for (order of filteredOrders(); track order.id) {
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+
+          <!-- Fila principal -->
+          <div
+            class="p-5 flex items-center gap-4 cursor-pointer hover:bg-gray-800/30 transition-colors"
+            (click)="expandedId.set(expandedId() === order.id ? null : order.id)"
+          >
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1 flex-wrap">
+                <span class="text-xs border px-2 py-0.5 rounded-full font-medium bg-orange-500/15 text-orange-400 border-orange-500/30">Online</span>
+                <span class="text-xs text-gray-600 font-mono">{{ order.reference }}</span>
+                @if (order.customer.name) {
+                  <span class="text-gray-400 text-xs">{{ order.customer.name }}</span>
+                }
+              </div>
+              <div class="flex items-center gap-3 flex-wrap">
+                <p class="text-gray-500 text-xs">{{ formatDate(order.createdAt) }}</p>
+                <p class="text-gray-500 text-xs">{{ order.city }}</p>
+                <p class="text-gray-600 text-xs">{{ order.items.length }} producto{{ order.items.length !== 1 ? 's' : '' }}</p>
+              </div>
+            </div>
+
+            <span class="text-white font-semibold text-sm shrink-0">{{ formatPrice(order.total) }}</span>
+
+            <div class="shrink-0">
+              <span class="text-xs border px-2.5 py-1 rounded-full {{ onlineStatusClass(order.status) }}">
+                {{ onlineStatusLabel(order.status) }}
+              </span>
+            </div>
+
+            <svg class="w-4 h-4 text-gray-600 shrink-0 transition-transform" [class.rotate-180]="expandedId() === order.id"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+
+          <!-- Detalle expandido -->
+          @if (expandedId() === order.id) {
+            <div class="border-t border-gray-800 p-5">
+
+              <!-- Datos de envío -->
+              <div class="mb-4 p-3 bg-orange-500/5 border border-orange-500/20 rounded-xl flex items-start justify-between gap-3">
+                <div>
+                  <p class="text-orange-400 text-xs font-semibold mb-1">Envío</p>
+                  <p class="text-gray-300 text-xs">{{ order.address }}</p>
+                  <p class="text-gray-500 text-xs">{{ order.city }}</p>
+                </div>
+                <button
+                  (click)="$event.stopPropagation(); openShippingPopup({ label: order.reference, name: order.customer.name, cedula: order.customer.cedula ?? null, phone: order.customer.phone, address: order.address, city: order.city })"
+                  class="text-xs text-orange-400 border border-orange-500/30 px-2.5 py-1 rounded-xl hover:bg-orange-500/10 transition-colors shrink-0"
+                >Ver datos</button>
+              </div>
+
+              <!-- Cliente -->
+              <div class="mb-4 grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <p class="text-gray-500 mb-0.5">Cliente</p>
+                  <p class="text-gray-300">{{ order.customer.name }}</p>
+                </div>
+                <div>
+                  <p class="text-gray-500 mb-0.5">Teléfono</p>
+                  <p class="text-gray-300">{{ order.customer.phone }}</p>
+                </div>
+                @if (order.customer.email) {
+                  <div class="col-span-2">
+                    <p class="text-gray-500 mb-0.5">Email</p>
+                    <p class="text-gray-300">{{ order.customer.email }}</p>
+                  </div>
+                }
+                @if (order.notes) {
+                  <div class="col-span-2">
+                    <p class="text-gray-500 mb-0.5">Notas</p>
+                    <p class="text-gray-300 italic">{{ order.notes }}</p>
+                  </div>
+                }
+              </div>
+
+              <!-- Items -->
+              <div class="space-y-2 mb-4">
+                @for (item of order.items; track item.id) {
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="min-w-0 flex-1">
+                      <p class="text-gray-300 text-sm font-medium">{{ item.productName }}</p>
+                      <p class="text-gray-600 text-xs">
+                        Talla {{ item.topSize }}@if (item.bottomSize) { / {{ item.bottomSize }} }
+                        · Color {{ item.color }}
+                        × {{ item.quantity }}
+                      </p>
+                    </div>
+                    <p class="text-gray-400 text-sm shrink-0">{{ formatPrice(item.price * item.quantity) }}</p>
+                  </div>
+                }
+              </div>
+
+              <!-- Totales -->
+              <div class="border-t border-gray-800 pt-3 mb-4 space-y-1 text-xs">
+                @if (order.shipping > 0) {
+                  <div class="flex justify-between text-gray-500">
+                    <span>Envío</span><span>{{ formatPrice(order.shipping) }}</span>
+                  </div>
+                }
+                @if (order.discount > 0) {
+                  <div class="flex justify-between text-gray-500">
+                    <span>Descuento</span><span class="text-green-400">-{{ formatPrice(order.discount) }}</span>
+                  </div>
+                }
+                <div class="flex justify-between font-semibold text-white">
+                  <span>Total</span><span>{{ formatPrice(order.total) }}</span>
+                </div>
+              </div>
+
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+  }
+</div>
+
+<!-- ══ Modal eliminar pedido ══ -->
+@if (confirmDelete()) {
+  @let sale = confirmDelete()!;
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" (click)="confirmDelete.set(null)">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-sm mx-4 shadow-xl" (click)="$event.stopPropagation()">
+      <h3 class="text-white font-semibold text-base mb-1">Eliminar pedido</h3>
+      <p class="text-gray-400 text-sm mb-1">
+        ¿Seguro que querés eliminar este pedido de
+        <span class="text-white font-medium">{{ sale.sede.name }}</span>
+        @if (sale.customerName) { · {{ sale.customerName }} }?
+      </p>
+      <p class="text-red-400 text-xs mb-5">Esta acción no se puede deshacer.</p>
+      <div class="flex gap-3 justify-end">
+        <button (click)="confirmDelete.set(null)" [disabled]="deletingId() === sale.id"
+          class="text-sm px-4 py-2 rounded-xl border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors disabled:opacity-40">
+          Cancelar
+        </button>
+        <button (click)="deleteSale(sale)" [disabled]="deletingId() === sale.id"
+          class="text-sm px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium transition-colors disabled:opacity-40">
+          {{ deletingId() === sale.id ? 'Eliminando...' : 'Sí, eliminar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══ Popup datos de envío ══ -->
+@if (shippingPopup(); as sp) {
+  <div class="fixed inset-0 z-50 flex items-end justify-center p-4 bg-black/70" (click)="shippingPopup.set(null)">
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4" (click)="$event.stopPropagation()">
+
+      <div class="flex items-center justify-between">
+        <span class="text-white font-semibold text-base">Datos de envío</span>
+        <button (click)="shippingPopup.set(null)" class="text-gray-400 hover:text-white p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <p class="text-xs text-gray-500">{{ sp.label }}</p>
+
+      <div class="space-y-3">
+        @if (sp.name) {
+          <div><p class="text-xs text-gray-500 mb-0.5">Nombre completo</p><p class="text-sm text-white font-medium">{{ sp.name }}</p></div>
+        }
+        @if (sp.cedula) {
+          <div><p class="text-xs text-gray-500 mb-0.5">Cédula</p><p class="text-sm text-white font-medium">{{ sp.cedula }}</p></div>
+        }
+        @if (sp.phone) {
+          <div><p class="text-xs text-gray-500 mb-0.5">Teléfono</p><p class="text-sm text-white font-medium">{{ sp.phone }}</p></div>
+        }
+        @if (sp.address) {
+          <div><p class="text-xs text-gray-500 mb-0.5">Dirección</p><p class="text-sm text-white font-medium">{{ sp.address }}</p></div>
+        }
+        @if (sp.city) {
+          <div><p class="text-xs text-gray-500 mb-0.5">Ciudad</p><p class="text-sm text-white font-medium">{{ sp.city }}</p></div>
+        }
+      </div>
+
+      <button (click)="shippingPopup.set(null)"
+        class="w-full py-2.5 rounded-2xl bg-gray-800 text-gray-300 text-sm font-semibold hover:bg-gray-700 transition-colors">
+        Cerrar
+      </button>
+    </div>
+  </div>
+}

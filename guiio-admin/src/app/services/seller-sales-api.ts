@@ -12,8 +12,11 @@ export interface SalePayment { id: string; amount: number; note: string | null; 
 
 export interface SellerSale {
   id: string; orderNumber: number; type: 'STOCK' | 'FABRICAR'; status: string;
-  total: number; customerName: string | null; notes: string | null;
+  total: number; customerName: string | null; customerPhone: string | null; notes: string | null;
   deliveryDate: string | null; paymentMethod: string | null; createdAt: string;
+  channel: string | null;
+  shippingName: string | null; shippingCedula: string | null;
+  shippingPhone: string | null; shippingAddress: string | null; shippingCity: string | null;
   items: SaleItem[]; payments: SalePayment[]; sede: { id: string; name: string };
 }
 

@@ -28,6 +28,11 @@ export const routes: Routes = [
         canActivate: [adminGuard],
       },
       {
+        path: 'pedidos',
+        loadComponent: () => import('./pages/dashboard/pedidos/pedidos').then(m => m.Pedidos),
+        canActivate: [adminGuard],
+      },
+      {
         path: 'orders',
         loadComponent: () => import('./pages/dashboard/orders/orders').then(m => m.Orders),
         canActivate: [adminGuard],
