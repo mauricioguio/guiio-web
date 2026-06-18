@@ -390,6 +390,11 @@
               <p class="text-orange-400 text-xs font-semibold">Pedido N° {{ order.orderNumber.toString().padStart(4, '0') }}</p>
               <p class="text-white text-sm font-medium mt-0.5">{{ order.customerName }}</p>
               <p class="text-gray-500 text-xs">{{ order.items.length }} ítem{{ order.items.length !== 1 ? 's' : '' }} · {{ formatPrice(editingOrderTotal()) }}</p>
+              @if (editingOrderPendingBalance() > 0) {
+                <p class="text-yellow-400 text-xs font-medium mt-0.5">Saldo pendiente: {{ formatPrice(editingOrderPendingBalance()) }}</p>
+              } @else {
+                <p class="text-green-400 text-xs font-medium mt-0.5">Pagado en su totalidad</p>
+              }
             </div>
             <button (click)="clearEditingOrder()" class="text-gray-500 hover:text-white transition-colors p-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -790,43 +795,52 @@
         }
 
         <!-- Pregunta abono -->
-        <div class="space-y-2">
-          <p class="text-gray-400 text-xs">¿El cliente va a hacer un abono adicional?</p>
-          <div class="flex gap-2">
-            <button
-              (click)="editAbonoAnswer.set('yes')"
-              class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
-              [class]="editAbonoAnswer() === 'yes'
-                ? 'bg-blue-500/20 border-blue-500 text-blue-300'
-                : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-300'"
-            >Sí, va a abonar</button>
-            <button
-              (click)="editAbonoAnswer.set('no'); editAbonoAmount.set(0)"
-              class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
-              [class]="editAbonoAnswer() === 'no'
-                ? 'bg-gray-600/40 border-gray-500 text-gray-200'
-                : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-300'"
-            >No</button>
-          </div>
-
-          @if (editAbonoAnswer() === 'yes') {
-            <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-              <input
-                type="text" inputmode="numeric" placeholder="0"
-                [value]="editAbonoInputValue()"
-                (input)="onEditAbonoInput($any($event.target).value)"
-                class="w-full bg-gray-800 border rounded-xl pl-7 pr-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none transition-colors"
-                [class]="editAbonoAmount() > 0 && editAbonoAmount() < 10000
-                  ? 'border-red-600 focus:border-red-500'
-                  : 'border-blue-700 focus:border-blue-500'"
-              />
+        @if (editingOrderPendingBalance() > 0) {
+          <div class="space-y-2">
+            <p class="text-gray-400 text-xs">¿El cliente va a hacer un abono? (saldo: {{ formatPrice(editingOrderPendingBalance()) }})</p>
+            <div class="flex gap-2">
+              <button
+                (click)="editAbonoAnswer.set('yes'); abonoError.set(null)"
+                class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+                [class]="editAbonoAnswer() === 'yes'
+                  ? 'bg-blue-500/20 border-blue-500 text-blue-300'
+                  : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-300'"
+              >Sí, va a abonar</button>
+              <button
+                (click)="editAbonoAnswer.set('no'); editAbonoAmount.set(0); abonoError.set(null)"
+                class="flex-1 py-2 text-xs font-medium rounded-xl border transition-colors"
+                [class]="editAbonoAnswer() === 'no'
+                  ? 'bg-gray-600/40 border-gray-500 text-gray-200'
+                  : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-300'"
+              >No</button>
             </div>
-            @if (editAbonoAmount() > 0 && editAbonoAmount() < 10000) {
-              <p class="text-red-400 text-xs">Mínimo $10.000</p>
+
+            @if (editAbonoAnswer() === 'yes') {
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                <input
+                  type="text" inputmode="numeric" placeholder="0"
+                  [value]="editAbonoInputValue()"
+                  (input)="onEditAbonoInput($any($event.target).value)"
+                  class="w-full bg-gray-800 border rounded-xl pl-7 pr-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none transition-colors"
+                  [class]="editAbonoAmount() > 0 && editAbonoAmount() < 10000
+                    ? 'border-red-600 focus:border-red-500'
+                    : 'border-blue-700 focus:border-blue-500'"
+                />
+              </div>
+              @if (editAbonoAmount() > 0 && editAbonoAmount() < 10000) {
+                <p class="text-red-400 text-xs">Mínimo $10.000</p>
+              }
             }
-          }
-        </div>
+            @if (abonoError()) {
+              <p class="text-red-400 text-xs font-medium">⚠ {{ abonoError() }}</p>
+            }
+          </div>
+        } @else {
+          <div class="bg-green-500/10 border border-green-500/30 rounded-xl px-3 py-2">
+            <p class="text-green-400 text-xs font-medium">Este pedido ya está pagado en su totalidad</p>
+          </div>
+        }
 
         <!-- Servicio adicional (modo edición) -->
         <div class="space-y-2">

@@ -89,6 +89,7 @@ export class Pos implements OnInit, OnDestroy {
   protected addItemsSuccess = signal(false);
   protected editAbonoAnswer = signal<'yes' | 'no' | null>('no');
   protected editAbonoAmount = signal(0);
+  protected abonoError = signal<string | null>(null);
   protected editingItemId = signal<string | null>(null);
   protected savingItem = signal(false);
   protected editingServiceId = signal<string | null>(null);
@@ -866,6 +867,7 @@ export class Pos implements OnInit, OnDestroy {
     this.addItemsSuccess.set(false);
     this.editAbonoAnswer.set('no');
     this.editAbonoAmount.set(0);
+    this.abonoError.set(null);
   }
 
   clearEditingOrder() {
@@ -904,11 +906,18 @@ export class Pos implements OnInit, OnDestroy {
     const doAbono = (updated: any) => {
       if (abono >= 10000) {
         this.api.addPayment(order.id, abono).subscribe({
-          next: (payment) => this.finishAddItems(
-            { ...updated, payments: [...(updated.payments ?? []), payment] },
-            abono
-          ),
-          error: () => this.finishAddItems(updated, 0),
+          next: (payment) => {
+            this.abonoError.set(null);
+            this.finishAddItems(
+              { ...updated, payments: [...(updated.payments ?? []), payment] },
+              abono
+            );
+          },
+          error: (err) => {
+            const msg = err?.error?.message ?? 'No se pudo registrar el abono';
+            this.abonoError.set(msg);
+            this.finishAddItems(updated, 0);
+          },
         });
       } else {
         this.finishAddItems(updated, 0);
@@ -995,6 +1004,18 @@ export class Pos implements OnInit, OnDestroy {
     const order = this.editingOrder();
     if (!order) return 0;
     return order.items.reduce((s, i) => s + i.price * i.quantity, 0);
+  };
+
+  editingOrderTotalPaid = () => {
+    const order = this.editingOrder();
+    if (!order) return 0;
+    return order.payments.reduce((s, p) => s + p.amount, 0);
+  };
+
+  editingOrderPendingBalance = () => {
+    const order = this.editingOrder();
+    if (!order) return 0;
+    return Math.max(0, order.total - this.editingOrderTotalPaid());
   };
 
   logout() { this.auth.logout(); this.router.navigate(['/login']); }
