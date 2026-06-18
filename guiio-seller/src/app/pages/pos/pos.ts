@@ -202,12 +202,14 @@ export class Pos implements OnInit, OnDestroy {
   private loadData() {
     const sedeId = this.auth.currentSede()!.sedeId;
     this.loading.set(true);
-    let pending = 2;
-    const done = () => { if (--pending === 0) this.loading.set(false); };
-    this.api.getProducts().subscribe({ next: list => { this.products.set(list); done(); }, error: done });
     this.api.getInventory(sedeId).subscribe({
-      next: ({ items, bordadoPrice }) => { this.inventory.set(items); this.bordadoPrice.set(bordadoPrice ?? 10000); done(); },
-      error: done,
+      next: ({ items, products, bordadoPrice }) => {
+        this.inventory.set(items);
+        this.products.set(products);
+        this.bordadoPrice.set(bordadoPrice ?? 10000);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
     });
     // Fallback local: si el API aún no está desplegado, usar el último número guardado
     const localLast = localStorage.getItem('lastOrderNumber');
