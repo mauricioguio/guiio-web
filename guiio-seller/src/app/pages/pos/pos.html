@@ -73,8 +73,8 @@
             <p class="text-xs text-gray-500 mt-0.5">
               Talla {{ formatItemSize(item.size) }} · {{ item.quantity > 1 ? 'x' + item.quantity : '1 und' }}
             </p>
-            @if (item.bordado) {
-              <p class="text-xs mt-0.5" style="color:#16a34a;font-style:italic">✦ Bordado: {{ item.bordadoText }}</p>
+            @for (b of (item.bordados ?? []); track $index) {
+              <p class="text-xs mt-0.5" style="color:#16a34a;font-style:italic">✦ Bordado {{ $index + 1 }}: {{ b }}</p>
             }
             @if (item.note) {
               <p class="text-xs text-yellow-600 mt-0.5 italic">{{ item.note }}</p>
@@ -524,8 +524,8 @@
                     <span class="text-gray-500 text-xs">T. {{ formatItemSize(item.size) }} · {{ formatPrice(itemPrice(item)) }}</span>
                   }
                 </div>
-                @if (item.bordado) {
-                  <p class="text-green-400 text-xs mt-0.5 italic truncate">✦ Bordado: {{ item.bordadoText }}</p>
+                @for (b of (item.bordados ?? []); track $index) {
+                  <p class="text-green-400 text-xs mt-0.5 italic truncate">✦ Bordado {{ $index + 1 }}: {{ b }}</p>
                 }
                 @if (item.note) {
                   <p class="text-yellow-500/80 text-xs mt-0.5 italic truncate">{{ item.note }}</p>
@@ -1307,8 +1307,8 @@
                   <span class="text-gray-500 text-xs">T. {{ formatItemSize(item.size) }} · {{ formatPrice(itemPrice(item)) }}</span>
                 }
               </div>
-              @if (item.bordado) {
-                <p class="text-green-400 text-xs mt-0.5 italic truncate">✦ Bordado: {{ item.bordadoText }}</p>
+              @for (b of (item.bordados ?? []); track $index) {
+                <p class="text-green-400 text-xs mt-0.5 italic truncate">✦ Bordado {{ $index + 1 }}: {{ b }}</p>
               }
               @if (item.note) {
                 <p class="text-yellow-500/80 text-xs mt-0.5 italic truncate">{{ item.note }}</p>
@@ -1723,24 +1723,28 @@
           }
         }
 
-        <!-- Bordado -->
-        <div class="mb-4 space-y-2.5">
-          <label class="flex items-center gap-3 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              [checked]="selectedBordado()"
-              (change)="selectedBordado.set($any($event.target).checked)"
-              class="w-4 h-4 rounded accent-green-500 cursor-pointer"
-            />
-            <span class="text-sm text-white">Lleva bordado <span class="text-green-400 font-medium">+$10.000</span></span>
-          </label>
-          @if (selectedBordado()) {
+        <!-- Bordados -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm text-white">Bordados <span class="text-gray-400 text-xs">({{ formatPrice(bordadoPrice()) }} c/u)</span></span>
+            <div class="flex items-center gap-2">
+              <button type="button" (click)="decrementBordado()" [disabled]="selectedBordadoCount() === 0"
+                class="w-7 h-7 rounded-full bg-gray-700 text-white font-bold text-base leading-none flex items-center justify-center disabled:opacity-30 hover:bg-gray-600 transition-colors">−</button>
+              <span class="text-white font-semibold w-5 text-center text-sm">{{ selectedBordadoCount() }}</span>
+              <button type="button" (click)="incrementBordado()" [disabled]="selectedBordadoCount() >= 5"
+                class="w-7 h-7 rounded-full bg-green-700 text-white font-bold text-base leading-none flex items-center justify-center disabled:opacity-30 hover:bg-green-600 transition-colors">+</button>
+              @if (selectedBordadoCount() > 0) {
+                <span class="text-green-400 text-sm font-semibold ml-1">+{{ formatPrice(selectedBordadoCount() * bordadoPrice()) }}</span>
+              }
+            </div>
+          </div>
+          @for (i of bordadoRange(); track i) {
             <input
               type="text"
-              placeholder="Texto del bordado..."
-              [value]="selectedBordadoText()"
-              (input)="selectedBordadoText.set($any($event.target).value)"
-              class="w-full bg-gray-800 border border-green-700 rounded-xl px-3 py-2.5 text-sm text-green-300 placeholder-gray-500 focus:outline-none focus:border-green-500"
+              [placeholder]="'Bordado ' + (i + 1) + ': descripción y ubicación...'"
+              [value]="selectedBordadoTexts()[i] ?? ''"
+              (input)="setBordadoText(i, $any($event.target).value)"
+              class="w-full bg-gray-800 border border-green-700 rounded-xl px-3 py-2.5 text-sm text-green-300 placeholder-gray-500 focus:outline-none focus:border-green-500 mb-1.5"
             />
           }
         </div>

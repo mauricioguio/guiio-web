@@ -14,8 +14,7 @@ export interface CartItem {
   quantity: number;
   note: string;
   adjusted?: boolean;
-  bordado?: boolean;
-  bordadoText?: string;
+  bordados: string[];
   priceOverride?: number;
 }
 
@@ -62,8 +61,9 @@ export class Pos implements OnInit, OnDestroy {
   protected selectedPriceOverride = signal<number | null>(null);
   protected selectedTopSize = signal('');
   protected selectedBottomSize = signal('');
-  protected selectedBordado = signal(false);
-  protected selectedBordadoText = signal('');
+  protected selectedBordadoCount = signal(0);
+  protected selectedBordadoTexts = signal<string[]>([]);
+  protected bordadoRange = computed(() => Array.from({ length: this.selectedBordadoCount() }, (_, i) => i));
 
   protected abonoEnabled = signal(false);
   protected abonoAmount = signal(0);
@@ -139,7 +139,29 @@ export class Pos implements OnInit, OnDestroy {
 
   itemPrice(i: CartItem): number {
     const base = i.priceOverride ?? i.product.price;
-    return base + (i.bordado ? this.bordadoPrice() : 0);
+    return base + (i.bordados?.length ?? 0) * this.bordadoPrice();
+  }
+
+  incrementBordado() {
+    const c = this.selectedBordadoCount();
+    if (c >= 5) return;
+    this.selectedBordadoCount.set(c + 1);
+    this.selectedBordadoTexts.update(arr => [...arr, '']);
+  }
+
+  decrementBordado() {
+    const c = this.selectedBordadoCount();
+    if (c <= 0) return;
+    this.selectedBordadoCount.set(c - 1);
+    this.selectedBordadoTexts.update(arr => arr.slice(0, c - 1));
+  }
+
+  setBordadoText(index: number, text: string) {
+    this.selectedBordadoTexts.update(arr => {
+      const next = [...arr];
+      next[index] = text;
+      return next;
+    });
   }
 
   itemKey(i: CartItem): string { return `${i.product.id}|${i.size}`; }
@@ -301,8 +323,8 @@ export class Pos implements OnInit, OnDestroy {
     this.selectedPriceOverride.set(null);
     this.selectedTopSize.set('');
     this.selectedBottomSize.set('');
-    this.selectedBordado.set(false);
-    this.selectedBordadoText.set('');
+    this.selectedBordadoCount.set(0);
+    this.selectedBordadoTexts.set([]);
   }
 
   openEditItem(item: { id: string; productId: string; productName: string; size: string; price: number; note: string | null }) {
@@ -312,13 +334,14 @@ export class Pos implements OnInit, OnDestroy {
     this.editingItemId.set(item.id);
     this.selectedProduct.set(product);
 
-    // Parsear nota y bordado
+    // Parsear nota y bordados (soporta "Bordado: text" antiguo y "Bordado N: text" nuevo)
     const parts = (item.note ?? '').split(' | ');
-    const bordadoPart = parts.find(p => p.startsWith('Bordado: '));
-    const plainNote = parts.filter(p => !p.startsWith('Bordado: ')).join(' | ');
+    const bordadoParts = parts.filter(p => /^Bordado( \d+)?: /.test(p));
+    const plainNote = parts.filter(p => !/^Bordado( \d+)?: /.test(p)).join(' | ');
+    const bordadoTexts = bordadoParts.map(p => p.replace(/^Bordado( \d+)?: /, ''));
     this.selectedNote.set(plainNote);
-    this.selectedBordado.set(!!bordadoPart);
-    this.selectedBordadoText.set(bordadoPart ? bordadoPart.replace('Bordado: ', '') : '');
+    this.selectedBordadoCount.set(bordadoTexts.length);
+    this.selectedBordadoTexts.set(bordadoTexts);
 
     // Parsear talla
     const size = item.size;
@@ -351,7 +374,7 @@ export class Pos implements OnInit, OnDestroy {
     }
 
     // Detectar descuento previo
-    const bordadoExtra = !!bordadoPart ? this.bordadoPrice() : 0;
+    const bordadoExtra = bordadoTexts.length * this.bordadoPrice();
     const basePrice = product.price + bordadoExtra;
     if (item.price > 0 && item.price < basePrice) {
       const inferredPct = Math.round((1 - item.price / basePrice) * 100);
@@ -434,17 +457,17 @@ export class Pos implements OnInit, OnDestroy {
       if (!size) return;
     }
     const note = this.selectedNote().trim();
-    const bordado = this.selectedBordado();
-    const bordadoText = bordado ? this.selectedBordadoText().trim() : '';
+    const bordados = this.selectedBordadoTexts().slice(0, this.selectedBordadoCount());
     const priceOverride = this.selectedPriceOverride();
-    const fullNote = [note, bordadoText ? `Bordado: ${bordadoText}` : ''].filter(Boolean).join(' | ') || null;
+    const bordadoParts = bordados.map((t, i) => `Bordado ${i + 1}: ${t || '(sin descripción)'}`);
+    const fullNote = [note, ...bordadoParts].filter(Boolean).join(' | ') || null;
 
     // Modo edición de ítem existente
     const editId = this.editingItemId();
     if (editId && this.posMode() === 'edit') {
       const order = this.editingOrder();
       if (!order || this.savingItem()) return;
-      const basePrice = priceOverride != null ? priceOverride : p.price + (bordado ? this.bordadoPrice() : 0);
+      const basePrice = priceOverride != null ? priceOverride : p.price + bordados.length * this.bordadoPrice();
       const dType = this.editDiscountType();
       const dVal = this.editDiscountEnabled() ? this.editDiscountValue() : 0;
       const price = dVal > 0
@@ -464,9 +487,9 @@ export class Pos implements OnInit, OnDestroy {
     }
 
     if (this.saleType() === 'STOCK' && this.stockFor(p.id, size) <= 0) return;
-    const newItem: CartItem = { product: p, size, quantity: 1, note, bordado, bordadoText, ...(priceOverride != null ? { priceOverride } : {}) };
+    const newItem: CartItem = { product: p, size, quantity: 1, note, bordados, ...(priceOverride != null ? { priceOverride } : {}) };
     this.cart.update(items => {
-      const idx = items.findIndex(i => i.product.id === p.id && i.size === size && i.note === note && !!i.bordado === bordado);
+      const idx = items.findIndex(i => i.product.id === p.id && i.size === size && i.note === note && i.bordados.length === bordados.length);
       if (idx >= 0) {
         return items.map((it, i) => i === idx ? { ...it, quantity: it.quantity + 1 } : it);
       }
@@ -535,7 +558,7 @@ export class Pos implements OnInit, OnDestroy {
           size: i.size,
           quantity: i.quantity,
           price: this.itemEffectivePrice(i),
-          note: [i.note, i.bordadoText ? `Bordado: ${i.bordadoText}` : ''].filter(Boolean).join(' | ') || undefined,
+          note: [i.note, ...(i.bordados ?? []).map((t, idx) => `Bordado ${idx + 1}: ${t}`)].filter(Boolean).join(' | ') || undefined,
         })),
         ...(this.addlServiceEnabled() && this.addlServicePrice() > 0 && this.addlServiceDesc().trim()
           ? [{ productId: '__servicio__', productName: this.addlServiceDesc().trim(), size: 'Servicio adicional', quantity: 1, price: this.addlServicePrice() }]
