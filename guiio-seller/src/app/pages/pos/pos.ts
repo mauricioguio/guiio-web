@@ -83,6 +83,23 @@ export class Pos implements OnInit, OnDestroy {
   protected customerSearchState = signal<'idle' | 'searching' | 'found' | 'notfound'>('idle');
   protected bordadoPrice = signal(10000);
 
+  // Canal de venta y datos de envío (WhatsApp)
+  protected saleChannel = signal<'fisica' | 'whatsapp' | ''>('');
+  protected shippingPopupOpen = signal(false);
+  protected shippingName = signal('');
+  protected shippingCedula = signal('');
+  protected shippingPhone = signal('');
+  protected shippingAddress = signal('');
+  protected shippingCity = signal('');
+  protected shippingConfirmed = signal(false);
+  protected shippingComplete = computed(() =>
+    this.shippingName().trim().length > 0 &&
+    this.shippingCedula().trim().length > 0 &&
+    this.shippingPhone().trim().length > 0 &&
+    this.shippingAddress().trim().length > 0 &&
+    this.shippingCity().trim().length > 0
+  );
+
   // Modo edición de pedido existente
   protected posMode = signal<'new' | 'edit'>('new');
   protected orderSearch = signal('');
@@ -537,11 +554,18 @@ export class Pos implements OnInit, OnDestroy {
       ? `Hola ${firstName}, aquí está tu recibo de ${this.brand.nombre} 🛍️`
       : 'Hola, aquí está tu recibo de ${this.brand.nombre} 🛍️';
 
+    const isWhatsapp = this.saleChannel() === 'whatsapp';
     this.api.createSale({
       type: this.saleType(),
       customerName: this.customerName() || undefined,
       customerPhone: phone || undefined,
       paymentMethod: this.paymentMethod() || undefined,
+      channel: this.saleChannel() || undefined,
+      shippingName: isWhatsapp ? this.shippingName() || undefined : undefined,
+      shippingCedula: isWhatsapp ? this.shippingCedula() || undefined : undefined,
+      shippingPhone: isWhatsapp ? this.shippingPhone() || undefined : undefined,
+      shippingAddress: isWhatsapp ? this.shippingAddress() || undefined : undefined,
+      shippingCity: isWhatsapp ? this.shippingCity() || undefined : undefined,
       notes: [
         this.notes(),
         this.discountEnabled() && this.discountAmount() > 0
@@ -596,6 +620,14 @@ export class Pos implements OnInit, OnDestroy {
         this.addlServiceDesc.set('');
         this.addlServicePrice.set(0);
         this.predictedOrderNumber.set(null);
+        this.saleChannel.set('');
+        this.shippingPopupOpen.set(false);
+        this.shippingName.set('');
+        this.shippingCedula.set('');
+        this.shippingPhone.set('');
+        this.shippingAddress.set('');
+        this.shippingCity.set('');
+        this.shippingConfirmed.set(false);
         this.loadData();
 
         if (blob) {

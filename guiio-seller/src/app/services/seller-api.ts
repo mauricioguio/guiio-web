@@ -135,6 +135,12 @@ export class SellerApiService {
     notes?: string;
     deliveryDate?: string;
     paymentMethod?: string;
+    channel?: string;
+    shippingName?: string;
+    shippingCedula?: string;
+    shippingPhone?: string;
+    shippingAddress?: string;
+    shippingCity?: string;
     initialPayment?: number;
     items: SaleItemPayload[];
   }) {

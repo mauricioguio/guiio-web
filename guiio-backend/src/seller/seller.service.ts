@@ -76,6 +76,12 @@ export class SellerService {
     notes?: string;
     deliveryDate?: string;
     paymentMethod?: string;
+    channel?: string;
+    shippingName?: string;
+    shippingCedula?: string;
+    shippingPhone?: string;
+    shippingAddress?: string;
+    shippingCity?: string;
     initialPayment?: number;
     items: { productId: string; productName: string; size: string; quantity: number; price: number; note?: string }[];
   }) {
@@ -105,6 +111,12 @@ export class SellerService {
         notes: data.notes || null,
         deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
         paymentMethod: data.paymentMethod || null,
+        channel: data.channel || null,
+        shippingName: data.shippingName || null,
+        shippingCedula: data.shippingCedula || null,
+        shippingPhone: data.shippingPhone || null,
+        shippingAddress: data.shippingAddress || null,
+        shippingCity: data.shippingCity || null,
         items: { create: itemsData },
       },
       include: { items: true, sede: { select: { id: true, name: true } } },
