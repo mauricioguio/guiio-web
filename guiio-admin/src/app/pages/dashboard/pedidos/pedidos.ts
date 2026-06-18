@@ -36,6 +36,15 @@ export interface ShippingData {
   city: string | null;
 }
 
+interface PedidoRow {
+  id: string;
+  kind: 'physical' | 'online';
+  group: number;
+  sortKey: number;
+  sale?: SellerSale;
+  order?: Order;
+}
+
 @Component({
   selector: 'app-pedidos',
   templateUrl: './pedidos.html',
@@ -84,38 +93,35 @@ export class Pedidos implements OnInit {
     return 0;
   }
 
-  protected filteredSales = computed(() => {
+  protected filteredUnified = computed<PedidoRow[]>(() => {
     const ch = this.filterChannel();
     const st = this.filterStatus();
-    if (ch === 'online') return [];
-    return this.sales()
-      .filter(s => {
+    const rows: PedidoRow[] = [];
+
+    if (ch !== 'online') {
+      for (const s of this.sales()) {
         const sch = this.saleChannel(s);
-        if (ch !== 'ALL' && sch !== ch) return false;
-        if (st !== 'ALL' && s.status !== st) return false;
-        return true;
-      })
-      .sort((a, b) => {
-        const ga = this.physicalGroup(a), gb = this.physicalGroup(b);
-        if (ga !== gb) return ga - gb;
-        return b.orderNumber - a.orderNumber;
-      });
+        if (ch !== 'ALL' && sch !== ch) continue;
+        if (st !== 'ALL' && s.status !== st) continue;
+        rows.push({ id: s.id, kind: 'physical', group: this.physicalGroup(s), sortKey: s.orderNumber, sale: s });
+      }
+    }
+
+    if (ch === 'ALL' || ch === 'online') {
+      for (const o of this.orders()) {
+        if (st !== 'ALL' && o.status !== st) continue;
+        rows.push({ id: o.id, kind: 'online', group: this.onlineGroup(o), sortKey: new Date(o.createdAt).getTime(), order: o });
+      }
+    }
+
+    return rows.sort((a, b) => {
+      if (a.group !== b.group) return a.group - b.group;
+      if (a.kind !== b.kind) return a.kind === 'physical' ? -1 : 1;
+      return b.sortKey - a.sortKey;
+    });
   });
 
-  protected filteredOrders = computed(() => {
-    const ch = this.filterChannel();
-    const st = this.filterStatus();
-    if (ch !== 'ALL' && ch !== 'online') return [];
-    return this.orders()
-      .filter(o => st === 'ALL' || o.status === st)
-      .sort((a, b) => {
-        const ga = this.onlineGroup(a), gb = this.onlineGroup(b);
-        if (ga !== gb) return ga - gb;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
-  });
-
-  protected totalResults = computed(() => this.filteredSales().length + this.filteredOrders().length);
+  protected totalResults = computed(() => this.filteredUnified().length);
 
   ngOnInit() {
     forkJoin({

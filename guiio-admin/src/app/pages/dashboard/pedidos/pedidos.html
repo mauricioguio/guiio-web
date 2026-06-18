@@ -80,8 +80,9 @@
   } @else {
     <div class="space-y-3">
 
-      <!-- ══ VENTAS FÍSICAS ══ -->
-      @for (sale of filteredSales(); track sale.id) {
+      @for (row of filteredUnified(); track row.id) {
+        @if (row.kind === 'physical') {
+        @let sale = row.sale!;
         @let badge  = urgencyBadge(sale);
         @let chBadge = saleChannelBadge(sale);
 
@@ -111,8 +112,8 @@
                 </span>
                 @if (sale.type === 'FABRICAR') {
                   <span class="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-0.5 rounded-full">A fabricar</span>
-                  <span class="text-xs text-gray-600 font-mono">Factura N° {{ sale.orderNumber.toString().padStart(4, '0') }}</span>
                 }
+                <span class="text-xs text-gray-600 font-mono">Factura N° {{ sale.orderNumber.toString().padStart(4, '0') }}</span>
                 @if (sale.customerName) {
                   <span class="text-gray-400 text-xs">{{ sale.customerName }}</span>
                 }
@@ -257,10 +258,8 @@
             </div>
           }
         </div>
-      }
-
-      <!-- ══ PEDIDOS ONLINE ══ -->
-      @for (order of filteredOrders(); track order.id) {
+        } @else {
+        @let order = row.order!;
         <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
 
           <!-- Fila principal -->
@@ -375,6 +374,7 @@
             </div>
           }
         </div>
+        }
       }
 
     </div>
