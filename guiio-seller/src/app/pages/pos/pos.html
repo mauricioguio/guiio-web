@@ -926,8 +926,8 @@
       @if (saveAttempted() && !abonoEnabled() && !canceladoEnabled()) {
         <p class="text-red-400 text-xs">⚠ Selecciona si va a abonar o si cancela el total</p>
       }
-      @if (saveAttempted() && abonoEnabled() && !abonoConfirmed()) {
-        <p class="text-red-400 text-xs">⚠ Confirma el monto del abono antes de continuar</p>
+      @if (abonoEnabled() && abonoAmount() >= 10000 && !abonoConfirmed()) {
+        <p class="text-red-400 text-xs font-medium">⚠ Debes confirmar el abono para continuar</p>
       }
       <!-- Descuento expansion -->
       @if (discountPanelOpen()) {
@@ -1014,7 +1014,8 @@
               <button
                 (click)="abonoConfirmPopup.set(true)"
                 [disabled]="abonoAmount() < 10000 || abonoExceedsTotal()"
-                class="px-3 py-2.5 text-xs font-semibold rounded-xl transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-500 text-white">
+                class="px-3 py-2.5 text-xs font-semibold rounded-xl transition-all whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-500 text-white"
+                [class.animate-pulse]="abonoAmount() >= 10000 && !abonoExceedsTotal()">
                 Confirmar
               </button>
             </div>
@@ -1381,8 +1382,8 @@
         @if (saveAttempted() && !abonoEnabled() && !canceladoEnabled()) {
           <p class="text-red-400 text-xs">⚠ Selecciona si va a abonar o si cancela el total</p>
         }
-        @if (saveAttempted() && abonoEnabled() && !abonoConfirmed()) {
-          <p class="text-red-400 text-xs">⚠ Confirma el monto del abono antes de continuar</p>
+        @if (abonoEnabled() && abonoAmount() >= 10000 && !abonoConfirmed()) {
+          <p class="text-red-400 text-xs font-medium">⚠ Debes confirmar el abono para continuar</p>
         }
         <!-- Descuento expansion -->
         @if (discountPanelOpen()) {
@@ -1467,7 +1468,8 @@
                 <button
                   (click)="abonoConfirmPopup.set(true)"
                   [disabled]="abonoAmount() < 10000 || abonoExceedsTotal()"
-                  class="px-3 py-2.5 text-xs font-semibold rounded-xl transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-500 text-white">
+                  class="px-3 py-2.5 text-xs font-semibold rounded-xl transition-all whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-500 text-white"
+                  [class.animate-pulse]="abonoAmount() >= 10000 && !abonoExceedsTotal()">
                   Confirmar
                 </button>
               </div>
