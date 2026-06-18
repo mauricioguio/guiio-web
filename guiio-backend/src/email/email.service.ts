@@ -172,6 +172,98 @@ export class EmailService {
 </html>`;
   }
 
+  private shippedTemplate(data: OrderEmailData) {
+    return `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:560px;background:#fff;border-radius:12px;overflow:hidden;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#111;padding:28px 32px;text-align:center;">
+            <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:2px;">GUIIO</p>
+            <p style="margin:4px 0 0;color:#aaa;font-size:11px;letter-spacing:3px;text-transform:uppercase;">Uniformes</p>
+          </td>
+        </tr>
+
+        <!-- Mensaje principal -->
+        <tr>
+          <td style="padding:32px 32px 0;text-align:center;">
+            <p style="margin:0;font-size:36px;">🚚</p>
+            <h1 style="margin:12px 0 6px;font-size:22px;color:#111;">¡Tu pedido va en camino!</h1>
+            <p style="margin:0;color:#666;font-size:14px;">Hola <strong>${data.customerName}</strong>, tu pedido ha sido despachado y está en camino hacia ti.</p>
+            <p style="margin:8px 0 0;color:#999;font-size:12px;">Ref: <strong style="color:#555;">${data.reference}</strong></p>
+          </td>
+        </tr>
+
+        <!-- Items -->
+        <tr>
+          <td style="padding:24px 32px 0;">
+            <p style="margin:0 0 12px;font-size:13px;font-weight:600;color:#111;text-transform:uppercase;letter-spacing:1px;">Lo que viene en tu pedido</p>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              ${this.buildItemsHtml(data.items)}
+              <tr>
+                <td style="padding:12px 0 0;font-size:15px;font-weight:700;color:#111;border-top:2px solid #111;">Total</td>
+                <td style="padding:12px 0 0;text-align:right;font-size:15px;font-weight:700;color:#111;border-top:2px solid #111;">${this.formatCOP(data.total)}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Dirección de envío -->
+        <tr>
+          <td style="padding:24px 32px 0;">
+            <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#111;text-transform:uppercase;letter-spacing:1px;">Dirección de entrega</p>
+            <p style="margin:0;font-size:14px;color:#444;">${data.address}</p>
+            <p style="margin:2px 0 0;font-size:14px;color:#444;">${data.city}</p>
+          </td>
+        </tr>
+
+        <!-- Aviso -->
+        <tr>
+          <td style="padding:20px 32px 0;">
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:14px 16px;">
+              <p style="margin:0;font-size:13px;color:#166534;">📦 El tiempo de entrega puede variar según tu ciudad. Si tienes alguna pregunta sobre tu envío, no dudes en contactarnos por WhatsApp.</p>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:32px;text-align:center;border-top:1px solid #f0f0f0;margin-top:24px;">
+            <p style="margin:0;font-size:13px;color:#888;">¿Tienes preguntas? Escríbenos por WhatsApp</p>
+            <p style="margin:8px 0 0;font-size:11px;color:#bbb;">© 2025 Guiio Uniformes · guiiouniformes.com</p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+  }
+
+  async sendShippedNotification(data: OrderEmailData) {
+    if (!this.resend) {
+      this.logger.warn('RESEND_API_KEY no configurado — correo de envío no enviado');
+      return;
+    }
+    try {
+      await this.resend.emails.send({
+        from: `Guiio Uniformes <${this.fromAddress}>`,
+        to: data.customerEmail,
+        subject: `🚚 Tu pedido fue despachado — ${data.reference}`,
+        html: this.shippedTemplate(data),
+      });
+      this.logger.log(`Correo de despacho enviado para ${data.reference}`);
+    } catch (err) {
+      this.logger.error('Error enviando correo de despacho:', err);
+    }
+  }
+
   async sendOrderConfirmation(data: OrderEmailData) {
     if (!this.resend) {
       this.logger.warn('RESEND_API_KEY no configurado — correo no enviado');
