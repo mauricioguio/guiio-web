@@ -89,6 +89,12 @@ export interface FabricarOrder {
   customerPhone: string | null;
   notes: string | null;
   deliveryDate: string | null;
+  channel: string | null;
+  shippingName: string | null;
+  shippingCedula: string | null;
+  shippingPhone: string | null;
+  shippingAddress: string | null;
+  shippingCity: string | null;
   createdAt: string;
   updatedAt: string;
   items: FabricarItem[];

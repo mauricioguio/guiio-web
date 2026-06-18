@@ -53,6 +53,18 @@ export class Pedidos implements OnInit {
   // Status change
   protected updatingStatus = signal(false);
 
+  // Shipping popup
+  protected shippingPopupOrder = signal<FabricarOrder | null>(null);
+
+  openShippingPopup(order: FabricarOrder, event: Event) {
+    event.stopPropagation();
+    this.shippingPopupOrder.set(order);
+  }
+
+  closeShippingPopup() {
+    this.shippingPopupOrder.set(null);
+  }
+
   // Receipt
   protected receiptOrder    = signal<FabricarOrder | null>(null);
   protected receiptEvent    = signal<'payment' | 'delivery' | null>(null);
