@@ -421,7 +421,9 @@
               [value]="customerPhone()"
               (input)="onPhoneInput($any($event.target).value)"
               class="w-full bg-gray-800 border rounded-xl px-3 py-2.5 pr-9 text-sm text-white placeholder-gray-500 focus:outline-none transition-colors"
-              [class]="customerSearchState() === 'found'
+              [class]="saveAttempted() && !customerPhone().trim()
+                ? 'border-red-500 focus:border-red-400'
+                : customerSearchState() === 'found'
                 ? 'border-green-600 focus:border-green-500'
                 : customerSearchState() === 'notfound'
                 ? 'border-yellow-600 focus:border-yellow-500'
@@ -445,9 +447,20 @@
             placeholder="Nombre *"
             [value]="customerName()"
             (input)="customerName.set($any($event.target).value)"
-            class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+            class="flex-1 bg-gray-800 border rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none transition-colors"
+            [class]="saveAttempted() && !customerName().trim() ? 'border-red-500 focus:border-red-400' : 'border-gray-700 focus:border-gray-600'"
           />
         </div>
+        @if (saveAttempted() && (!customerPhone().trim() || !customerName().trim())) {
+          <div class="flex gap-2">
+            @if (!customerPhone().trim()) {
+              <p class="flex-1 text-red-400 text-xs">⚠ Teléfono requerido</p>
+            }
+            @if (!customerName().trim()) {
+              <p class="flex-1 text-red-400 text-xs">⚠ Nombre requerido</p>
+            }
+          </div>
+        }
 
         <!-- Estado cliente -->
         @if (customerSearchState() === 'found') {
@@ -910,6 +923,12 @@
           Cancelado
         </button>
       </div>
+      @if (saveAttempted() && !abonoEnabled() && !canceladoEnabled()) {
+        <p class="text-red-400 text-xs">⚠ Selecciona si va a abonar o si cancela el total</p>
+      }
+      @if (saveAttempted() && abonoEnabled() && !abonoConfirmed()) {
+        <p class="text-red-400 text-xs">⚠ Confirma el monto del abono antes de continuar</p>
+      }
       <!-- Descuento expansion -->
       @if (discountPanelOpen()) {
         <div class="space-y-2">
@@ -1067,12 +1086,17 @@
           <span class="text-white font-bold text-xl">{{ formatPrice(grandTotal()) }}</span>
         </div>
       }
+      @if (saveAttempted() && !paymentMethod()) {
+        <p class="text-red-400 text-xs">⚠ Selecciona el método de pago</p>
+      }
       <div class="flex gap-2">
         <select
           [value]="paymentMethod()"
           (change)="paymentMethod.set($any($event.target).value)"
           class="shrink-0 w-[118px] bg-gray-800 border rounded-xl px-2 py-3 text-xs focus:outline-none focus:border-gray-500 transition-colors"
-          [class]="paymentMethod() ? 'text-white border-gray-600' : 'text-gray-500 border-gray-700'"
+          [class]="saveAttempted() && !paymentMethod()
+            ? 'text-gray-500 border-red-500'
+            : paymentMethod() ? 'text-white border-gray-600' : 'text-gray-500 border-gray-700'"
         >
           <option value="" disabled>Método pago</option>
           <option value="EFECTIVO">Efectivo</option>
@@ -1082,16 +1106,18 @@
           <option value="ADDI">ADDI</option>
           <option value="SISTECREDITO">Sistecredito</option>
         </select>
-        <button
-          (click)="confirmSale()"
-          [disabled]="cart().length === 0 || saving() || !customerPhone().trim() || !customerName().trim() || (!abonoEnabled() && !canceladoEnabled()) || (abonoEnabled() && abonoAmount() < 10000) || (abonoEnabled() && !abonoConfirmed()) || abonoExceedsTotal() || !paymentMethod() || (addlServiceEnabled() && (!addlServiceDesc().trim() || addlServicePrice() <= 0))"
-          class="flex-1 font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          [class]="saleType() === 'FABRICAR'
-            ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'
-            : 'bg-white text-gray-900 hover:bg-gray-100'"
-        >
-          {{ saving() ? 'Registrando...' : (saleType() === 'FABRICAR' ? 'Enviar a fabricar' : 'Confirmar venta') }}
-        </button>
+        <div class="flex-1" (click)="saveAttempted.set(true)">
+          <button
+            (click)="confirmSale()"
+            [disabled]="cart().length === 0 || saving() || !customerPhone().trim() || !customerName().trim() || (!abonoEnabled() && !canceladoEnabled()) || (abonoEnabled() && abonoAmount() < 10000) || (abonoEnabled() && !abonoConfirmed()) || abonoExceedsTotal() || !paymentMethod() || (addlServiceEnabled() && (!addlServiceDesc().trim() || addlServicePrice() <= 0))"
+            class="w-full font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            [class]="saleType() === 'FABRICAR'
+              ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'
+              : 'bg-white text-gray-900 hover:bg-gray-100'"
+          >
+            {{ saving() ? 'Registrando...' : (saleType() === 'FABRICAR' ? 'Enviar a fabricar' : 'Confirmar venta') }}
+          </button>
+        </div>
       </div>
       } <!-- fin @else if posMode === 'new' -->
     </div>
@@ -1186,7 +1212,9 @@
                 [value]="customerPhone()"
                 (input)="onPhoneInput($any($event.target).value)"
                 class="w-full bg-gray-900 border rounded-xl px-3 py-2.5 pr-9 text-sm text-white placeholder-gray-600 focus:outline-none transition-colors"
-                [class]="customerSearchState() === 'found'
+                [class]="saveAttempted() && !customerPhone().trim()
+                  ? 'border-red-500 focus:border-red-400'
+                  : customerSearchState() === 'found'
                   ? 'border-green-700 focus:border-green-600'
                   : customerSearchState() === 'notfound'
                   ? 'border-yellow-700 focus:border-yellow-600'
@@ -1210,9 +1238,20 @@
               placeholder="Nombre *"
               [value]="customerName()"
               (input)="customerName.set($any($event.target).value)"
-              class="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-gray-600"
+              class="flex-1 bg-gray-900 border rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none transition-colors"
+              [class]="saveAttempted() && !customerName().trim() ? 'border-red-500 focus:border-red-400' : 'border-gray-800 focus:border-gray-600'"
             />
           </div>
+          @if (saveAttempted() && (!customerPhone().trim() || !customerName().trim())) {
+            <div class="flex gap-2">
+              @if (!customerPhone().trim()) {
+                <p class="flex-1 text-red-400 text-xs">⚠ Teléfono requerido</p>
+              }
+              @if (!customerName().trim()) {
+                <p class="flex-1 text-red-400 text-xs">⚠ Nombre requerido</p>
+              }
+            </div>
+          }
 
           <!-- Estado cliente -->
           @if (customerSearchState() === 'found') {
@@ -1339,6 +1378,12 @@
             Cancelado
           </button>
         </div>
+        @if (saveAttempted() && !abonoEnabled() && !canceladoEnabled()) {
+          <p class="text-red-400 text-xs">⚠ Selecciona si va a abonar o si cancela el total</p>
+        }
+        @if (saveAttempted() && abonoEnabled() && !abonoConfirmed()) {
+          <p class="text-red-400 text-xs">⚠ Confirma el monto del abono antes de continuar</p>
+        }
         <!-- Descuento expansion -->
         @if (discountPanelOpen()) {
           <div class="space-y-2">
@@ -1494,12 +1539,17 @@
             <span class="text-white font-bold text-xl">{{ formatPrice(grandTotal()) }}</span>
           </div>
         }
+        @if (saveAttempted() && !paymentMethod()) {
+          <p class="text-red-400 text-xs">⚠ Selecciona el método de pago</p>
+        }
         <div class="flex gap-2">
           <select
             [value]="paymentMethod()"
             (change)="paymentMethod.set($any($event.target).value)"
             class="shrink-0 w-[118px] bg-gray-800 border rounded-xl px-2 py-3 text-xs focus:outline-none focus:border-gray-500 transition-colors"
-            [class]="paymentMethod() ? 'text-white border-gray-600' : 'text-gray-500 border-gray-700'"
+            [class]="saveAttempted() && !paymentMethod()
+              ? 'text-gray-500 border-red-500'
+              : paymentMethod() ? 'text-white border-gray-600' : 'text-gray-500 border-gray-700'"
           >
             <option value="" disabled>Método pago</option>
             <option value="EFECTIVO">Efectivo</option>
@@ -1509,16 +1559,18 @@
             <option value="ADDI">ADDI</option>
             <option value="SISTECREDITO">Sistecredito</option>
           </select>
-          <button
-            (click)="confirmSale()"
-            [disabled]="cart().length === 0 || saving() || (abonoEnabled() && !abonoConfirmed()) || abonoExceedsTotal() || !paymentMethod() || (addlServiceEnabled() && (!addlServiceDesc().trim() || addlServicePrice() <= 0))"
-            class="flex-1 font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            [class]="saleType() === 'FABRICAR'
-              ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'
-              : 'bg-white text-gray-900 hover:bg-gray-100'"
-          >
-            {{ saving() ? 'Registrando...' : (saleType() === 'FABRICAR' ? 'Enviar a fabricar' : 'Confirmar venta') }}
-          </button>
+          <div class="flex-1" (click)="saveAttempted.set(true)">
+            <button
+              (click)="confirmSale()"
+              [disabled]="cart().length === 0 || saving() || (abonoEnabled() && !abonoConfirmed()) || abonoExceedsTotal() || !paymentMethod() || (addlServiceEnabled() && (!addlServiceDesc().trim() || addlServicePrice() <= 0))"
+              class="w-full font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              [class]="saleType() === 'FABRICAR'
+                ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'
+                : 'bg-white text-gray-900 hover:bg-gray-100'"
+            >
+              {{ saving() ? 'Registrando...' : (saleType() === 'FABRICAR' ? 'Enviar a fabricar' : 'Confirmar venta') }}
+            </button>
+          </div>
         </div>
       </div>
     </div>

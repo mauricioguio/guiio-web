@@ -70,6 +70,7 @@ export class Pos implements OnInit, OnDestroy {
   protected abonoConfirmed = signal(false);
   protected abonoConfirmPopup = signal(false);
   protected canceladoEnabled = signal(false);
+  protected saveAttempted = signal(false);
   protected paymentMethod = signal('');
 
   protected discountEnabled = signal(false);
@@ -559,6 +560,7 @@ export class Pos implements OnInit, OnDestroy {
         this.abonoConfirmPopup.set(false);
         this.canceladoEnabled.set(false);
         this.paymentMethod.set('');
+        this.saveAttempted.set(false);
         this.discountEnabled.set(false);
         this.discountPanelOpen.set(false);
         this.discountValue.set(0);
