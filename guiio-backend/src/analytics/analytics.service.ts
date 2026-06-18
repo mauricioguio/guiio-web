@@ -7,21 +7,32 @@ export class AnalyticsService {
 
   async getOverview(fromStr?: string, toStr?: string) {
     const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const msPerDay = 24 * 60 * 60 * 1000;
+
+    // Colombia = UTC-5: shift now to Colombia local time, extract date, shift back to UTC
+    const COLOMBIA_OFFSET_MS = 5 * 60 * 60 * 1000;
+    const nowColombia = new Date(now.getTime() - COLOMBIA_OFFSET_MS);
+    const startOfToday = new Date(
+      Date.UTC(nowColombia.getUTCFullYear(), nowColombia.getUTCMonth(), nowColombia.getUTCDate())
+      + COLOMBIA_OFFSET_MS,
+    );
+    const startOfTomorrow = new Date(startOfToday.getTime() + msPerDay);
+
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * msPerDay);
 
     // Date range for filtered stats
-    const rangeFrom: Date = fromStr ? new Date(fromStr + 'T00:00:00') : thirtyDaysAgo;
-    const rangeTo:   Date = toStr   ? new Date(toStr   + 'T23:59:59') : now;
+    const rangeFrom: Date = fromStr ? new Date(fromStr + 'T05:00:00Z') : thirtyDaysAgo;
+    const rangeTo:   Date = toStr   ? new Date(toStr   + 'T04:59:59Z') : now;
     const rangeFilter = { gte: rangeFrom, lte: rangeTo };
 
     // Days in range for chart buckets
-    const msPerDay = 24 * 60 * 60 * 1000;
     const rangeDays = Math.max(1, Math.round((rangeTo.getTime() - rangeFrom.getTime()) / msPerDay) + 1);
 
-    const [ordersInRange, paidInRange, paidAll, totalCustomers, pendingOrders, recentPaidOrders, topProducts, rawHourly, adVisitsToday, addToCartToday, checkoutToday, topCarted] =
+    const [ordersInRange, ordersToday, paidInRange, paidAll, totalCustomers, pendingOrders, recentPaidOrders, topProducts, rawHourly, adVisitsToday, addToCartToday, checkoutToday, topCarted] =
       await Promise.all([
         this.prisma.order.count({ where: { createdAt: rangeFilter } }),
+
+        this.prisma.order.count({ where: { createdAt: { gte: startOfToday, lt: startOfTomorrow } } }),
 
         this.prisma.order.aggregate({
           where: { status: 'PAID', createdAt: rangeFilter },
@@ -119,7 +130,7 @@ export class AnalyticsService {
     }));
 
     return {
-      ordersToday:     ordersInRange,
+      ordersToday,
       salesMonth:      rangePaidSum,
       totalCustomers,
       pendingOrders,
