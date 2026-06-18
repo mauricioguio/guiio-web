@@ -92,12 +92,15 @@ export class Pos implements OnInit, OnDestroy {
   protected shippingAddress = signal('');
   protected shippingCity = signal('');
   protected shippingConfirmed = signal(false);
+  protected shippingNotRequired = signal(false);
   protected shippingComplete = computed(() =>
-    this.shippingName().trim().length > 0 &&
-    this.shippingCedula().trim().length > 0 &&
-    this.shippingPhone().trim().length > 0 &&
-    this.shippingAddress().trim().length > 0 &&
-    this.shippingCity().trim().length > 0
+    this.shippingNotRequired() || (
+      this.shippingName().trim().length > 0 &&
+      this.shippingCedula().trim().length > 0 &&
+      this.shippingPhone().trim().length > 0 &&
+      this.shippingAddress().trim().length > 0 &&
+      this.shippingCity().trim().length > 0
+    )
   );
 
   // Modo edición de pedido existente
@@ -628,6 +631,7 @@ export class Pos implements OnInit, OnDestroy {
         this.shippingAddress.set('');
         this.shippingCity.set('');
         this.shippingConfirmed.set(false);
+        this.shippingNotRequired.set(false);
         this.loadData();
 
         if (blob) {
