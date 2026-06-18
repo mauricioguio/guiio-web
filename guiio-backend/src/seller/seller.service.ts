@@ -92,8 +92,8 @@ export class SellerService {
     const hasAbono = data.initialPayment && data.initialPayment > 0;
     if (hasAbono && data.initialPayment! > total) throw new BadRequestException('El abono no puede exceder el total del pedido');
 
-    // STOCK sin abono → COMPLETED inmediatamente; STOCK con abono o FABRICAR → PENDING
-    const status = data.type === 'STOCK' && !hasAbono ? 'COMPLETED' : 'PENDING';
+    // STOCK → COMPLETED siempre (sale inmediato); FABRICAR → PENDING
+    const status = data.type === 'STOCK' ? 'COMPLETED' : 'PENDING';
 
     // Items de STOCK se marcan como entregados al crear (salen del inventario en el momento)
     const itemsData = data.items.map(item => ({
