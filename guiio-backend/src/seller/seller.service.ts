@@ -77,6 +77,7 @@ export class SellerService {
     deliveryDate?: string;
     paymentMethod?: string;
     channel?: string;
+    shipping?: number;
     shippingName?: string;
     shippingCedula?: string;
     shippingPhone?: string;
@@ -87,7 +88,7 @@ export class SellerService {
   }) {
     if (!data.items?.length) throw new BadRequestException('La venta debe tener al menos un producto');
 
-    const total = data.items.reduce((s, i) => s + i.price * i.quantity, 0);
+    const total = data.items.reduce((s, i) => s + i.price * i.quantity, 0) + (data.shipping || 0);
     const hasAbono = data.initialPayment && data.initialPayment > 0;
     if (hasAbono && data.initialPayment! > total) throw new BadRequestException('El abono no puede exceder el total del pedido');
 
@@ -112,6 +113,7 @@ export class SellerService {
         deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
         paymentMethod: data.paymentMethod || null,
         channel: data.channel || null,
+        shipping: data.shipping || 0,
         shippingName: data.shippingName || null,
         shippingCedula: data.shippingCedula || null,
         shippingPhone: data.shippingPhone || null,

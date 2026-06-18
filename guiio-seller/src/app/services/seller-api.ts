@@ -35,7 +35,7 @@ export interface Sale {
   orderNumber: number;
   type: string; status: string; total: number;
   customerName: string | null; customerPhone: string | null; notes: string | null;
-  paymentMethod: string | null;
+  paymentMethod: string | null; shipping: number;
   createdAt: string;
   items: SaleItemPayload[];
 }
@@ -90,6 +90,7 @@ export interface FabricarOrder {
   notes: string | null;
   deliveryDate: string | null;
   channel: string | null;
+  shipping: number;
   shippingName: string | null;
   shippingCedula: string | null;
   shippingPhone: string | null;
@@ -142,6 +143,7 @@ export class SellerApiService {
     deliveryDate?: string;
     paymentMethod?: string;
     channel?: string;
+    shipping?: number;
     shippingName?: string;
     shippingCedula?: string;
     shippingPhone?: string;

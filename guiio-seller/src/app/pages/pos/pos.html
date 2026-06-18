@@ -102,15 +102,27 @@
           <span class="text-sm font-semibold text-gray-900 whitespace-nowrap">{{ formatPrice(addlServicePrice()) }}</span>
         </div>
       }
+      @if (showShippingLine()) {
+        <div class="flex justify-between items-start gap-3 pt-2 border-t border-gray-100 mt-1">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-900 leading-snug">Envío</p>
+          </div>
+          @if (shippingCost() > 0) {
+            <span class="text-sm font-semibold text-gray-900 whitespace-nowrap">{{ formatPrice(shippingCost()) }}</span>
+          } @else {
+            <span class="text-sm font-semibold whitespace-nowrap" style="color:#16a34a">GRATIS</span>
+          }
+        </div>
+      }
     </div>
   </div>
 
   <!-- Total / Descuento / Abono -->
   <div class="bg-gray-50">
-    @if (discountAmount() > 0 || (abonoEnabled() && abonoAmount() > 0)) {
+    @if (discountAmount() > 0 || (abonoEnabled() && abonoAmount() > 0) || showShippingLine()) {
       <div class="px-6 pt-4 pb-1 flex items-center justify-between text-sm">
         <span class="text-gray-500">Subtotal</span>
-        <span class="text-gray-600">{{ formatPrice(grandTotal() + discountAmount()) }}</span>
+        <span class="text-gray-600">{{ formatPrice(grandTotal() - shippingCost() + discountAmount()) }}</span>
       </div>
       @if (discountAmount() > 0) {
         <div class="px-6 py-1 flex items-center justify-between text-sm">
@@ -122,6 +134,17 @@
         <div class="px-6 py-1 flex items-center justify-between text-sm">
           <span style="color:#f97316">Servicio adicional</span>
           <span style="color:#f97316">+ {{ formatPrice(servicePrice()) }}</span>
+        </div>
+      }
+      @if (showShippingLine()) {
+        <div class="px-6 py-1 flex items-center justify-between text-sm">
+          @if (shippingCost() > 0) {
+            <span style="color:#16a34a">Envío</span>
+            <span style="color:#16a34a">+ {{ formatPrice(shippingCost()) }}</span>
+          } @else {
+            <span style="color:#16a34a">Envío</span>
+            <span style="color:#16a34a;font-weight:700">GRATIS</span>
+          }
         </div>
       }
       @if (abonoEnabled() && abonoAmount() > 0) {
@@ -1102,10 +1125,10 @@
       </div>
 
       <!-- Totales -->
-      @if (discountAmount() > 0 || (abonoEnabled() && abonoAmount() > 0) || servicePrice() > 0) {
+      @if (discountAmount() > 0 || (abonoEnabled() && abonoAmount() > 0) || servicePrice() > 0 || showShippingLine()) {
         <div class="flex items-center justify-between text-sm">
           <span class="text-gray-500">Subtotal</span>
-          <span class="text-gray-400">{{ formatPrice(grandTotal() + discountAmount()) }}</span>
+          <span class="text-gray-400">{{ formatPrice(grandTotal() - shippingCost() + discountAmount()) }}</span>
         </div>
         @if (discountAmount() > 0) {
           <div class="flex items-center justify-between text-sm">
@@ -1117,6 +1140,17 @@
           <div class="flex items-center justify-between text-sm">
             <span class="text-orange-400">Servicio adicional</span>
             <span class="text-orange-400">+ {{ formatPrice(servicePrice()) }}</span>
+          </div>
+        }
+        @if (showShippingLine()) {
+          <div class="flex items-center justify-between text-sm">
+            @if (shippingCost() > 0) {
+              <span class="text-green-400">Envío</span>
+              <span class="text-green-400">+ {{ formatPrice(shippingCost()) }}</span>
+            } @else {
+              <span class="text-green-400">Envío</span>
+              <span class="text-green-400 font-bold">GRATIS</span>
+            }
           </div>
         }
         @if (abonoEnabled() && abonoAmount() > 0) {

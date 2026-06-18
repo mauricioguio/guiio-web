@@ -86,6 +86,21 @@
         }
       </div>
       <div class="border-t border-gray-100 pt-3 space-y-1 text-sm">
+        @if (order.shipping > 0) {
+          <div class="flex justify-between">
+            <span class="text-gray-500">Subtotal</span>
+            <span class="font-medium">{{ formatPrice(order.total - order.shipping) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span style="color:#16a34a">Envío</span>
+            <span class="font-medium" style="color:#16a34a">+ {{ formatPrice(order.shipping) }}</span>
+          </div>
+        } @else if (order.channel === 'whatsapp' && (order.shippingName || order.shippingAddress)) {
+          <div class="flex justify-between">
+            <span style="color:#16a34a">Envío</span>
+            <span class="font-bold" style="color:#16a34a">GRATIS</span>
+          </div>
+        }
         <div class="flex justify-between">
           <span class="text-gray-500">Total pedido</span>
           <span class="font-medium">{{ formatPrice(order.total) }}</span>

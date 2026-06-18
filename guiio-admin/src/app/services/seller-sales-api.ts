@@ -15,6 +15,7 @@ export interface SellerSale {
   total: number; customerName: string | null; customerPhone: string | null; notes: string | null;
   deliveryDate: string | null; paymentMethod: string | null; createdAt: string;
   channel: string | null;
+  shipping: number;
   shippingName: string | null; shippingCedula: string | null;
   shippingPhone: string | null; shippingAddress: string | null; shippingCity: string | null;
   items: SaleItem[]; payments: SalePayment[]; sede: { id: string; name: string };

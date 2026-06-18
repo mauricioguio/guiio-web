@@ -214,7 +214,16 @@ export class Pos implements OnInit, OnDestroy {
     this.addlServiceEnabled() && this.addlServicePrice() > 0 ? this.addlServicePrice() : 0
   );
 
-  protected grandTotal = computed(() => this.cartTotal() + this.servicePrice());
+  protected showShippingLine = computed(() =>
+    this.saleChannel() === 'whatsapp' && this.shippingConfirmed() && !this.shippingNotRequired()
+  );
+
+  protected shippingCost = computed(() => {
+    if (!this.showShippingLine()) return 0;
+    return (this.cartTotal() + this.servicePrice()) >= 300000 ? 0 : 10000;
+  });
+
+  protected grandTotal = computed(() => this.cartTotal() + this.servicePrice() + this.shippingCost());
 
   protected abonoExceedsTotal = computed(() => this.abonoEnabled() && this.abonoAmount() > this.grandTotal());
 
@@ -564,6 +573,7 @@ export class Pos implements OnInit, OnDestroy {
       customerPhone: phone || undefined,
       paymentMethod: this.paymentMethod() || undefined,
       channel: this.saleChannel() || undefined,
+      shipping: this.shippingCost() > 0 ? this.shippingCost() : undefined,
       shippingName: isWhatsapp ? this.shippingName() || undefined : undefined,
       shippingCedula: isWhatsapp ? this.shippingCedula() || undefined : undefined,
       shippingPhone: isWhatsapp ? this.shippingPhone() || undefined : undefined,

@@ -90,6 +90,7 @@ model Sale {
   deliveryDate    DateTime?
   paymentMethod   String?
   channel         String?
+  shipping        Float   @default(0)
   shippingName    String?
   shippingCedula  String?
   shippingPhone   String?
