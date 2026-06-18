@@ -22,10 +22,13 @@ export class SellerService {
   }
 
   async getInventory(sedeId: string) {
-    const items = await this.prisma.inventory.findMany({
-      where: { sedeId },
-      include: { sede: { select: { id: true, name: true } } },
-    });
+    const [items, sede] = await Promise.all([
+      this.prisma.inventory.findMany({
+        where: { sedeId },
+        include: { sede: { select: { id: true, name: true } } },
+      }),
+      this.prisma.sede.findUnique({ where: { id: sedeId }, select: { bordadoPrice: true } }),
+    ]);
     const productIds = [...new Set(items.map(i => i.productId))];
     const [products, sedePrices] = await Promise.all([
       productIds.length
@@ -38,6 +41,7 @@ export class SellerService {
     const priceMap = new Map<string, number>(sedePrices.map(p => [p.productId, p.price] as [string, number]));
     return {
       items,
+      bordadoPrice: sede?.bordadoPrice ?? 10000,
       products: products.map(p => ({
         ...p,
         type: p.type.toLowerCase(),

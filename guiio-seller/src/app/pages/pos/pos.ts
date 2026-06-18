@@ -81,6 +81,7 @@ export class Pos implements OnInit, OnDestroy {
   protected itemOverrides = signal<Map<string, { value: number; type: 'pct' | 'value' }>>(new Map());
 
   protected customerSearchState = signal<'idle' | 'searching' | 'found' | 'notfound'>('idle');
+  protected bordadoPrice = signal(10000);
 
   // Modo edición de pedido existente
   protected posMode = signal<'new' | 'edit'>('new');
@@ -138,7 +139,7 @@ export class Pos implements OnInit, OnDestroy {
 
   itemPrice(i: CartItem): number {
     const base = i.priceOverride ?? i.product.price;
-    return base + (i.bordado ? 10000 : 0);
+    return base + (i.bordado ? this.bordadoPrice() : 0);
   }
 
   itemKey(i: CartItem): string { return `${i.product.id}|${i.size}`; }
@@ -205,7 +206,7 @@ export class Pos implements OnInit, OnDestroy {
     const done = () => { if (--pending === 0) this.loading.set(false); };
     this.api.getProducts().subscribe({ next: list => { this.products.set(list); done(); }, error: done });
     this.api.getInventory(sedeId).subscribe({
-      next: ({ items }) => { this.inventory.set(items); done(); },
+      next: ({ items, bordadoPrice }) => { this.inventory.set(items); this.bordadoPrice.set(bordadoPrice ?? 10000); done(); },
       error: done,
     });
     // Fallback local: si el API aún no está desplegado, usar el último número guardado
@@ -348,7 +349,7 @@ export class Pos implements OnInit, OnDestroy {
     }
 
     // Detectar descuento previo
-    const bordadoExtra = !!bordadoPart ? 10000 : 0;
+    const bordadoExtra = !!bordadoPart ? this.bordadoPrice() : 0;
     const basePrice = product.price + bordadoExtra;
     if (item.price > 0 && item.price < basePrice) {
       const inferredPct = Math.round((1 - item.price / basePrice) * 100);
@@ -441,7 +442,7 @@ export class Pos implements OnInit, OnDestroy {
     if (editId && this.posMode() === 'edit') {
       const order = this.editingOrder();
       if (!order || this.savingItem()) return;
-      const basePrice = priceOverride != null ? priceOverride : p.price + (bordado ? 10000 : 0);
+      const basePrice = priceOverride != null ? priceOverride : p.price + (bordado ? this.bordadoPrice() : 0);
       const dType = this.editDiscountType();
       const dVal = this.editDiscountEnabled() ? this.editDiscountValue() : 0;
       const price = dVal > 0

@@ -122,7 +122,7 @@ export class SellerApiService {
   }
 
   getInventory(sedeId: string) {
-    return this.http.get<{ items: InventoryItem[]; products: Product[] }>(
+    return this.http.get<{ items: InventoryItem[]; products: Product[]; bordadoPrice: number }>(
       `${API}/inventory/${sedeId}`,
       { headers: this.headers },
     );
