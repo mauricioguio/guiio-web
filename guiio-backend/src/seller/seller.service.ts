@@ -27,12 +27,23 @@ export class SellerService {
       include: { sede: { select: { id: true, name: true } } },
     });
     const productIds = [...new Set(items.map(i => i.productId))];
-    const products = productIds.length
-      ? await this.prisma.product.findMany({
-          where: { id: { in: productIds }, active: true },
-        })
-      : [];
-    return { items, products: products.map(p => ({ ...p, type: p.type.toLowerCase() })) };
+    const [products, sedePrices] = await Promise.all([
+      productIds.length
+        ? this.prisma.product.findMany({ where: { id: { in: productIds }, active: true } })
+        : [],
+      productIds.length
+        ? this.prisma.sedeProductPrice.findMany({ where: { sedeId, productId: { in: productIds } } })
+        : [],
+    ]);
+    const priceMap = new Map<string, number>(sedePrices.map(p => [p.productId, p.price] as [string, number]));
+    return {
+      items,
+      products: products.map(p => ({
+        ...p,
+        type: p.type.toLowerCase(),
+        price: priceMap.get(p.id) ?? p.price,
+      })),
+    };
   }
 
   async getProducts() {

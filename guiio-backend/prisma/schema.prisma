@@ -59,10 +59,21 @@ model Sede {
   active    Boolean     @default(true)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  inventory Inventory[]
-  sales     Sale[]
+  inventory     Inventory[]
+  sales         Sale[]
+  productPrices SedeProductPrice[]
 
   @@unique([name, empresa])
+}
+
+model SedeProductPrice {
+  id        String @id @default(cuid())
+  sedeId    String
+  productId String
+  price     Float
+  sede      Sede   @relation(fields: [sedeId], references: [id], onDelete: Cascade)
+
+  @@unique([sedeId, productId])
 }
 
 model Sale {
