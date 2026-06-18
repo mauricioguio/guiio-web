@@ -1084,7 +1084,7 @@
         </select>
         <button
           (click)="confirmSale()"
-          [disabled]="cart().length === 0 || saving() || !customerPhone().trim() || !customerName().trim() || (!abonoEnabled() && !canceladoEnabled()) || (abonoEnabled() && abonoAmount() < 10000) || abonoExceedsTotal() || !paymentMethod() || (addlServiceEnabled() && (!addlServiceDesc().trim() || addlServicePrice() <= 0))"
+          [disabled]="cart().length === 0 || saving() || !customerPhone().trim() || !customerName().trim() || (!abonoEnabled() && !canceladoEnabled()) || (abonoEnabled() && abonoAmount() < 10000) || (abonoEnabled() && !abonoConfirmed()) || abonoExceedsTotal() || !paymentMethod() || (addlServiceEnabled() && (!addlServiceDesc().trim() || addlServicePrice() <= 0))"
           class="flex-1 font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           [class]="saleType() === 'FABRICAR'
             ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'
@@ -1511,7 +1511,7 @@
           </select>
           <button
             (click)="confirmSale()"
-            [disabled]="cart().length === 0 || saving() || abonoExceedsTotal() || !paymentMethod() || (addlServiceEnabled() && (!addlServiceDesc().trim() || addlServicePrice() <= 0))"
+            [disabled]="cart().length === 0 || saving() || (abonoEnabled() && !abonoConfirmed()) || abonoExceedsTotal() || !paymentMethod() || (addlServiceEnabled() && (!addlServiceDesc().trim() || addlServicePrice() <= 0))"
             class="flex-1 font-semibold rounded-xl py-3.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             [class]="saleType() === 'FABRICAR'
               ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'
