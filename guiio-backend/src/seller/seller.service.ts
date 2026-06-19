@@ -29,14 +29,9 @@ export class SellerService {
       }),
       this.prisma.sede.findUnique({ where: { id: sedeId }, select: { bordadoPrice: true } }),
     ]);
-    const productIds = [...new Set(items.map(i => i.productId))];
     const [products, sedePrices] = await Promise.all([
-      productIds.length
-        ? this.prisma.product.findMany({ where: { id: { in: productIds }, active: true } })
-        : [],
-      productIds.length
-        ? this.prisma.sedeProductPrice.findMany({ where: { sedeId, productId: { in: productIds } } })
-        : [],
+      this.prisma.product.findMany({ where: { active: true }, orderBy: { name: 'asc' } }),
+      this.prisma.sedeProductPrice.findMany({ where: { sedeId } }),
     ]);
     const priceMap = new Map<string, number>(sedePrices.map(p => [p.productId, p.price] as [string, number]));
     return {
