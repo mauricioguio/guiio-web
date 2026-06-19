@@ -16,6 +16,7 @@ export interface CartItem {
   adjusted?: boolean;
   bordados: string[];
   priceOverride?: number;
+  isManual?: boolean;
 }
 
 function productSizes(p: Product): string[] {
@@ -125,6 +126,10 @@ export class Pos implements OnInit, OnDestroy {
   protected addlServiceEnabled = signal(false);
   protected addlServiceDesc = signal('');
   protected addlServicePrice = signal(0);
+
+  protected manualPopupOpen = signal(false);
+  protected manualDesc = signal('');
+  protected manualPriceRaw = signal('');
   protected registering = signal(false);
   protected adjustedItems = signal(0);
   protected receiptPreview = signal(false);
@@ -590,7 +595,7 @@ export class Pos implements OnInit, OnDestroy {
       initialPayment: this.canceladoEnabled() ? this.grandTotal() : (this.abonoEnabled() && this.abonoAmount() > 0 ? Math.min(this.abonoAmount(), this.grandTotal()) : undefined),
       items: [
         ...items.map(i => ({
-          productId: i.product.id,
+          productId: i.isManual ? '__manual__' : i.product.id,
           productName: i.product.name,
           size: i.size,
           quantity: i.quantity,
@@ -806,6 +811,46 @@ export class Pos implements OnInit, OnDestroy {
   addlServicePriceInputValue(): string {
     const v = this.addlServicePrice();
     return v > 0 ? v.toLocaleString('es-CO') : '';
+  }
+
+  manualPriceInputValue(): string {
+    const n = parseInt(this.manualPriceRaw().replace(/\D/g, ''), 10);
+    return n > 0 ? n.toLocaleString('es-CO') : '';
+  }
+
+  onManualPriceInput(value: string) {
+    this.manualPriceRaw.set(value.replace(/\D/g, ''));
+  }
+
+  addManualItem() {
+    const desc = this.manualDesc().trim();
+    const price = parseInt(this.manualPriceRaw().replace(/\D/g, ''), 10);
+    if (!desc || !price || price <= 0) return;
+    const fakeProduct: Product = {
+      id: `__manual__${Date.now()}`,
+      name: desc,
+      price,
+      description: '',
+      type: 'top',
+      gender: '',
+      topSizes: ['Único'],
+      bottomSizes: [],
+      colors: [],
+      images: [],
+      inStock: true,
+      collection: '',
+    };
+    this.cart.update(c => [...c, {
+      product: fakeProduct,
+      size: 'Único',
+      quantity: 1,
+      note: '',
+      bordados: [],
+      isManual: true,
+    }]);
+    this.manualDesc.set('');
+    this.manualPriceRaw.set('');
+    this.manualPopupOpen.set(false);
   }
 
   toggleDiscount() {
