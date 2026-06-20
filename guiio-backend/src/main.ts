@@ -7,12 +7,13 @@ async function bootstrap() {
   app.enableCors({
     origin: (origin, callback) => {
       const guiio   = /^https:\/\/([a-z0-9-]+\.)?guiiouniformes\.com$/.test(origin ?? '');
+      const vercel  = /^https:\/\/guiio-[a-z0-9-]+\.vercel\.app$/.test(origin ?? '');
       const local   = !origin || /^http:\/\/localhost:\d+$/.test(origin);
       const parseCsv = (env: string | undefined) =>
         (env ?? '').split(',').map(s => s.trim()).filter(Boolean);
       const extra   = [...parseCsv(process.env.ADMIN_URL), ...parseCsv(process.env.SELLER_URL)];
 
-      if (guiio || local || extra.includes(origin!)) {
+      if (guiio || vercel || local || extra.includes(origin!)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
