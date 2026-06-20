@@ -5,6 +5,39 @@ import { PrismaService } from '../prisma/prisma.service';
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getGeoStats(fromStr?: string, toStr?: string) {
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const now = new Date();
+    const rangeFrom: Date = fromStr ? new Date(fromStr + 'T05:00:00Z') : new Date(now.getTime() - 30 * msPerDay);
+    const rangeTo:   Date = toStr   ? new Date(toStr   + 'T04:59:59Z') : now;
+
+    const [topCountries, topCities] = await Promise.all([
+      this.prisma.$queryRaw<{ country: string; count: number }[]>`
+        SELECT country, COUNT(*)::int AS count
+        FROM "PageView"
+        WHERE country IS NOT NULL
+          AND "createdAt" >= ${rangeFrom} AND "createdAt" <= ${rangeTo}
+        GROUP BY country
+        ORDER BY count DESC
+        LIMIT 15
+      `,
+      this.prisma.$queryRaw<{ city: string; country: string; count: number }[]>`
+        SELECT city, country, COUNT(*)::int AS count
+        FROM "PageView"
+        WHERE city IS NOT NULL
+          AND "createdAt" >= ${rangeFrom} AND "createdAt" <= ${rangeTo}
+        GROUP BY city, country
+        ORDER BY count DESC
+        LIMIT 15
+      `,
+    ]);
+
+    return {
+      topCountries: topCountries.map(r => ({ country: r.country, count: Number(r.count) })),
+      topCities:    topCities.map(r => ({ city: r.city, country: r.country, count: Number(r.count) })),
+    };
+  }
+
   async getOverview(fromStr?: string, toStr?: string) {
     const now = new Date();
     const msPerDay = 24 * 60 * 60 * 1000;

@@ -11,4 +11,9 @@ export class AnalyticsController {
   getOverview(@Query('from') from?: string, @Query('to') to?: string) {
     return this.analyticsService.getOverview(from, to);
   }
+
+  @Get('geo')
+  getGeoStats(@Query('from') from?: string, @Query('to') to?: string) {
+    return this.analyticsService.getGeoStats(from, to);
+  }
 }

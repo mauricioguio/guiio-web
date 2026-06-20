@@ -34,7 +34,19 @@
       "Bash(Select-String -Pattern \"start|build|migrate|push\")",
       "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.scripts,null,2\\)\\)\")",
       "Bash(npx tsc *)",
-      "Bash(node -e \"const a=require\\('./angular.json'\\); const proj=a.projects['guiio-frontend']; console.log\\(JSON.stringify\\(Object.keys\\(proj.architect\\), null, 2\\)\\); console.log\\(JSON.stringify\\(proj.architect.build, null, 2\\)\\)\")"
+      "Bash(node -e \"const a=require\\('./angular.json'\\); const proj=a.projects['guiio-frontend']; console.log\\(JSON.stringify\\(Object.keys\\(proj.architect\\), null, 2\\)\\); console.log\\(JSON.stringify\\(proj.architect.build, null, 2\\)\\)\")",
+      "Bash(node_modules/.bin/ng build *)",
+      "Bash(npx --yes @angular/cli@latest version)",
+      "Bash(git config *)",
+      "Bash(grep -n \"discountType\\\\|dType\\\\|Porcentaje\\\\|Valor fijo\\\\|toggleDiscount\\\\|\\\\$.*%\" \"/home/mauricio/Escritorio/Nueva carpeta/guiio-web/guiio-seller/src/app/pages/pos/pos.html\")",
+      "Bash(nohup npx ng serve --host 0.0.0.0 --port 4201)",
+      "Bash(echo \"PID: $!\")",
+      "Read(//home/mauricio/.ssh/**)",
+      "Bash(ssh -T git@github.com)",
+      "Bash(gh auth *)",
+      "Bash(curl -s \"https://api.guiiouniformes.com/api/seller/products\" -H \"x-sede-id: test\" -H \"x-sede-pin: test\")",
+      "Bash(python3 -c ' *)",
+      "Bash(xargs ls)"
     ]
   }
 }

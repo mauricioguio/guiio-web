@@ -1,7 +1,8 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AnalyticsApiService, OverviewData } from '../../../services/analytics-api';
+import { AnalyticsApiService, OverviewData, GeoData } from '../../../services/analytics-api';
+import { forkJoin } from 'rxjs';
 
 const COP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
@@ -18,6 +19,7 @@ export class Overview {
   private readonly api = inject(AnalyticsApiService);
 
   protected data    = signal<OverviewData | null>(null);
+  protected geoData = signal<GeoData | null>(null);
   protected loading = signal(true);
   protected error   = signal(false);
 
@@ -93,11 +95,16 @@ export class Overview {
     this.loading.set(true);
     this.error.set(false);
     const { from, to } = this.getRange();
-    this.api.getOverview(from, to).subscribe({
-      next:  d  => { this.data.set(d); this.loading.set(false); },
+    forkJoin({
+      overview: this.api.getOverview(from, to),
+      geo:      this.api.getGeoStats(from, to),
+    }).subscribe({
+      next:  ({ overview, geo }) => { this.data.set(overview); this.geoData.set(geo); this.loading.set(false); },
       error: () => { this.error.set(true); this.loading.set(false); },
     });
   }
+
+  geoMax(list: { count: number }[]) { return Math.max(...list.map(r => r.count), 1); }
 
   fmt(value: number) { return COP.format(value); }
 

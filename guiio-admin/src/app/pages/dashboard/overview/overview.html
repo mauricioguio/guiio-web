@@ -278,5 +278,59 @@
       </div>
     }
 
+    <!-- ══ GEO ══ -->
+    @if (geoData(); as geo) {
+      @if (geo.topCountries.length > 0 || geo.topCities.length > 0) {
+        <div class="grid grid-cols-1 gap-4" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))">
+
+          <!-- Países -->
+          @if (geo.topCountries.length > 0) {
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+              <p class="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-4">Países</p>
+              <div class="space-y-3">
+                @for (row of geo.topCountries; track row.country) {
+                  <div>
+                    <div class="flex justify-between items-center mb-1">
+                      <span class="text-gray-300 text-sm">{{ row.country }}</span>
+                      <span class="text-gray-500 text-xs">{{ row.count | number }}</span>
+                    </div>
+                    <div class="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                      <div class="h-full bg-orange-500 rounded-full transition-all"
+                           [style.width.%]="(row.count / geoMax(geo.topCountries)) * 100"></div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Ciudades -->
+          @if (geo.topCities.length > 0) {
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+              <p class="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-4">Ciudades</p>
+              <div class="space-y-3">
+                @for (row of geo.topCities; track row.city + row.country) {
+                  <div>
+                    <div class="flex justify-between items-center mb-1">
+                      <div class="min-w-0">
+                        <span class="text-gray-300 text-sm">{{ row.city }}</span>
+                        <span class="text-gray-600 text-xs ml-1.5">{{ row.country }}</span>
+                      </div>
+                      <span class="text-gray-500 text-xs shrink-0 ml-2">{{ row.count | number }}</span>
+                    </div>
+                    <div class="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                      <div class="h-full bg-blue-500 rounded-full transition-all"
+                           [style.width.%]="(row.count / geoMax(geo.topCities)) * 100"></div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+      }
+    }
+
   }
 </div>

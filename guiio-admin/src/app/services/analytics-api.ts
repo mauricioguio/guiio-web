@@ -8,6 +8,10 @@ export interface TopProduct { name: string; revenue: number; quantity: number; }
 export interface TopCarted { name: string; count: number; }
 export interface HourlySession { hour: number; count: number; }
 
+export interface GeoCountry { country: string; count: number; }
+export interface GeoCity    { city: string; country: string; count: number; }
+export interface GeoData    { topCountries: GeoCountry[]; topCities: GeoCity[]; }
+
 export interface OverviewData {
   ordersToday: number;
   salesMonth: number;
@@ -33,5 +37,12 @@ export class AnalyticsApiService {
     if (from) params['from'] = from;
     if (to)   params['to']   = to;
     return this.http.get<OverviewData>(`${API_URL}/analytics/overview`, { params });
+  }
+
+  getGeoStats(from?: string, to?: string) {
+    const params: Record<string, string> = {};
+    if (from) params['from'] = from;
+    if (to)   params['to']   = to;
+    return this.http.get<GeoData>(`${API_URL}/analytics/geo`, { params });
   }
 }
