@@ -90,7 +90,7 @@
 
           <!-- Fila principal -->
           <div
-            class="p-5 flex items-center gap-4 cursor-pointer hover:bg-gray-800/30 transition-colors relative"
+            class="p-4 sm:p-5 flex items-start sm:items-center gap-3 sm:gap-4 cursor-pointer hover:bg-gray-800/30 transition-colors relative"
             (click)="expandedId.set(expandedId() === sale.id ? null : sale.id)"
           >
             <!-- Urgencia (esquina superior derecha) -->
@@ -128,20 +128,27 @@
                 }
                 <p class="text-gray-600 text-xs">{{ sale.items.length }} producto{{ sale.items.length !== 1 ? 's' : '' }}</p>
               </div>
+              <!-- Total + Estado: solo en móvil -->
+              <div class="flex items-center gap-2 mt-2 sm:hidden">
+                <span class="text-white font-semibold text-sm">{{ formatPrice(sale.total) }}</span>
+                <span class="text-xs border px-2.5 py-1 rounded-full {{ physicalStatusClass(sale.status) }}">
+                  {{ physicalStatusLabel(sale.status) }}
+                </span>
+              </div>
             </div>
 
-            <!-- Total -->
-            <span class="text-white font-semibold text-sm shrink-0">{{ formatPrice(sale.total) }}</span>
+            <!-- Total (solo desktop) -->
+            <span class="hidden sm:block text-white font-semibold text-sm shrink-0">{{ formatPrice(sale.total) }}</span>
 
-            <!-- Estado -->
-            <div class="shrink-0">
+            <!-- Estado (solo desktop) -->
+            <div class="hidden sm:block shrink-0">
               <span class="text-xs border px-2.5 py-1 rounded-full {{ physicalStatusClass(sale.status) }}">
                 {{ physicalStatusLabel(sale.status) }}
               </span>
             </div>
 
             <!-- Chevron -->
-            <svg class="w-4 h-4 text-gray-600 shrink-0 transition-transform" [class.rotate-180]="expandedId() === sale.id"
+            <svg class="w-4 h-4 text-gray-600 shrink-0 transition-transform mt-0.5 sm:mt-0" [class.rotate-180]="expandedId() === sale.id"
                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <polyline points="6 9 12 15 18 9"/>
             </svg>
@@ -264,7 +271,7 @@
 
           <!-- Fila principal -->
           <div
-            class="p-5 flex items-center gap-4 cursor-pointer hover:bg-gray-800/30 transition-colors"
+            class="p-4 sm:p-5 flex items-start sm:items-center gap-3 sm:gap-4 cursor-pointer hover:bg-gray-800/30 transition-colors"
             (click)="expandedId.set(expandedId() === order.id ? null : order.id)"
           >
             <div class="flex-1 min-w-0">
@@ -280,17 +287,26 @@
                 <p class="text-gray-500 text-xs">{{ order.city }}</p>
                 <p class="text-gray-600 text-xs">{{ order.items.length }} producto{{ order.items.length !== 1 ? 's' : '' }}</p>
               </div>
+              <!-- Total + Estado: solo en móvil -->
+              <div class="flex items-center gap-2 mt-2 sm:hidden">
+                <span class="text-white font-semibold text-sm">{{ formatPrice(order.total) }}</span>
+                <span class="text-xs border px-2.5 py-1 rounded-full {{ onlineStatusClass(order.status) }}">
+                  {{ onlineStatusLabel(order.status) }}
+                </span>
+              </div>
             </div>
 
-            <span class="text-white font-semibold text-sm shrink-0">{{ formatPrice(order.total) }}</span>
+            <!-- Total (solo desktop) -->
+            <span class="hidden sm:block text-white font-semibold text-sm shrink-0">{{ formatPrice(order.total) }}</span>
 
-            <div class="shrink-0">
+            <!-- Estado (solo desktop) -->
+            <div class="hidden sm:block shrink-0">
               <span class="text-xs border px-2.5 py-1 rounded-full {{ onlineStatusClass(order.status) }}">
                 {{ onlineStatusLabel(order.status) }}
               </span>
             </div>
 
-            <svg class="w-4 h-4 text-gray-600 shrink-0 transition-transform" [class.rotate-180]="expandedId() === order.id"
+            <svg class="w-4 h-4 text-gray-600 shrink-0 transition-transform mt-0.5 sm:mt-0" [class.rotate-180]="expandedId() === order.id"
                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <polyline points="6 9 12 15 18 9"/>
             </svg>
