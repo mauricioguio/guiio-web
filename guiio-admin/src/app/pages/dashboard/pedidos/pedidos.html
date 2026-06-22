@@ -360,7 +360,7 @@
                     <div class="min-w-0 flex-1">
                       <p class="text-gray-300 text-sm font-medium">{{ item.productName }}</p>
                       <p class="text-gray-600 text-xs">
-                        Talla {{ item.topSize }}@if (item.bottomSize) { / {{ item.bottomSize }} }
+                        {{ formatOnlineSize(item.topSize, item.bottomSize) }}
                         · Color {{ item.color }}
                         × {{ item.quantity }}
                       </p>

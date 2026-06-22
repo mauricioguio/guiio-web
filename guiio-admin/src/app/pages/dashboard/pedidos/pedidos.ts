@@ -282,4 +282,11 @@ export class Pedidos implements OnInit {
   formatDateShort(iso: string) {
     return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium' }).format(new Date(iso));
   }
+
+  formatOnlineSize(topSize: string, bottomSize: string): string {
+    if (topSize && bottomSize) return `Blusa ${topSize} / Pantalón ${bottomSize}`;
+    if (topSize)               return `Talla ${topSize}`;
+    if (bottomSize)            return `Talla ${bottomSize}`;
+    return '';
+  }
 }
