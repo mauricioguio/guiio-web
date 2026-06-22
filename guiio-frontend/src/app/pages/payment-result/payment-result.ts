@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PaymentService } from '../../services/payment';
+import { fbqSetUser } from '../../utils/pixel';
 
 @Component({
   selector: 'app-payment-result',
@@ -18,6 +19,22 @@ export class PaymentResult implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly paymentService = inject(PaymentService);
+
+  private trackPurchase(total: number) {
+    const email = localStorage.getItem('pendingUserEmail');
+    const phone = localStorage.getItem('pendingUserPhone');
+    const name  = localStorage.getItem('pendingUserName');
+    localStorage.removeItem('pendingUserEmail');
+    localStorage.removeItem('pendingUserPhone');
+    localStorage.removeItem('pendingUserName');
+
+    const fire = () => (window as any).fbq?.('track', 'Purchase', { value: total, currency: 'COP' });
+    if (email && phone && name) {
+      fbqSetUser(email, phone, name).then(fire);
+    } else {
+      fire();
+    }
+  }
 
   ngOnInit() {
     const params = this.route.snapshot.queryParamMap;
@@ -47,7 +64,7 @@ export class PaymentResult implements OnInit {
       if (ref) this.paymentService.confirmOrder(ref).subscribe();
       const total = parseFloat(localStorage.getItem('pendingOrderTotal') ?? '0');
       localStorage.removeItem('pendingOrderTotal');
-      (window as any).fbq?.('track', 'Purchase', { value: total, currency: 'COP' });
+      this.trackPurchase(total);
       this.router.navigate(['/pago/exitoso']);
       return;
     }
@@ -71,7 +88,7 @@ export class PaymentResult implements OnInit {
           }
           const total = parseFloat(localStorage.getItem('pendingOrderTotal') ?? '0');
           localStorage.removeItem('pendingOrderTotal');
-          (window as any).fbq?.('track', 'Purchase', { value: total, currency: 'COP' });
+          this.trackPurchase(total);
           this.router.navigate(['/pago/exitoso']);
         } else if (status === 'PENDING') {
           this.router.navigate(['/pago/pendiente']);

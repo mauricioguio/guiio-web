@@ -5,6 +5,7 @@ import { CurrencyPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { CartService } from '../../services/cart';
 import { PaymentService } from '../../services/payment';
+import { fbqSetUser } from '../../utils/pixel';
 
 @Component({
   selector: 'app-checkout',
@@ -47,17 +48,23 @@ export class Checkout {
     this.loading.set(true);
     this.error.set(false);
 
-    (window as any).fbq?.('track', 'InitiateCheckout', {
-      value: this.cart.total(),
-      currency: 'COP',
-      num_items: this.cart.totalItems(),
+    const v = this.form.getRawValue();
+
+    localStorage.setItem('pendingUserEmail', v.email!);
+    localStorage.setItem('pendingUserPhone', v.phone!);
+    localStorage.setItem('pendingUserName',  v.name!);
+
+    fbqSetUser(v.email!, v.phone!, v.name!).then(() => {
+      (window as any).fbq?.('track', 'InitiateCheckout', {
+        value: this.cart.total(),
+        currency: 'COP',
+        num_items: this.cart.totalItems(),
+      });
     });
 
     this.http.post('https://api.guiiouniformes.com/api/track/cart', {
       event: 'initiate_checkout',
     }).subscribe({ error: () => null });
-
-    const v = this.form.getRawValue();
 
     const customerBase = { name: v.name!, email: v.email!, phone: v.phone!, city: v.city! };
 
