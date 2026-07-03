@@ -332,6 +332,7 @@ export class SellerService {
       ...sales.map(s => ({
         id: s.id,
         channel: 'fisica' as const,
+        saleChannel: s.channel ?? null,
         channelName: s.sede.name,
         customerName: s.customerName ?? null,
         customerPhone: s.customerPhone ?? null,

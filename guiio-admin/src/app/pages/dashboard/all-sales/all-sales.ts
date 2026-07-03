@@ -48,10 +48,10 @@ export class AllSales {
   protected channels = computed(() => {
     const sedeNames = [...new Set(
       this.sales()
-        .filter(s => s.channel === 'fisica')
+        .filter(s => s.channel === 'fisica' && s.saleChannel !== 'whatsapp')
         .map(s => s.channelName)
     )].sort();
-    return ['ALL', 'online', ...sedeNames];
+    return ['ALL', 'online', 'whatsapp', ...sedeNames];
   });
 
   private dateFiltered = computed(() => {
@@ -84,9 +84,10 @@ export class AllSales {
 
   protected filtered = computed(() => {
     const ch = this.channelFilter();
-    if (ch === 'ALL') return this.dateFiltered();
-    if (ch === 'online') return this.dateFiltered().filter(s => s.channel === 'online');
-    return this.dateFiltered().filter(s => s.channelName === ch);
+    if (ch === 'ALL')       return this.dateFiltered();
+    if (ch === 'online')    return this.dateFiltered().filter(s => s.channel === 'online');
+    if (ch === 'whatsapp')  return this.dateFiltered().filter(s => s.saleChannel === 'whatsapp');
+    return this.dateFiltered().filter(s => s.channelName === ch && s.saleChannel !== 'whatsapp');
   });
 
   protected totalRevenue = computed(() =>
@@ -97,8 +98,12 @@ export class AllSales {
     this.filtered().filter(x => x.channel === 'online').reduce((s, x) => s + x.total, 0)
   );
 
+  protected totalWhatsapp = computed(() =>
+    this.filtered().filter(x => x.saleChannel === 'whatsapp').reduce((s, x) => s + x.total, 0)
+  );
+
   protected totalFisica = computed(() =>
-    this.filtered().filter(x => x.channel === 'fisica').reduce((s, x) => s + x.total, 0)
+    this.filtered().filter(x => x.channel === 'fisica' && x.saleChannel !== 'whatsapp').reduce((s, x) => s + x.total, 0)
   );
 
   constructor() { this.load(); }
@@ -113,8 +118,9 @@ export class AllSales {
   }
 
   channelLabel(ch: string): string {
-    if (ch === 'ALL') return 'Todos';
-    if (ch === 'online') return 'Online';
+    if (ch === 'ALL')      return 'Todos';
+    if (ch === 'online')   return 'Online';
+    if (ch === 'whatsapp') return 'WhatsApp';
     return ch;
   }
 

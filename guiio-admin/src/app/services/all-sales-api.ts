@@ -10,6 +10,7 @@ export interface UnifiedSaleItem {
 export interface UnifiedSale {
   id: string;
   channel: 'online' | 'fisica';
+  saleChannel: string | null;
   channelName: string;
   customerName: string | null;
   customerPhone: string | null;
