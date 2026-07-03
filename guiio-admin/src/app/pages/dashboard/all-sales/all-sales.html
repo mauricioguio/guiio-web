@@ -48,6 +48,46 @@
     }
   </div>
 
+  <!-- Custom date range inputs -->
+  @if (datePreset() === 'custom') {
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-gray-500 text-xs">Desde</label>
+        <input type="date" [ngModel]="customFrom()" (ngModelChange)="customFrom.set($event)"
+          class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500">
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-gray-500 text-xs">Hasta</label>
+        <input type="date" [ngModel]="customTo()" (ngModelChange)="customTo.set($event)"
+          class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500">
+      </div>
+    </div>
+  }
+
+  <!-- Month/year picker -->
+  @if (datePreset() === 'monthyear') {
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-gray-500 text-xs">Mes</label>
+        <select [ngModel]="selectedMonth()" (ngModelChange)="selectedMonth.set(+$event)"
+          class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500">
+          @for (m of MONTHS; track $index) {
+            <option [value]="$index">{{ m }}</option>
+          }
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-gray-500 text-xs">Año</label>
+        <select [ngModel]="selectedYear()" (ngModelChange)="selectedYear.set(+$event)"
+          class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500">
+          @for (y of YEARS; track y) {
+            <option [value]="y">{{ y }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  }
+
   <!-- Channel filter pills -->
   <div class="flex gap-2 flex-wrap mb-5">
     @for (ch of channels(); track ch) {
