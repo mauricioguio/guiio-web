@@ -13,26 +13,42 @@
 
   <!-- Summary cards -->
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-    <div class="col-span-2 sm:col-span-1 bg-gray-900 border border-gray-800 rounded-2xl p-4">
-      <p class="text-gray-400 text-xs">Total combinado</p>
-      <p class="text-white text-xl sm:text-2xl font-bold mt-1">{{ formatPrice(totalRevenue()) }}</p>
-      <p class="text-gray-600 text-xs mt-1">{{ filtered().length }} venta{{ filtered().length !== 1 ? 's' : '' }}</p>
-    </div>
-    <div class="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4">
-      <p class="text-blue-400 text-xs">Online</p>
-      <p class="text-blue-300 text-lg sm:text-2xl font-bold mt-1">{{ formatPrice(totalOnline()) }}</p>
-      <p class="text-blue-600 text-xs mt-1">{{ filtered().filter(s => s.channel === 'online').length }} pedido{{ filtered().filter(s => s.channel === 'online').length !== 1 ? 's' : '' }}</p>
-    </div>
-    <div class="bg-[#25D366]/10 border border-[#25D366]/20 rounded-2xl p-4">
-      <p class="text-[#25D366] text-xs">WhatsApp</p>
-      <p class="text-[#25D366] text-lg sm:text-2xl font-bold mt-1">{{ formatPrice(totalWhatsapp()) }}</p>
-      <p class="text-[#25D366]/50 text-xs mt-1">{{ filtered().filter(s => s.saleChannel === 'whatsapp').length }} venta{{ filtered().filter(s => s.saleChannel === 'whatsapp').length !== 1 ? 's' : '' }}</p>
-    </div>
-    <div class="bg-green-500/10 border border-green-500/20 rounded-2xl p-4">
-      <p class="text-green-400 text-xs">Físicas</p>
-      <p class="text-green-300 text-lg sm:text-2xl font-bold mt-1">{{ formatPrice(totalFisica()) }}</p>
-      <p class="text-green-600 text-xs mt-1">{{ filtered().filter(s => s.channel === 'fisica' && s.saleChannel !== 'whatsapp').length }} venta{{ filtered().filter(s => s.channel === 'fisica' && s.saleChannel !== 'whatsapp').length !== 1 ? 's' : '' }}</p>
-    </div>
+
+    @if (channelFilter() === 'ALL') {
+      <div class="col-span-2 sm:col-span-1 bg-gray-900 border border-gray-800 rounded-2xl p-4">
+        <p class="text-gray-400 text-xs">Total combinado</p>
+        <p class="text-white text-xl sm:text-2xl font-bold mt-1">{{ formatPrice(totalRevenue()) }}</p>
+        <p class="text-gray-600 text-xs mt-1">{{ filtered().length }} venta{{ filtered().length !== 1 ? 's' : '' }}</p>
+      </div>
+    }
+
+    @if (channelFilter() === 'ALL' || channelFilter() === 'online') {
+      <div class="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4"
+           [ngClass]="channelFilter() !== 'ALL' ? 'col-span-2 sm:col-span-4' : ''">
+        <p class="text-blue-400 text-xs">Online</p>
+        <p class="text-blue-300 text-lg sm:text-2xl font-bold mt-1">{{ formatPrice(totalOnline()) }}</p>
+        <p class="text-blue-600 text-xs mt-1">{{ filtered().filter(s => s.channel === 'online').length }} pedido{{ filtered().filter(s => s.channel === 'online').length !== 1 ? 's' : '' }}</p>
+      </div>
+    }
+
+    @if (channelFilter() === 'ALL' || channelFilter() === 'whatsapp') {
+      <div class="bg-[#25D366]/10 border border-[#25D366]/20 rounded-2xl p-4"
+           [ngClass]="channelFilter() !== 'ALL' ? 'col-span-2 sm:col-span-4' : ''">
+        <p class="text-[#25D366] text-xs">WhatsApp</p>
+        <p class="text-[#25D366] text-lg sm:text-2xl font-bold mt-1">{{ formatPrice(totalWhatsapp()) }}</p>
+        <p class="text-[#25D366]/50 text-xs mt-1">{{ filtered().filter(s => s.saleChannel === 'whatsapp').length }} venta{{ filtered().filter(s => s.saleChannel === 'whatsapp').length !== 1 ? 's' : '' }}</p>
+      </div>
+    }
+
+    @if (channelFilter() === 'ALL' || (channelFilter() !== 'online' && channelFilter() !== 'whatsapp')) {
+      <div class="bg-green-500/10 border border-green-500/20 rounded-2xl p-4"
+           [ngClass]="channelFilter() !== 'ALL' ? 'col-span-2 sm:col-span-4' : ''">
+        <p class="text-green-400 text-xs">{{ channelFilter() !== 'ALL' ? channelFilter() : 'Físicas' }}</p>
+        <p class="text-green-300 text-lg sm:text-2xl font-bold mt-1">{{ formatPrice(totalFisica()) }}</p>
+        <p class="text-green-600 text-xs mt-1">{{ filtered().filter(s => s.channel === 'fisica' && s.saleChannel !== 'whatsapp').length }} venta{{ filtered().filter(s => s.channel === 'fisica' && s.saleChannel !== 'whatsapp').length !== 1 ? 's' : '' }}</p>
+      </div>
+    }
+
   </div>
 
   <!-- Date filter pills -->

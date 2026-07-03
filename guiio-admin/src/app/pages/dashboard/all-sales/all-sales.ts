@@ -1,4 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AllSalesApiService, UnifiedSale } from '../../../services/all-sales-api';
 
@@ -28,7 +29,7 @@ const MONTHS = [
 @Component({
   selector: 'app-all-sales',
   templateUrl: './all-sales.html',
-  imports: [FormsModule],
+  imports: [FormsModule, NgClass],
 })
 export class AllSales {
   private readonly api = inject(AllSalesApiService);
