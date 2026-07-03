@@ -277,6 +277,11 @@
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-1 flex-wrap">
                 <span class="text-xs border px-2 py-0.5 rounded-full font-medium bg-orange-500/15 text-orange-400 border-orange-500/30">Online</span>
+                @if (order.paymentProvider) {
+                  <span class="text-xs border px-2 py-0.5 rounded-full font-medium" [class]="paymentProviderClass(order.paymentProvider)">
+                    {{ paymentProviderLabel(order.paymentProvider) }}
+                  </span>
+                }
                 <span class="text-xs text-gray-600 font-mono">{{ order.reference }}</span>
                 @if (order.customer.name) {
                   <span class="text-gray-400 text-xs">{{ order.customer.name }}</span>
@@ -385,6 +390,14 @@
                 <div class="flex justify-between font-semibold text-white">
                   <span>Total</span><span>{{ formatPrice(order.total) }}</span>
                 </div>
+                @if (order.paymentProvider) {
+                  <div class="flex justify-between items-center pt-1 border-t border-gray-800 mt-1">
+                    <span class="text-gray-500">Forma de pago</span>
+                    <span class="text-xs border px-2 py-0.5 rounded-full font-medium" [class]="paymentProviderClass(order.paymentProvider)">
+                      {{ paymentProviderLabel(order.paymentProvider) }}
+                    </span>
+                  </div>
+                }
               </div>
 
               <!-- Cambiar estado -->

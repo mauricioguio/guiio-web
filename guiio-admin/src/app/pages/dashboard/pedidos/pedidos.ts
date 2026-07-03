@@ -233,6 +233,21 @@ export class Pedidos implements OnInit {
   physicalStatusLabel(s: string) { return PHYSICAL_STATUS_LABELS[s] ?? s; }
   onlineStatusLabel(s: string)   { return ONLINE_STATUS_LABELS[s] ?? s; }
 
+  paymentProviderLabel(p: string | null): string {
+    if (!p) return '';
+    const lower = p.toLowerCase();
+    if (lower === 'addi')  return 'Addi';
+    if (lower === 'wompi') return 'Wompi';
+    return p;
+  }
+
+  paymentProviderClass(p: string | null): string {
+    const lower = (p ?? '').toLowerCase();
+    if (lower === 'addi')  return 'bg-[#FF4B6E]/15 text-[#FF4B6E] border-[#FF4B6E]/30';
+    if (lower === 'wompi') return 'bg-violet-500/15 text-violet-400 border-violet-500/30';
+    return 'bg-gray-500/15 text-gray-400 border-gray-500/20';
+  }
+
   physicalStatusClass(s: string) {
     if (s === 'PENDING')   return 'bg-red-500/10 text-red-400 border-red-500/20';
     if (s === 'PRODUCING') return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
