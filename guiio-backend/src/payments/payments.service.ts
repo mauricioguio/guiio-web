@@ -108,17 +108,19 @@ export class PaymentsService {
   async confirmOrderByReference(reference: string) {
     this.logger.log(`confirmOrder llamado para: ${reference}`);
     try {
+      const updated = await this.prisma.order.updateMany({
+        where: { reference, status: { not: 'PAID' as any } },
+        data:  { status: 'PAID' as any },
+      });
+      this.logger.log(`confirmOrder: ${updated.count} fila(s) actualizadas para ${reference}`);
+
+      if (updated.count === 0) return { ok: true };
+
       const order = await this.prisma.order.findUnique({
         where: { reference },
         include: { customer: true, items: true },
       });
-      this.logger.log(`Order encontrada: ${order ? order.status : 'NO ENCONTRADA'}`);
-      if (!order || order.status === 'PAID') return { ok: true };
-
-      await this.prisma.order.update({
-        where: { reference },
-        data: { status: 'PAID' as any },
-      });
+      if (!order) return { ok: true };
 
       await this.email.sendOrderConfirmation({
         reference: order.reference,
