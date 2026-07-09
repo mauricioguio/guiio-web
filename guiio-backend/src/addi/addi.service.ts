@@ -169,43 +169,54 @@ export class AddiService {
   }
 
   async handleWebhook(payload: any) {
+    this.logger.log(`ADDI webhook recibido: ${JSON.stringify(payload)}`);
     try {
       const reference = payload?.orderId ?? payload?.clientApplicationCode;
       const status    = payload?.status;
-      if (!reference || !status) return { received: true };
+      if (!reference || !status) {
+        this.logger.warn(`ADDI webhook sin reference o status: ${JSON.stringify(payload)}`);
+        return { received: true };
+      }
+
+      this.logger.log(`ADDI webhook: reference=${reference} status=${status}`);
 
       const orderStatus =
         status === 'APPROVED' ? 'PAID'
         : status === 'REJECTED' || status === 'CANCELLED' ? 'CANCELLED'
         : null;
 
-      if (orderStatus) {
-        const updated = await this.prisma.order.updateMany({
-          where: { reference, status: { not: orderStatus as any } },
-          data:  { status: orderStatus as any },
-        });
+      if (!orderStatus) {
+        this.logger.log(`ADDI webhook: status=${status} ignorado (no mapea a estado conocido)`);
+        return { received: true };
+      }
 
-        if (orderStatus === 'PAID' && updated.count > 0) {
-          const order = await this.prisma.order.findUnique({
-            where: { reference },
-            include: { customer: true, items: true },
+      const updated = await this.prisma.order.updateMany({
+        where: { reference, status: { not: orderStatus as any } },
+        data:  { status: orderStatus as any },
+      });
+
+      this.logger.log(`ADDI webhook: ${updated.count} fila(s) actualizadas para ${reference} → ${orderStatus}`);
+
+      if (orderStatus === 'PAID' && updated.count > 0) {
+        const order = await this.prisma.order.findUnique({
+          where: { reference },
+          include: { customer: true, items: true },
+        });
+        if (order) {
+          await this.email.sendOrderConfirmation({
+            reference: order.reference,
+            customerName: order.customer.name,
+            customerEmail: order.customer.email,
+            customerPhone: order.customer.phone,
+            address: order.address,
+            city: order.city,
+            notes: order.notes,
+            total: order.total,
+            shipping: order.shipping,
+            discount: order.discount,
+            items: order.items,
           });
-          if (order) {
-            await this.email.sendOrderConfirmation({
-              reference: order.reference,
-              customerName: order.customer.name,
-              customerEmail: order.customer.email,
-              customerPhone: order.customer.phone,
-              address: order.address,
-              city: order.city,
-              notes: order.notes,
-              total: order.total,
-              shipping: order.shipping,
-              discount: order.discount,
-              items: order.items,
-            });
-            await this.abandonedCarts.markConverted(reference);
-          }
+          await this.abandonedCarts.markConverted(reference);
         }
       }
     } catch (err) {
