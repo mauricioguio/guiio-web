@@ -185,10 +185,11 @@ model Order {
   address    String
   city       String
   notes      String?
-  wompiTxId       String?
-  paymentProvider String?  @default("wompi")
-  createdAt       DateTime @default(now())
-  updatedAt  DateTime    @updatedAt
+  wompiTxId                String?
+  paymentProvider          String?   @default("wompi")
+  confirmationEmailSentAt  DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
 
   customerId   String
   customer     Customer           @relation(fields: [customerId], references: [id])

@@ -190,33 +190,44 @@ export class AddiService {
         return { received: true };
       }
 
-      const updated = await this.prisma.order.updateMany({
+      await this.prisma.order.updateMany({
         where: { reference, status: { not: orderStatus as any } },
         data:  { status: orderStatus as any },
       });
 
-      this.logger.log(`ADDI webhook: ${updated.count} fila(s) actualizadas para ${reference} → ${orderStatus}`);
-
-      if (orderStatus === 'PAID' && updated.count > 0) {
-        const order = await this.prisma.order.findUnique({
-          where: { reference },
-          include: { customer: true, items: true },
+      if (orderStatus === 'PAID') {
+        // Marcar confirmationEmailSentAt atómicamente — solo el primer llamado lo logra
+        const claimed = await this.prisma.order.updateMany({
+          where: { reference, confirmationEmailSentAt: null },
+          data:  { confirmationEmailSentAt: new Date() },
         });
-        if (order) {
-          await this.email.sendOrderConfirmation({
-            reference: order.reference,
-            customerName: order.customer.name,
-            customerEmail: order.customer.email,
-            customerPhone: order.customer.phone,
-            address: order.address,
-            city: order.city,
-            notes: order.notes,
-            total: order.total,
-            shipping: order.shipping,
-            discount: order.discount,
-            items: order.items,
+
+        this.logger.log(`ADDI webhook: correo reclamado=${claimed.count} para ${reference}`);
+
+        if (claimed.count > 0) {
+          const order = await this.prisma.order.findUnique({
+            where: { reference },
+            include: { customer: true, items: true },
           });
-          await this.abandonedCarts.markConverted(reference);
+          if (order) {
+            await this.email.sendOrderConfirmation({
+              reference: order.reference,
+              customerName: order.customer.name,
+              customerEmail: order.customer.email,
+              customerPhone: order.customer.phone,
+              address: order.address,
+              city: order.city,
+              notes: order.notes,
+              total: order.total,
+              shipping: order.shipping,
+              discount: order.discount,
+              items: order.items,
+            });
+            await this.abandonedCarts.markConverted(reference);
+            this.logger.log(`ADDI webhook: correo enviado a ${order.customer.email} para ${reference}`);
+          }
+        } else {
+          this.logger.log(`ADDI webhook: correo YA enviado anteriormente para ${reference}, omitido`);
         }
       }
     } catch (err) {

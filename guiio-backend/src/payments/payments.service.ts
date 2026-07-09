@@ -108,13 +108,19 @@ export class PaymentsService {
   async confirmOrderByReference(reference: string) {
     this.logger.log(`confirmOrder llamado para: ${reference}`);
     try {
-      const updated = await this.prisma.order.updateMany({
+      await this.prisma.order.updateMany({
         where: { reference, status: { not: 'PAID' as any } },
         data:  { status: 'PAID' as any },
       });
-      this.logger.log(`confirmOrder: ${updated.count} fila(s) actualizadas para ${reference}`);
 
-      if (updated.count === 0) return { ok: true };
+      // Marcar confirmationEmailSentAt atómicamente — solo el primer llamado lo logra
+      const claimed = await this.prisma.order.updateMany({
+        where: { reference, confirmationEmailSentAt: null },
+        data:  { confirmationEmailSentAt: new Date() },
+      });
+      this.logger.log(`confirmOrder: correo reclamado=${claimed.count} para ${reference}`);
+
+      if (claimed.count === 0) return { ok: true };
 
       const order = await this.prisma.order.findUnique({
         where: { reference },
@@ -158,12 +164,18 @@ export class PaymentsService {
 
       if (orderStatus) {
         if (orderStatus === 'PAID') {
-          const updated = await this.prisma.order.updateMany({
+          await this.prisma.order.updateMany({
             where: { reference, status: { not: 'PAID' as any } },
             data: { status: 'PAID' as any, wompiTxId },
           });
 
-          if (updated.count > 0) {
+          // Marcar confirmationEmailSentAt atómicamente — solo el primer llamado lo logra
+          const claimed = await this.prisma.order.updateMany({
+            where: { reference, confirmationEmailSentAt: null },
+            data: { confirmationEmailSentAt: new Date() },
+          });
+
+          if (claimed.count > 0) {
             const order = await this.prisma.order.findUnique({
               where: { reference },
               include: { customer: true, items: true },
