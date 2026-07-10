@@ -59,6 +59,7 @@ export class Pedidos implements OnInit {
 
   protected filterChannel = signal<ChannelFilter>('ALL');
   protected filterStatus  = signal('ALL');
+  protected searchQuery   = signal('');
   protected expandedId    = signal<string | null>(null);
 
   protected updatingId   = signal<string | null>(null);
@@ -99,6 +100,7 @@ export class Pedidos implements OnInit {
   protected filteredUnified = computed<PedidoRow[]>(() => {
     const ch = this.filterChannel();
     const st = this.filterStatus();
+    const q  = this.searchQuery().toLowerCase().trim();
     const rows: PedidoRow[] = [];
 
     if (ch !== 'online') {
@@ -106,6 +108,12 @@ export class Pedidos implements OnInit {
         const sch = this.saleChannel(s);
         if (ch !== 'ALL' && sch !== ch) continue;
         if (st !== 'ALL' && s.status !== st) continue;
+        if (q) {
+          const name  = (s.customerName  ?? '').toLowerCase();
+          const phone = (s.customerPhone ?? '').toLowerCase();
+          const num   = s.orderNumber.toString();
+          if (!name.includes(q) && !phone.includes(q) && !num.includes(q)) continue;
+        }
         rows.push({ id: s.id, kind: 'physical', group: this.physicalGroup(s), sortKey: s.orderNumber, sale: s });
       }
     }
@@ -113,6 +121,13 @@ export class Pedidos implements OnInit {
     if (ch === 'ALL' || ch === 'online') {
       for (const o of this.orders()) {
         if (st !== 'ALL' && o.status !== st) continue;
+        if (q) {
+          const name  = o.customer.name.toLowerCase();
+          const phone = o.customer.phone.toLowerCase();
+          const email = o.customer.email.toLowerCase();
+          const ref   = o.reference.toLowerCase();
+          if (!name.includes(q) && !phone.includes(q) && !email.includes(q) && !ref.includes(q)) continue;
+        }
         rows.push({ id: o.id, kind: 'online', group: this.onlineGroup(o), sortKey: new Date(o.createdAt).getTime(), order: o });
       }
     }
