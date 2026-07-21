@@ -152,7 +152,7 @@
             >
               <option value="" disabled>Colección</option>
               @for (col of collections(); track col.id) {
-                <option [value]="col.name">{{ col.name }}</option>
+                <option [value]="col.name" [selected]="col.name === draft().collection">{{ col.name }}</option>
               }
             </select>
             <div class="relative">
