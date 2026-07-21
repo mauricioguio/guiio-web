@@ -31,6 +31,7 @@ export class Collections {
   protected loading = signal(true);
   protected saving = signal(false);
   protected uploading = signal(false);
+  protected uploadError = signal<string | null>(null);
   protected showForm = signal(false);
   protected editingId = signal<string | null>(null);
   protected deletingId = signal<string | null>(null);
@@ -172,9 +173,14 @@ export class Collections {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     this.uploading.set(true);
+    this.uploadError.set(null);
     this.cloudinary.upload(file).subscribe({
       next: url => { this.patch({ image: url }); this.uploading.set(false); },
-      error: () => this.uploading.set(false),
+      error: (err) => {
+        this.uploading.set(false);
+        const msg = err?.error?.error?.message ?? err?.message ?? 'Error al subir la imagen';
+        this.uploadError.set(msg);
+      },
     });
   }
 

@@ -120,6 +120,9 @@
               <input type="file" accept="image/*" class="hidden" [disabled]="uploading()" (change)="uploadImage($event)" />
             </label>
           </div>
+          @if (uploadError()) {
+            <p class="text-red-400 text-xs mt-2">{{ uploadError() }}</p>
+          }
         </div>
 
         <!-- Nombre -->

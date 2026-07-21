@@ -28,7 +28,10 @@ export class CloudinaryService {
         canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
         URL.revokeObjectURL(url);
         canvas.toBlob(
-          blob => resolve(new File([blob!], file.name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' })),
+          blob => resolve(blob
+            ? new File([blob], file.name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' })
+            : file
+          ),
           'image/webp',
           quality,
         );
