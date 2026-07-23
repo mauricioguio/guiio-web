@@ -223,16 +223,21 @@ export class ProductsService {
       where: { productId: sourceId },
       orderBy: { createdAt: 'asc' },
     });
-    await this.prisma.$transaction(async (tx) => {
-      for (const targetId of targetIds) {
-        await tx.productCostItem.deleteMany({ where: { productId: targetId } });
-        for (const item of sourceItems) {
-          await tx.productCostItem.create({
-            data: { productId: targetId, name: item.name, amount: item.amount },
-          });
-        }
-      }
+    await this.prisma.productCostItem.deleteMany({
+      where: { productId: { in: targetIds } },
     });
+    if (sourceItems.length > 0) {
+      await this.prisma.productCostItem.createMany({
+        data: targetIds.flatMap(targetId =>
+          sourceItems.map(item => ({
+            productId: targetId,
+            name: item.name,
+            quantity: item.quantity,
+            amount: item.amount,
+          }))
+        ),
+      });
+    }
     return { synced: targetIds.length };
   }
 
