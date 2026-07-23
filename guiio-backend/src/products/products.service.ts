@@ -218,6 +218,24 @@ export class ProductsService {
     return this.prisma.productCostItem.delete({ where: { id: costId } });
   }
 
+  async syncCostItems(sourceId: string, targetIds: string[]) {
+    const sourceItems = await this.prisma.productCostItem.findMany({
+      where: { productId: sourceId },
+      orderBy: { createdAt: 'asc' },
+    });
+    await this.prisma.$transaction(async (tx) => {
+      for (const targetId of targetIds) {
+        await tx.productCostItem.deleteMany({ where: { productId: targetId } });
+        for (const item of sourceItems) {
+          await tx.productCostItem.create({
+            data: { productId: targetId, name: item.name, amount: item.amount },
+          });
+        }
+      }
+    });
+    return { synced: targetIds.length };
+  }
+
   async getSizeAdvice(dto: {
     bust?: number; waist?: number; hip?: number;
     gender: string; type: string; productName: string;

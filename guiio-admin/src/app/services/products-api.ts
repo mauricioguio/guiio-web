@@ -34,4 +34,5 @@ export class ProductsApiService {
   addCostItem(productId: string, name: string, amount: number) { return this.http.post<CostItem>(`${API_URL}/products/${productId}/cost-items`, { name, amount }); }
   updateCostItem(costId: string, name: string, amount: number) { return this.http.patch<CostItem>(`${API_URL}/products/cost-items/${costId}`, { name, amount }); }
   deleteCostItem(costId: string) { return this.http.delete(`${API_URL}/products/cost-items/${costId}`); }
+  syncCostItems(sourceId: string, targetIds: string[]) { return this.http.post<{ synced: number }>(`${API_URL}/products/cost-items/sync`, { sourceId, targetIds }); }
 }

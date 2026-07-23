@@ -105,6 +105,30 @@ export class Products {
     this.costItems().reduce((s, c) => s + c.amount, 0)
   );
 
+  // ── Sincronización de insumos entre variantes ──────────────────────────────
+  protected showSyncPanel  = signal(false);
+  protected syncTargetIds  = signal<string[]>([]);
+  protected syncing        = signal(false);
+  protected syncDone       = signal(false);
+
+  private baseName(name: string): string {
+    let base = name.toLowerCase();
+    for (const c of PREDEFINED_COLORS) {
+      base = base.replace(new RegExp(`\\b${c.name.toLowerCase()}\\b`, 'gi'), '');
+    }
+    return base.replace(/\s+/g, ' ').trim();
+  }
+
+  protected siblingProducts = computed(() => {
+    const id = this.editingId();
+    if (!id) return [];
+    const current = this.products().find(p => p.id === id);
+    if (!current) return [];
+    const base = this.baseName(current.name);
+    if (!base) return [];
+    return this.products().filter(p => p.id !== id && this.baseName(p.name) === base);
+  });
+
   protected productCollections = computed(() => {
     const seen = new Set<string>();
     const result: string[] = [];
@@ -458,6 +482,36 @@ export class Products {
   deleteInsumo(costId: string) {
     this.api.deleteCostItem(costId).subscribe({
       next: () => this.costItems.update(list => list.filter(c => c.id !== costId)),
+    });
+  }
+
+  toggleSyncTarget(id: string) {
+    this.syncTargetIds.update(ids =>
+      ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id]
+    );
+  }
+
+  selectAllSiblings() {
+    this.syncTargetIds.set(this.siblingProducts().map(p => p.id));
+  }
+
+  openSyncPanel() {
+    this.syncTargetIds.set(this.siblingProducts().map(p => p.id));
+    this.syncDone.set(false);
+    this.showSyncPanel.set(true);
+  }
+
+  doSync() {
+    const sourceId = this.editingId();
+    const targetIds = this.syncTargetIds();
+    if (!sourceId || !targetIds.length) return;
+    this.syncing.set(true);
+    this.api.syncCostItems(sourceId, targetIds).subscribe({
+      next: () => {
+        this.syncing.set(false);
+        this.syncDone.set(true);
+      },
+      error: () => this.syncing.set(false),
     });
   }
 }

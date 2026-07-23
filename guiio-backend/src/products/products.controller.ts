@@ -92,4 +92,11 @@ export class ProductsController {
   deleteCostItem(@Param('costId') costId: string) {
     return this.productsService.deleteCostItem(costId);
   }
+
+  @Post('cost-items/sync')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  syncCostItems(@Body() body: { sourceId: string; targetIds: string[] }) {
+    return this.productsService.syncCostItems(body.sourceId, body.targetIds);
+  }
 }

@@ -475,6 +475,62 @@
                   + Agregar
                 </button>
               </div>
+
+              <!-- Botón sincronizar variantes -->
+              @if (costItems().length > 0 && siblingProducts().length > 0) {
+                <div class="px-4 py-3 border-t border-gray-800">
+                  @if (!showSyncPanel()) {
+                    <button (click)="openSyncPanel()"
+                      class="flex items-center gap-2 text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path d="M8 16H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"/>
+                        <rect x="8" y="8" width="12" height="12" rx="2"/>
+                      </svg>
+                      Sincronizar insumos con otras variantes del mismo modelo
+                      <span class="bg-indigo-500/20 text-indigo-400 rounded-full px-1.5 py-0.5">{{ siblingProducts().length }}</span>
+                    </button>
+                  } @else {
+                    <!-- Panel de selección -->
+                    <div class="space-y-2">
+                      <div class="flex items-center justify-between">
+                        <p class="text-xs text-gray-400 font-medium">Aplicar estos insumos a:</p>
+                        <div class="flex items-center gap-3">
+                          <button (click)="selectAllSiblings()" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+                            Seleccionar todos
+                          </button>
+                          <button (click)="showSyncPanel.set(false)" class="text-gray-600 hover:text-gray-400 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="space-y-1.5 max-h-40 overflow-y-auto">
+                        @for (sibling of siblingProducts(); track sibling.id) {
+                          <label class="flex items-center gap-2.5 cursor-pointer group">
+                            <input type="checkbox"
+                              [checked]="syncTargetIds().includes(sibling.id)"
+                              (change)="toggleSyncTarget(sibling.id)"
+                              class="w-3.5 h-3.5 rounded accent-indigo-500 cursor-pointer"
+                            />
+                            <span class="text-sm text-gray-300 group-hover:text-white transition-colors truncate">{{ sibling.name }}</span>
+                          </label>
+                        }
+                      </div>
+                      @if (syncDone()) {
+                        <p class="text-xs text-green-400">Insumos sincronizados correctamente.</p>
+                      } @else {
+                        <button
+                          (click)="doSync()"
+                          [disabled]="syncing() || syncTargetIds().length === 0"
+                          class="w-full text-sm font-medium bg-indigo-600 text-white rounded-lg py-2 hover:bg-indigo-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                          {{ syncing() ? 'Sincronizando...' : 'Aplicar a ' + syncTargetIds().length + ' producto(s)' }}
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              }
             }
           </div>
         </div>
