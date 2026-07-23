@@ -58,9 +58,16 @@
                   <button (click)="cart.updateQuantity($index, item.quantity + 1)"
                     class="px-2 py-1 text-gray-600 hover:text-gray-900 text-sm">+</button>
                 </div>
-                <span class="text-sm font-medium">
-                  {{ (item.priceOverride ?? item.product.price) * item.quantity | currency:'COP':'symbol-narrow':'1.0-0' }}
-                </span>
+                <div class="text-right">
+                  <span class="text-sm font-medium">
+                    {{ item.product.price * item.quantity | currency:'COP':'symbol-narrow':'1.0-0' }}
+                  </span>
+                  @if (item.priceOverride && item.priceOverride > item.product.price) {
+                    <p class="text-xs text-red-500 font-medium">
+                      Tallaje grande + {{ (item.priceOverride - item.product.price) * item.quantity | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </p>
+                  }
+                </div>
               </div>
             </div>
             <button (click)="cart.removeItem($index)" class="text-gray-400 hover:text-red-500 self-start p-1">
