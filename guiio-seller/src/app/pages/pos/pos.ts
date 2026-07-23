@@ -169,14 +169,14 @@ export class Pos implements OnInit, OnDestroy {
     return 0;
   }
 
-  private sizeHasXXL(size: string): boolean {
-    return size === 'XXL' || size.split(/[\s/]+/).some(s => s === 'XXL');
+  private sizeIsLargeTalla(size: string): boolean {
+    return size.split(/[\s/]+/).some(s => s === 'XXL' || s === 'XXXL');
   }
 
   itemPrice(i: CartItem): number {
     const base = i.priceOverride ?? i.product.price;
     const bordadoExtra = (i.bordados?.length ?? 0) * this.bordadoPrice();
-    const xxlExtra = this.sizeHasXXL(i.size) ? this.xxlSurcharge() : 0;
+    const xxlExtra = this.sizeIsLargeTalla(i.size) ? this.xxlSurcharge() : 0;
     return base + bordadoExtra + xxlExtra;
   }
 
@@ -354,7 +354,24 @@ export class Pos implements OnInit, OnDestroy {
     return this.inventory().find(i => i.productId === productId && i.size === size)?.quantity ?? 0;
   }
 
-  sizesFor(p: Product): string[] { return productSizes(p); }
+  sizesFor(p: Product, includeXXXL = false): string[] {
+    const sizes = productSizes(p);
+    if (!includeXXXL) return sizes;
+    const isClothing = p.gender === 'hombre' || p.gender === 'mujer';
+    if (isClothing && sizes.length > 0 && sizes[0] !== 'Único' && !sizes.includes('XXXL')) {
+      return [...sizes, 'XXXL'];
+    }
+    return sizes;
+  }
+
+  splitSizesFor(p: Product, type: 'top' | 'bottom'): string[] {
+    const sizes = type === 'top' ? p.topSizes : p.bottomSizes;
+    const isClothing = p.gender === 'hombre' || p.gender === 'mujer';
+    if (isClothing && sizes.length > 0 && !sizes.includes('XXXL')) {
+      return [...sizes, 'XXXL'];
+    }
+    return sizes;
+  }
 
   openProduct(p: Product) {
     this.editingItemId.set(null);

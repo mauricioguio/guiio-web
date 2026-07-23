@@ -63,7 +63,7 @@
               <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
               </svg>
-              La talla XXL tiene un costo adicional de $30.000 por mayor cantidad de tela.
+              Las tallas XXL y XXXL tienen un costo adicional de $30.000 por mayor cantidad de tela.
             </p>
           }
         </div>
@@ -118,7 +118,7 @@
               }
             </div>
             <div class="flex flex-wrap gap-2">
-              @for (size of p.topSizes; track size) {
+              @for (size of displayTopSizes(); track size) {
                 <button (click)="selectTopSize(size)"
                   class="w-12 h-12 rounded-lg border text-sm font-medium transition-all"
                   [class.bg-gray-900]="selectedTopSize() === size"
@@ -149,7 +149,7 @@
               }
             </div>
             <div class="flex flex-wrap gap-2">
-              @for (size of p.bottomSizes; track size) {
+              @for (size of displayBottomSizes(); track size) {
                 <button (click)="selectBottomSize(size)"
                   [disabled]="!selectedTopSize()"
                   class="w-12 h-12 rounded-lg border text-sm font-medium transition-all"
@@ -185,7 +185,7 @@
               }
             </div>
             <div class="flex flex-wrap gap-2">
-              @for (size of p.topSizes; track size) {
+              @for (size of displayTopSizes(); track size) {
                 <button (click)="selectTopSize(size)"
                   class="w-12 h-12 rounded-lg border text-sm font-medium transition-all"
                   [class.bg-gray-900]="selectedTopSize() === size"
@@ -217,7 +217,7 @@
               }
             </div>
             <div class="flex flex-wrap gap-2">
-              @for (size of p.bottomSizes; track size) {
+              @for (size of displayBottomSizes(); track size) {
                 <button (click)="selectBottomSize(size)"
                   class="w-12 h-12 rounded-lg border text-sm font-medium transition-all"
                   [class.bg-gray-900]="selectedBottomSize() === size"
@@ -249,7 +249,7 @@
               }
             </div>
             <div class="flex flex-wrap gap-2">
-              @for (size of p.topSizes; track size) {
+              @for (size of displayTopSizes(); track size) {
                 <button (click)="selectTopSize(size)"
                   class="w-12 h-12 rounded-lg border text-sm font-medium transition-all"
                   [class.bg-gray-900]="selectedTopSize() === size"

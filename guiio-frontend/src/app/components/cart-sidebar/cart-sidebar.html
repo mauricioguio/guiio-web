@@ -66,6 +66,9 @@
                     <p class="text-xs text-red-500 font-medium">
                       Tallaje grande + {{ (item.priceOverride - item.product.price) | currency:'COP':'symbol-narrow':'1.0-0' }}{{ item.quantity > 1 ? ' c/u' : '' }}
                     </p>
+                    <p class="text-sm font-semibold text-gray-900">
+                      = {{ item.priceOverride * item.quantity | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </p>
                   }
                 </div>
               </div>

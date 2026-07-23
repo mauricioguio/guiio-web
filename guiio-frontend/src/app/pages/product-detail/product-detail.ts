@@ -142,6 +142,20 @@ export class ProductDetail {
       );
   });
 
+  protected readonly displayTopSizes = computed(() => {
+    const p = this.product();
+    if (!p?.topSizes.length) return p?.topSizes ?? [];
+    const isClothing = p.gender === 'hombre' || p.gender === 'mujer';
+    return isClothing && !p.topSizes.includes('XXXL') ? [...p.topSizes, 'XXXL'] : p.topSizes;
+  });
+
+  protected readonly displayBottomSizes = computed(() => {
+    const p = this.product();
+    if (!p?.bottomSizes.length) return p?.bottomSizes ?? [];
+    const isClothing = p.gender === 'hombre' || p.gender === 'mujer';
+    return isClothing && !p.bottomSizes.includes('XXXL') ? [...p.bottomSizes, 'XXXL'] : p.bottomSizes;
+  });
+
   protected readonly selectedColor = signal<ProductColor | null>(null);
   protected readonly selectedTopSize = signal<string | null>(null);
   protected readonly selectedBottomSize = signal<string | null>(null);
@@ -264,7 +278,7 @@ export class ProductDetail {
     const waistSize = waist && waist > 50 && waist < 200 ? measurementToSize(waist, waistChart) : null;
     if (!bustSize && !waistSize) return null;
     const recommended = bustSize && waistSize ? largerSize(bustSize, waistSize) : (bustSize ?? waistSize!);
-    return findClosest(recommended, p.topSizes);
+    return findClosest(recommended, this.displayTopSizes());
   });
 
   protected readonly calcBottomResult = computed(() => {
@@ -275,7 +289,7 @@ export class ProductDetail {
     // Tanto hombre como mujer: el pantalón se basa solo en cadera
     const chart = this.isMale ? BOTTOM_CHART_M : BOTTOM_CHART_F;
     if (!hip || hip < 50 || hip > 200) return null;
-    return findClosest(measurementToSize(hip, chart), p.bottomSizes);
+    return findClosest(measurementToSize(hip, chart), this.displayBottomSizes());
   });
 
   openCalc() {
@@ -353,7 +367,7 @@ export class ProductDetail {
     const raw = this.rawTopSize();
     if (!raw) return false;
     const rawIdx = SIZE_ORDER.indexOf(raw.toUpperCase());
-    const maxIdx = Math.max(...p.topSizes.map(s => SIZE_ORDER.indexOf(s.toUpperCase())).filter(i => i >= 0));
+    const maxIdx = Math.max(...this.displayTopSizes().map(s => SIZE_ORDER.indexOf(s.toUpperCase())).filter(i => i >= 0));
     return rawIdx > maxIdx;
   });
 
@@ -363,7 +377,7 @@ export class ProductDetail {
     const raw = this.rawBottomSize();
     if (!raw) return false;
     const rawIdx = SIZE_ORDER.indexOf(raw.toUpperCase());
-    const maxIdx = Math.max(...p.bottomSizes.map(s => SIZE_ORDER.indexOf(s.toUpperCase())).filter(i => i >= 0));
+    const maxIdx = Math.max(...this.displayBottomSizes().map(s => SIZE_ORDER.indexOf(s.toUpperCase())).filter(i => i >= 0));
     return rawIdx > maxIdx;
   });
 
@@ -396,9 +410,11 @@ export class ProductDetail {
 
   protected readonly XXL_SURCHARGE = 30_000;
 
-  protected readonly xxlSurchargeApplies = computed(() =>
-    this.selectedTopSize() === 'XXL' || this.selectedBottomSize() === 'XXL'
-  );
+  protected readonly xxlSurchargeApplies = computed(() => {
+    const top = this.selectedTopSize();
+    const bot = this.selectedBottomSize();
+    return top === 'XXL' || top === 'XXXL' || bot === 'XXL' || bot === 'XXXL';
+  });
 
   protected readonly effectivePrice = computed(() => {
     const p = this.product();

@@ -1761,7 +1761,7 @@
         @if (saleType() === 'STOCK' || tallaCompleta()) {
           <p class="text-gray-400 text-xs uppercase tracking-wider mb-3">Selecciona talla</p>
           <div class="flex flex-wrap gap-2 mb-5">
-            @for (size of sizesFor(selectedProduct()!); track size) {
+            @for (size of sizesFor(selectedProduct()!, saleType() === 'FABRICAR'); track size) {
               @let stock = stockFor(selectedProduct()!.id, size);
               <button
                 (click)="selectedSize.set(size)"
@@ -1806,7 +1806,7 @@
             <div>
               <p class="text-gray-400 text-xs uppercase tracking-wider mb-2">Talla de blusa</p>
               <div class="flex flex-wrap gap-2 mb-2">
-                @for (size of selectedProduct()!.topSizes; track size) {
+                @for (size of splitSizesFor(selectedProduct()!, 'top'); track size) {
                   <button
                     (click)="selectedTopSize.set(size)"
                     class="px-3 py-1.5 rounded-xl text-xs border transition-colors"
@@ -1830,7 +1830,7 @@
             <div>
               <p class="text-gray-400 text-xs uppercase tracking-wider mb-2">Talla de pantalón</p>
               <div class="flex flex-wrap gap-2 mb-2">
-                @for (size of selectedProduct()!.bottomSizes; track size) {
+                @for (size of splitSizesFor(selectedProduct()!, 'bottom'); track size) {
                   <button
                     (click)="selectedBottomSize.set(size)"
                     class="px-3 py-1.5 rounded-xl text-xs border transition-colors"
