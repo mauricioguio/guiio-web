@@ -162,11 +162,11 @@ export class Pos implements OnInit, OnDestroy {
     });
   });
 
-  private readonly XXL_SURCHARGE = 20_000;
-
-  private isVeraguasSede(): boolean {
+  private xxlSurcharge(): number {
     const name = (this.auth.currentSede()?.sedeName ?? '').toLowerCase();
-    return name.includes('veraguas') || name.includes('beraguas');
+    if (name.includes('salitre')) return 30_000;
+    if (name.includes('veraguas') || name.includes('beraguas')) return 20_000;
+    return 0;
   }
 
   private sizeHasXXL(size: string): boolean {
@@ -176,7 +176,7 @@ export class Pos implements OnInit, OnDestroy {
   itemPrice(i: CartItem): number {
     const base = i.priceOverride ?? i.product.price;
     const bordadoExtra = (i.bordados?.length ?? 0) * this.bordadoPrice();
-    const xxlExtra = this.isVeraguasSede() && this.sizeHasXXL(i.size) ? this.XXL_SURCHARGE : 0;
+    const xxlExtra = this.sizeHasXXL(i.size) ? this.xxlSurcharge() : 0;
     return base + bordadoExtra + xxlExtra;
   }
 

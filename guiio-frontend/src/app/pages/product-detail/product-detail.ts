@@ -394,6 +394,25 @@ export class ProductDetail {
     return all.slice(Math.max(0, i - 1), Math.min(all.length, i + 2));
   });
 
+  protected readonly XXL_SURCHARGE = 30_000;
+
+  protected readonly xxlSurchargeApplies = computed(() =>
+    this.selectedTopSize() === 'XXL' || this.selectedBottomSize() === 'XXL'
+  );
+
+  protected readonly effectivePrice = computed(() => {
+    const p = this.product();
+    if (!p) return 0;
+    return p.price + (this.xxlSurchargeApplies() ? this.XXL_SURCHARGE : 0);
+  });
+
+  // True when measurements give XXXL (beyond our catalog's max of XXL)
+  protected readonly rawExceedsXXL = computed(() => {
+    const top = this.rawTopSize();
+    const bot = this.rawBottomSize();
+    return top === 'XXXL' || bot === 'XXXL';
+  });
+
   applyCalcSizes() {
     const top = this.calcTopResult();
     const bot = this.calcBottomResult();
@@ -422,7 +441,8 @@ export class ProductDetail {
     const product = this.product();
     if (!product || !this.canAddToCart) return;
     const color = this.selectedColor() ?? product.colors[0] ?? { name: '', hex: '' };
-    this.cartService.addItem(product, color, this.selectedTopSize() ?? '', this.selectedBottomSize() ?? '');
+    const priceOverride = this.xxlSurchargeApplies() ? this.effectivePrice() : undefined;
+    this.cartService.addItem(product, color, this.selectedTopSize() ?? '', this.selectedBottomSize() ?? '', priceOverride);
     this.added.set(true);
     setTimeout(() => this.added.set(false), 2000);
   }

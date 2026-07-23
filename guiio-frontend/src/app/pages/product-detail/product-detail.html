@@ -54,9 +54,19 @@
       <div class="flex flex-col">
         <p class="text-sm uppercase tracking-widest text-gray-400 mb-2">{{ p.collection }}</p>
         <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ p.name }}</h1>
-        <p class="text-2xl font-semibold text-gray-900 mb-6">
-          {{ p.price | currency:'COP':'symbol-narrow':'1.0-0' }}
-        </p>
+        <div class="mb-6">
+          <p class="text-2xl font-semibold text-gray-900">
+            {{ effectivePrice() | currency:'COP':'symbol-narrow':'1.0-0' }}
+          </p>
+          @if (xxlSurchargeApplies()) {
+            <p class="text-sm text-amber-600 mt-1 flex items-center gap-1.5">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              La talla XXL tiene un costo adicional de $30.000 por mayor cantidad de tela.
+            </p>
+          }
+        </div>
         <p class="text-gray-600 leading-relaxed mb-8">{{ p.description }}</p>
 
         <!-- Color selector -->
@@ -698,7 +708,10 @@
               </div>
             </div>
           } @else {
-            <p class="text-xs text-red-500 font-medium text-center py-1">No contamos con este tallaje</p>
+            <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+              <p class="text-xs text-amber-800 font-medium">Nuestro tallaje llega hasta talla XXL</p>
+              <p class="text-xs text-amber-700 mt-0.5">Para tu medida, te invitamos a escribirnos directamente y con gusto te asesoramos.</p>
+            </div>
           }
         </div>
       }

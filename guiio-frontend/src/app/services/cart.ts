@@ -18,7 +18,7 @@ export class CartService {
   );
 
   readonly subtotal = computed(() =>
-    this.items().reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+    this.items().reduce((sum, item) => sum + (item.priceOverride ?? item.product.price) * item.quantity, 0)
   );
 
   readonly hasDiscount = computed(() => this.totalItems() >= 2);
@@ -28,7 +28,7 @@ export class CartService {
     // Expand each item into individual units by quantity
     const units: number[] = [];
     for (const item of items) {
-      for (let i = 0; i < item.quantity; i++) units.push(item.product.price);
+      for (let i = 0; i < item.quantity; i++) units.push(item.priceOverride ?? item.product.price);
     }
     if (units.length < 2) return 0;
     // Sort descending: most expensive first — every odd-indexed unit (2nd, 4th…) gets 20% off
@@ -57,7 +57,7 @@ export class CartService {
     }
   }
 
-  addItem(product: Product, color: ProductColor, topSize: string, bottomSize: string) {
+  addItem(product: Product, color: ProductColor, topSize: string, bottomSize: string, priceOverride?: number) {
     this.items.update(items => {
       const existing = items.find(
         i => i.product.id === product.id &&
@@ -68,7 +68,7 @@ export class CartService {
       if (existing) {
         return items.map(i => i === existing ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...items, { product, quantity: 1, selectedColor: color, selectedTopSize: topSize, selectedBottomSize: bottomSize }];
+      return [...items, { product, quantity: 1, selectedColor: color, selectedTopSize: topSize, selectedBottomSize: bottomSize, priceOverride }];
     });
 
     (window as any).fbq?.('track', 'AddToCart', {
