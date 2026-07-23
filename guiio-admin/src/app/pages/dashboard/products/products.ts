@@ -112,6 +112,7 @@ export class Products {
   protected syncTargetIds  = signal<string[]>([]);
   protected syncing        = signal(false);
   protected syncDone       = signal(false);
+  protected showReSyncBanner = signal(false);
 
   private baseName(name: string): string {
     let base = name.toLowerCase();
@@ -452,6 +453,10 @@ export class Products {
         this.newInsumoQty.set('1');
         this.newInsumoAmount.set('');
         this.savingCost.set(false);
+        if (this.siblingProducts().length > 0) {
+          this.showReSyncBanner.set(true);
+          this.syncDone.set(false);
+        }
       },
       error: () => this.savingCost.set(false),
     });
@@ -487,7 +492,28 @@ export class Products {
 
   deleteInsumo(costId: string) {
     this.api.deleteCostItem(costId).subscribe({
-      next: () => this.costItems.update(list => list.filter(c => c.id !== costId)),
+      next: () => {
+        this.costItems.update(list => list.filter(c => c.id !== costId));
+        if (this.siblingProducts().length > 0) {
+          this.showReSyncBanner.set(true);
+          this.syncDone.set(false);
+        }
+      },
+    });
+  }
+
+  quickSync() {
+    const sourceId = this.editingId();
+    const targetIds = this.siblingProducts().map(p => p.id);
+    if (!sourceId || !targetIds.length) return;
+    this.syncing.set(true);
+    this.api.syncCostItems(sourceId, targetIds).subscribe({
+      next: () => {
+        this.syncing.set(false);
+        this.syncDone.set(true);
+        this.showReSyncBanner.set(false);
+      },
+      error: () => this.syncing.set(false),
     });
   }
 

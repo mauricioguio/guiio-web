@@ -499,6 +499,27 @@
                 </button>
               </div>
 
+              <!-- Banner re-sincronizar tras agregar/eliminar insumo -->
+              @if (showReSyncBanner() && siblingProducts().length > 0) {
+                <div class="mx-4 mb-0 mt-1 bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                  <p class="text-indigo-300 text-xs">
+                    Los insumos cambiaron. ¿Actualizar las {{ siblingProducts().length }} variantes del modelo?
+                  </p>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <button (click)="quickSync()" [disabled]="syncing()"
+                      class="text-xs bg-indigo-600 text-white font-medium px-3 py-1.5 rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-40">
+                      {{ syncing() ? 'Sincronizando...' : 'Sí, sincronizar' }}
+                    </button>
+                    <button (click)="showReSyncBanner.set(false)"
+                      class="text-gray-500 hover:text-gray-300 transition-colors p-1">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              }
+
               <!-- Botón sincronizar variantes -->
               @if (costItems().length > 0 && siblingProducts().length > 0) {
                 <div class="px-4 py-3 border-t border-gray-800">
