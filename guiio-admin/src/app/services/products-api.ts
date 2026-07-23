@@ -16,7 +16,7 @@ export interface Product {
 
 export type ProductPayload = Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'active'>;
 
-export interface CostItem { id: string; productId: string; name: string; amount: number; createdAt: string; }
+export interface CostItem { id: string; productId: string; name: string; quantity: number; amount: number; createdAt: string; }
 
 @Injectable({ providedIn: 'root' })
 export class ProductsApiService {
@@ -31,8 +31,8 @@ export class ProductsApiService {
   remove(id: string) { return this.http.delete(`${API_URL}/products/${id}`); }
 
   getCostItems(productId: string) { return this.http.get<CostItem[]>(`${API_URL}/products/${productId}/cost-items`); }
-  addCostItem(productId: string, name: string, amount: number) { return this.http.post<CostItem>(`${API_URL}/products/${productId}/cost-items`, { name, amount }); }
-  updateCostItem(costId: string, name: string, amount: number) { return this.http.patch<CostItem>(`${API_URL}/products/cost-items/${costId}`, { name, amount }); }
+  addCostItem(productId: string, name: string, quantity: number, amount: number) { return this.http.post<CostItem>(`${API_URL}/products/${productId}/cost-items`, { name, quantity, amount }); }
+  updateCostItem(costId: string, name: string, quantity: number, amount: number) { return this.http.patch<CostItem>(`${API_URL}/products/cost-items/${costId}`, { name, quantity, amount }); }
   deleteCostItem(costId: string) { return this.http.delete(`${API_URL}/products/cost-items/${costId}`); }
   syncCostItems(sourceId: string, targetIds: string[]) { return this.http.post<{ synced: number }>(`${API_URL}/products/cost-items/sync`, { sourceId, targetIds }); }
 }

@@ -399,36 +399,49 @@
                   @for (item of costItems(); track item.id) {
                     @if (editingCostId() === item.id) {
                       <!-- Fila en modo edición -->
-                      <div class="flex items-center gap-2 px-4 py-2.5">
+                      <div class="grid grid-cols-[1fr_5rem_8rem] gap-2 px-4 py-2.5">
                         <input
                           type="text"
                           [value]="editCostName()"
                           (input)="editCostName.set($any($event.target).value)"
-                          placeholder="Nombre"
-                          class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+                          placeholder="Descripción"
+                          class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+                        />
+                        <input
+                          type="number"
+                          [value]="editCostQty()"
+                          (input)="editCostQty.set($any($event.target).value)"
+                          placeholder="Cant."
+                          min="0"
+                          class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
                         />
                         <input
                           type="number"
                           [value]="editCostAmount()"
                           (input)="editCostAmount.set($any($event.target).value)"
-                          placeholder="Valor"
+                          placeholder="Valor $"
                           min="0"
-                          class="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+                          class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
                         />
-                        <button (click)="saveEditCost()" [disabled]="savingCost()"
-                          class="text-xs bg-white text-gray-900 font-medium px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-40">
-                          Guardar
-                        </button>
-                        <button (click)="cancelEditCost()"
-                          class="text-xs text-gray-400 hover:text-white px-2 py-1.5 transition-colors">
-                          Cancelar
-                        </button>
+                        <div class="col-span-3 flex gap-2">
+                          <button (click)="saveEditCost()" [disabled]="savingCost()"
+                            class="text-xs bg-white text-gray-900 font-medium px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-40">
+                            Guardar
+                          </button>
+                          <button (click)="cancelEditCost()"
+                            class="text-xs text-gray-400 hover:text-white px-2 py-1.5 transition-colors">
+                            Cancelar
+                          </button>
+                        </div>
                       </div>
                     } @else {
                       <!-- Fila normal -->
                       <div class="flex items-center gap-3 px-4 py-2.5">
-                        <span class="flex-1 text-sm text-gray-300 truncate">{{ item.name }}</span>
-                        <span class="text-sm text-red-300 font-medium shrink-0">{{ formatPrice(item.amount) }}</span>
+                        <div class="flex-1 min-w-0">
+                          <span class="text-sm text-gray-300 truncate block">{{ item.name }}</span>
+                          <span class="text-xs text-gray-600">{{ item.quantity }} × {{ formatPrice(item.amount) }}</span>
+                        </div>
+                        <span class="text-sm text-red-300 font-medium shrink-0">{{ formatPrice(item.quantity * item.amount) }}</span>
                         <button (click)="startEditCost(item)"
                           class="text-gray-600 hover:text-white p-1 transition-colors shrink-0" title="Editar">
                           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -452,27 +465,37 @@
               }
 
               <!-- Agregar nuevo insumo -->
-              <div class="flex items-center gap-2 px-4 py-3 bg-gray-900/40 border-t border-gray-800">
-                <input
-                  type="text"
-                  [value]="newInsumoName()"
-                  (input)="newInsumoName.set($any($event.target).value)"
-                  placeholder="Nombre del insumo (ej: Tela, Hilo)"
-                  class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
-                />
-                <input
-                  type="number"
-                  [value]="newInsumoAmount()"
-                  (input)="newInsumoAmount.set($any($event.target).value)"
-                  placeholder="Valor $"
-                  min="0"
-                  class="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
-                />
+              <div class="px-4 py-3 bg-gray-900/40 border-t border-gray-800 space-y-2">
+                <div class="grid grid-cols-[1fr_5rem_8rem] gap-2">
+                  <input
+                    type="text"
+                    [value]="newInsumoName()"
+                    (input)="newInsumoName.set($any($event.target).value)"
+                    placeholder="Descripción (ej: Tela, Hilo)"
+                    class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+                  />
+                  <input
+                    type="number"
+                    [value]="newInsumoQty()"
+                    (input)="newInsumoQty.set($any($event.target).value)"
+                    placeholder="Cant."
+                    min="0"
+                    class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+                  />
+                  <input
+                    type="number"
+                    [value]="newInsumoAmount()"
+                    (input)="newInsumoAmount.set($any($event.target).value)"
+                    placeholder="Valor $"
+                    min="0"
+                    class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+                  />
+                </div>
                 <button
                   (click)="addInsumo()"
                   [disabled]="savingCost() || !newInsumoName().trim() || !newInsumoAmount()"
-                  class="bg-white text-gray-900 text-sm font-medium px-4 py-1.5 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0">
-                  + Agregar
+                  class="w-full bg-white text-gray-900 text-sm font-medium px-4 py-1.5 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  + Agregar insumo
                 </button>
               </div>
 

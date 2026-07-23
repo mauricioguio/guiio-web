@@ -77,13 +77,13 @@ export class ProductsController {
   @Post(':id/cost-items')
   @HttpCode(201)
   @UseGuards(JwtAuthGuard)
-  addCostItem(@Param('id') productId: string, @Body() body: { name: string; amount: number }) {
-    return this.productsService.addCostItem(productId, body.name, body.amount);
+  addCostItem(@Param('id') productId: string, @Body() body: { name: string; quantity: number; amount: number }) {
+    return this.productsService.addCostItem(productId, body.name, body.quantity ?? 1, body.amount);
   }
 
   @Patch('cost-items/:costId')
   @UseGuards(JwtAuthGuard)
-  updateCostItem(@Param('costId') costId: string, @Body() body: { name?: string; amount?: number }) {
+  updateCostItem(@Param('costId') costId: string, @Body() body: { name?: string; quantity?: number; amount?: number }) {
     return this.productsService.updateCostItem(costId, body);
   }
 

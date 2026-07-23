@@ -10,6 +10,7 @@ model ProductCostItem {
   id        String  @id @default(cuid())
   productId String
   name      String
+  quantity  Float   @default(1)
   amount    Float
   createdAt DateTime @default(now())
 

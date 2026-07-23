@@ -206,11 +206,11 @@ export class ProductsService {
     });
   }
 
-  addCostItem(productId: string, name: string, amount: number) {
-    return this.prisma.productCostItem.create({ data: { productId, name, amount } });
+  addCostItem(productId: string, name: string, quantity: number, amount: number) {
+    return this.prisma.productCostItem.create({ data: { productId, name, quantity, amount } });
   }
 
-  updateCostItem(costId: string, data: { name?: string; amount?: number }) {
+  updateCostItem(costId: string, data: { name?: string; quantity?: number; amount?: number }) {
     return this.prisma.productCostItem.update({ where: { id: costId }, data });
   }
 

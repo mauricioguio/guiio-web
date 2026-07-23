@@ -23,7 +23,7 @@ export class AnalyticsService {
           FROM "Order" o
           JOIN "OrderItem" oi ON oi."orderId" = o.id
           LEFT JOIN (
-            SELECT p2.name, COALESCE(SUM(pci.amount), 0) AS unit_cost
+            SELECT p2.name, COALESCE(SUM(pci.quantity * pci.amount), 0) AS unit_cost
             FROM "Product" p2
             LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
             GROUP BY p2.name
@@ -43,7 +43,7 @@ export class AnalyticsService {
           JOIN "Sede" se ON se.id = s."sedeId"
           JOIN "SaleItem" si ON si."saleId" = s.id
           LEFT JOIN (
-            SELECT p2.id, COALESCE(SUM(pci.amount), 0) AS unit_cost
+            SELECT p2.id, COALESCE(SUM(pci.quantity * pci.amount), 0) AS unit_cost
             FROM "Product" p2
             LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
             GROUP BY p2.id
@@ -62,7 +62,7 @@ export class AnalyticsService {
           FROM "Order" o
           JOIN "OrderItem" oi ON oi."orderId" = o.id
           LEFT JOIN (
-            SELECT p2.name, COALESCE(SUM(pci.amount), 0) AS unit_cost
+            SELECT p2.name, COALESCE(SUM(pci.quantity * pci.amount), 0) AS unit_cost
             FROM "Product" p2
             LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
             GROUP BY p2.name
@@ -81,7 +81,7 @@ export class AnalyticsService {
           FROM "Sale" s
           JOIN "SaleItem" si ON si."saleId" = s.id
           LEFT JOIN (
-            SELECT p2.id, COALESCE(SUM(pci.amount), 0) AS unit_cost
+            SELECT p2.id, COALESCE(SUM(pci.quantity * pci.amount), 0) AS unit_cost
             FROM "Product" p2
             LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
             GROUP BY p2.id
@@ -101,7 +101,7 @@ export class AnalyticsService {
           FROM "OrderItem" oi
           JOIN "Order" o ON o.id = oi."orderId"
           LEFT JOIN (
-            SELECT p2.name, COALESCE(SUM(pci.amount), 0) AS unit_cost
+            SELECT p2.name, COALESCE(SUM(pci.quantity * pci.amount), 0) AS unit_cost
             FROM "Product" p2
             LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
             GROUP BY p2.name
@@ -123,7 +123,7 @@ export class AnalyticsService {
           FROM "SaleItem" si
           JOIN "Sale" s ON s.id = si."saleId"
           LEFT JOIN (
-            SELECT p2.id, COALESCE(SUM(pci.amount), 0) AS unit_cost
+            SELECT p2.id, COALESCE(SUM(pci.quantity * pci.amount), 0) AS unit_cost
             FROM "Product" p2
             LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
             GROUP BY p2.id

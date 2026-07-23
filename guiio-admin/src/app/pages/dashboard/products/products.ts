@@ -94,15 +94,17 @@ export class Products {
   // ── Insumos / costo de producción ─────────────────────────────────────────
   protected costItems    = signal<CostItem[]>([]);
   protected costLoading  = signal(false);
-  protected newInsumoName   = signal('');
-  protected newInsumoAmount = signal('');
-  protected editingCostId   = signal<string | null>(null);
-  protected editCostName    = signal('');
-  protected editCostAmount  = signal('');
-  protected savingCost      = signal(false);
+  protected newInsumoName     = signal('');
+  protected newInsumoQty      = signal('1');
+  protected newInsumoAmount   = signal('');
+  protected editingCostId     = signal<string | null>(null);
+  protected editCostName      = signal('');
+  protected editCostQty       = signal('1');
+  protected editCostAmount    = signal('');
+  protected savingCost        = signal(false);
 
   protected totalCost = computed(() =>
-    this.costItems().reduce((s, c) => s + c.amount, 0)
+    this.costItems().reduce((s, c) => s + c.quantity * c.amount, 0)
   );
 
   // ── Sincronización de insumos entre variantes ──────────────────────────────
@@ -439,13 +441,15 @@ export class Products {
   addInsumo() {
     const id = this.editingId();
     const name = this.newInsumoName().trim();
-    const amount = parseFloat(this.newInsumoAmount().replace(/\D/g, ''));
+    const qty = parseFloat(this.newInsumoQty()) || 1;
+    const amount = parseFloat(this.newInsumoAmount());
     if (!id || !name || !amount) return;
     this.savingCost.set(true);
-    this.api.addCostItem(id, name, amount).subscribe({
+    this.api.addCostItem(id, name, qty, amount).subscribe({
       next: item => {
         this.costItems.update(list => [...list, item]);
         this.newInsumoName.set('');
+        this.newInsumoQty.set('1');
         this.newInsumoAmount.set('');
         this.savingCost.set(false);
       },
@@ -456,6 +460,7 @@ export class Products {
   startEditCost(item: CostItem) {
     this.editingCostId.set(item.id);
     this.editCostName.set(item.name);
+    this.editCostQty.set(item.quantity.toString());
     this.editCostAmount.set(item.amount.toString());
   }
 
@@ -466,10 +471,11 @@ export class Products {
   saveEditCost() {
     const costId = this.editingCostId();
     const name = this.editCostName().trim();
-    const amount = parseFloat(this.editCostAmount().replace(/\D/g, ''));
+    const qty = parseFloat(this.editCostQty()) || 1;
+    const amount = parseFloat(this.editCostAmount());
     if (!costId || !name || !amount) return;
     this.savingCost.set(true);
-    this.api.updateCostItem(costId, name, amount).subscribe({
+    this.api.updateCostItem(costId, name, qty, amount).subscribe({
       next: updated => {
         this.costItems.update(list => list.map(c => c.id === costId ? updated : c));
         this.editingCostId.set(null);
