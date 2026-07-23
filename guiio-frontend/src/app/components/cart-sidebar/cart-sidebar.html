@@ -64,7 +64,7 @@
                   </span>
                   @if (item.priceOverride && item.priceOverride > item.product.price) {
                     <p class="text-xs text-red-500 font-medium">
-                      Tallaje grande + {{ (item.priceOverride - item.product.price) * item.quantity | currency:'COP':'symbol-narrow':'1.0-0' }}
+                      Tallaje grande + {{ (item.priceOverride - item.product.price) | currency:'COP':'symbol-narrow':'1.0-0' }}{{ item.quantity > 1 ? ' c/u' : '' }}
                     </p>
                   }
                 </div>
