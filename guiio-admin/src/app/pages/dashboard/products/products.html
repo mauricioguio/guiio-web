@@ -412,7 +412,7 @@
                           [value]="editCostQty()"
                           (input)="editCostQty.set($any($event.target).value)"
                           placeholder="Cant."
-                          min="0"
+                          min="0" step="any"
                           class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
                         />
                         <input
@@ -479,7 +479,7 @@
                     [value]="newInsumoQty()"
                     (input)="newInsumoQty.set($any($event.target).value)"
                     placeholder="Cant."
-                    min="0"
+                    min="0" step="any"
                     class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
                   />
                   <input
