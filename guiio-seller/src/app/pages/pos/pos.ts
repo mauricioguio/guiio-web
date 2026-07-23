@@ -162,9 +162,22 @@ export class Pos implements OnInit, OnDestroy {
     });
   });
 
+  private readonly XXL_SURCHARGE = 20_000;
+
+  private isVeraguasSede(): boolean {
+    const name = (this.auth.currentSede()?.sedeName ?? '').toLowerCase();
+    return name.includes('veraguas') || name.includes('beraguas');
+  }
+
+  private sizeHasXXL(size: string): boolean {
+    return size === 'XXL' || size.split(/[\s/]+/).some(s => s === 'XXL');
+  }
+
   itemPrice(i: CartItem): number {
     const base = i.priceOverride ?? i.product.price;
-    return base + (i.bordados?.length ?? 0) * this.bordadoPrice();
+    const bordadoExtra = (i.bordados?.length ?? 0) * this.bordadoPrice();
+    const xxlExtra = this.isVeraguasSede() && this.sizeHasXXL(i.size) ? this.XXL_SURCHARGE : 0;
+    return base + bordadoExtra + xxlExtra;
   }
 
   incrementBordado() {
