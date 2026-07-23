@@ -6,6 +6,16 @@ datasource db {
   provider = "postgresql"
 }
 
+model ProductCostItem {
+  id        String  @id @default(cuid())
+  productId String
+  name      String
+  amount    Float
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
 model Product {
   id          String      @id @default(cuid())
   name        String
@@ -26,6 +36,7 @@ model Product {
   updatedAt   DateTime    @updatedAt
 
   collectionLinks CollectionProduct[]
+  costItems       ProductCostItem[]
 }
 
 model Collection {

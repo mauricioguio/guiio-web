@@ -199,6 +199,25 @@ export class ProductsService {
     return { deleted: true };
   }
 
+  getCostItems(productId: string) {
+    return this.prisma.productCostItem.findMany({
+      where: { productId },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  addCostItem(productId: string, name: string, amount: number) {
+    return this.prisma.productCostItem.create({ data: { productId, name, amount } });
+  }
+
+  updateCostItem(costId: string, data: { name?: string; amount?: number }) {
+    return this.prisma.productCostItem.update({ where: { id: costId }, data });
+  }
+
+  deleteCostItem(costId: string) {
+    return this.prisma.productCostItem.delete({ where: { id: costId } });
+  }
+
   async getSizeAdvice(dto: {
     bust?: number; waist?: number; hip?: number;
     gender: string; type: string; productName: string;

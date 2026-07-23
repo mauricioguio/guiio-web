@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { ProductsApiService, Product, ProductPayload } from '../../../services/products-api';
+import { ProductsApiService, Product, ProductPayload, CostItem } from '../../../services/products-api';
 import { CollectionsApiService, Collection } from '../../../services/collections-api';
 import { CloudinaryService } from '../../../services/cloudinary';
 
@@ -91,6 +91,20 @@ export class Products {
     PREDEFINED_COLORS.find(c => c.name === this.selectedPresetName()) ?? null
   );
 
+  // ── Insumos / costo de producción ─────────────────────────────────────────
+  protected costItems    = signal<CostItem[]>([]);
+  protected costLoading  = signal(false);
+  protected newInsumoName   = signal('');
+  protected newInsumoAmount = signal('');
+  protected editingCostId   = signal<string | null>(null);
+  protected editCostName    = signal('');
+  protected editCostAmount  = signal('');
+  protected savingCost      = signal(false);
+
+  protected totalCost = computed(() =>
+    this.costItems().reduce((s, c) => s + c.amount, 0)
+  );
+
   protected productCollections = computed(() => {
     const seen = new Set<string>();
     const result: string[] = [];
@@ -177,6 +191,7 @@ export class Products {
     });
     this.selectedPresetName.set('');
     this.autoDetectColors();
+    this.loadCostItems(p.id);
     this.showForm.set(true);
   }
 
@@ -382,5 +397,67 @@ export class Products {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency', currency: 'COP', maximumFractionDigits: 0,
     }).format(value);
+  }
+
+  // ── Insumos ────────────────────────────────────────────────────────────────
+  loadCostItems(productId: string) {
+    this.costLoading.set(true);
+    this.costItems.set([]);
+    this.editingCostId.set(null);
+    this.newInsumoName.set('');
+    this.newInsumoAmount.set('');
+    this.api.getCostItems(productId).subscribe({
+      next: items => { this.costItems.set(items); this.costLoading.set(false); },
+      error: () => this.costLoading.set(false),
+    });
+  }
+
+  addInsumo() {
+    const id = this.editingId();
+    const name = this.newInsumoName().trim();
+    const amount = parseFloat(this.newInsumoAmount().replace(/\D/g, ''));
+    if (!id || !name || !amount) return;
+    this.savingCost.set(true);
+    this.api.addCostItem(id, name, amount).subscribe({
+      next: item => {
+        this.costItems.update(list => [...list, item]);
+        this.newInsumoName.set('');
+        this.newInsumoAmount.set('');
+        this.savingCost.set(false);
+      },
+      error: () => this.savingCost.set(false),
+    });
+  }
+
+  startEditCost(item: CostItem) {
+    this.editingCostId.set(item.id);
+    this.editCostName.set(item.name);
+    this.editCostAmount.set(item.amount.toString());
+  }
+
+  cancelEditCost() {
+    this.editingCostId.set(null);
+  }
+
+  saveEditCost() {
+    const costId = this.editingCostId();
+    const name = this.editCostName().trim();
+    const amount = parseFloat(this.editCostAmount().replace(/\D/g, ''));
+    if (!costId || !name || !amount) return;
+    this.savingCost.set(true);
+    this.api.updateCostItem(costId, name, amount).subscribe({
+      next: updated => {
+        this.costItems.update(list => list.map(c => c.id === costId ? updated : c));
+        this.editingCostId.set(null);
+        this.savingCost.set(false);
+      },
+      error: () => this.savingCost.set(false),
+    });
+  }
+
+  deleteInsumo(costId: string) {
+    this.api.deleteCostItem(costId).subscribe({
+      next: () => this.costItems.update(list => list.filter(c => c.id !== costId)),
+    });
   }
 }

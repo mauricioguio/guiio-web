@@ -1,0 +1,163 @@
+<div class="p-4 sm:p-8" style="max-width:1100px;margin:0 auto">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+    <div>
+      <h2 class="text-white text-xl font-semibold">Ganancias</h2>
+      <p class="text-gray-500 text-xs mt-0.5">Ingresos, costos y margen bruto de producción</p>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+      @for (p of PERIODS; track p.value) {
+        <button
+          (click)="changePeriod(p.value)"
+          class="px-3 py-1.5 rounded-xl text-xs font-medium transition-colors"
+          [class]="period() === p.value ? 'bg-indigo-600 text-white' : 'bg-gray-900 border border-gray-800 text-gray-400 hover:text-white'"
+        >{{ p.label }}</button>
+      }
+      <button (click)="load()" class="text-gray-500 hover:text-white p-1.5 transition-colors" title="Actualizar">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-400 text-sm">Calculando ganancias...</p>
+    </div>
+  } @else if (error()) {
+    <div class="bg-red-500/10 border border-red-500/20 rounded-2xl p-8 text-center">
+      <p class="text-red-400 text-sm">No se pudo cargar la información.</p>
+      <button (click)="load()" class="mt-3 text-sm text-gray-400 hover:text-white">Reintentar</button>
+    </div>
+  } @else if (data(); as d) {
+
+    <!-- Aviso si no hay costos cargados -->
+    @if (!hasCostData()) {
+      <div class="mb-5 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 flex items-start gap-3">
+        <svg class="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <div>
+          <p class="text-yellow-400 text-sm font-medium">Aún no has ingresado costos de producción</p>
+          <p class="text-yellow-400/70 text-xs mt-0.5">Ve a <strong>Productos</strong>, edita cada producto y agrega los insumos con su valor para calcular el margen real.</p>
+        </div>
+      </div>
+    }
+
+    <!-- KPI cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+        <p class="text-gray-400 text-xs">Ingresos</p>
+        <p class="text-white text-lg sm:text-2xl font-bold mt-1 truncate">{{ formatPrice(d.totalRevenue) }}</p>
+        <p class="text-gray-600 text-xs mt-1">ventas del período</p>
+      </div>
+      <div class="bg-red-500/10 border border-red-500/20 rounded-2xl p-4">
+        <p class="text-red-400 text-xs">Costo estimado</p>
+        <p class="text-red-300 text-lg sm:text-2xl font-bold mt-1 truncate">{{ formatPrice(d.totalCost) }}</p>
+        <p class="text-red-600 text-xs mt-1">costo de producción</p>
+      </div>
+      <div class="bg-green-500/10 border border-green-500/20 rounded-2xl p-4">
+        <p class="text-green-400 text-xs">Ganancia bruta</p>
+        <p class="text-green-300 text-lg sm:text-2xl font-bold mt-1 truncate">{{ formatPrice(d.grossProfit) }}</p>
+        <p class="text-green-600 text-xs mt-1">ingresos − costos</p>
+      </div>
+      <div class="rounded-2xl p-4" [class]="d.grossMarginPct >= 40 ? 'bg-emerald-500/10 border border-emerald-500/20' : d.grossMarginPct >= 20 ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-red-500/10 border border-red-500/20'">
+        <p class="text-xs" [class]="d.grossMarginPct >= 40 ? 'text-emerald-400' : d.grossMarginPct >= 20 ? 'text-yellow-400' : 'text-red-400'">Margen bruto</p>
+        <p class="text-2xl font-bold mt-1" [class]="d.grossMarginPct >= 40 ? 'text-emerald-300' : d.grossMarginPct >= 20 ? 'text-yellow-300' : 'text-red-300'">{{ d.grossMarginPct }}%</p>
+        <p class="text-xs mt-1" [class]="d.grossMarginPct >= 40 ? 'text-emerald-600' : d.grossMarginPct >= 20 ? 'text-yellow-600' : 'text-red-600'">
+          {{ d.grossMarginPct >= 40 ? 'Saludable' : d.grossMarginPct >= 20 ? 'Regular' : 'Bajo' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-5 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-white text-sm font-medium">Tendencia de ingresos y ganancia</p>
+        <div class="flex items-center gap-4 text-xs text-gray-500">
+          <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-0.5 bg-blue-400 rounded"></span>Ingresos</span>
+          <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-0.5 bg-green-400 rounded"></span>Ganancia</span>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <svg [attr.viewBox]="'0 0 ' + CHART_W + ' ' + CHART_H" class="w-full" style="min-width:320px">
+          <!-- Grid lines -->
+          @for (g of yGridLines(); track g.y) {
+            <line [attr.x1]="PAD.left" [attr.x2]="CHART_W - PAD.right" [attr.y1]="g.y" [attr.y2]="g.y"
+                  stroke="#374151" stroke-width="1" stroke-dasharray="4,3"/>
+            <text [attr.x]="PAD.left - 4" [attr.y]="g.y + 4" text-anchor="end" font-size="9" fill="#6B7280">{{ g.label }}</text>
+          }
+          <!-- Revenue area fill -->
+          <polygon [attr.points]="revenueArea()" fill="rgba(96,165,250,0.08)"/>
+          <!-- Revenue line -->
+          <polyline [attr.points]="revenuePolyline()" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+          <!-- Profit line -->
+          <polyline [attr.points]="profitPolyline()" fill="none" stroke="#4ade80" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="5,3"/>
+          <!-- X labels -->
+          @for (lbl of chartXLabels(); track lbl.x) {
+            <text [attr.x]="lbl.x" [attr.y]="lbl.y" text-anchor="middle" font-size="9" fill="#6B7280">{{ lbl.label }}</text>
+          }
+        </svg>
+      </div>
+    </div>
+
+    <!-- Channel breakdown + Top products -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+      <!-- Canales -->
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-5">
+        <p class="text-white text-sm font-medium mb-4">Por canal</p>
+        <div class="space-y-3">
+          @for (ch of d.channels; track ch.channel) {
+            @if (ch.revenue > 0) {
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-gray-300 text-xs font-medium">{{ ch.channel }}</span>
+                  <div class="flex items-center gap-3 text-xs">
+                    <span class="text-gray-400">{{ formatPrice(ch.revenue) }}</span>
+                    <span class="text-green-400 font-semibold">{{ ch.margin }}%</span>
+                  </div>
+                </div>
+                <div class="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                  <div class="h-full bg-blue-500 rounded-full" [style.width.%]="(ch.revenue / d.totalRevenue) * 100"></div>
+                </div>
+                <div class="flex justify-between mt-0.5">
+                  <span class="text-gray-600 text-xs">Costo: {{ formatPrice(ch.cost) }}</span>
+                  <span class="text-green-600 text-xs">Gan: {{ formatPrice(ch.profit) }}</span>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Top productos -->
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-5">
+        <p class="text-white text-sm font-medium mb-4">Top productos</p>
+        <div class="space-y-2">
+          @for (p of d.topProducts; track p.name) {
+            <div class="flex items-center gap-3 py-2 border-b border-gray-800 last:border-0">
+              <div class="flex-1 min-w-0">
+                <p class="text-gray-300 text-xs font-medium truncate">{{ p.name }}</p>
+                <p class="text-gray-600 text-xs">{{ p.units }} unidades · costo {{ formatPrice(p.cost) }}</p>
+              </div>
+              <div class="text-right shrink-0">
+                <p class="text-white text-xs font-semibold">{{ formatPrice(p.revenue) }}</p>
+                <p class="text-xs" [class]="p.margin >= 40 ? 'text-green-400' : p.margin >= 20 ? 'text-yellow-400' : 'text-red-400'">
+                  {{ p.margin }}% margen
+                </p>
+              </div>
+            </div>
+          }
+          @if (d.topProducts.length === 0) {
+            <p class="text-gray-600 text-xs text-center py-4">No hay datos en este período</p>
+          }
+        </div>
+      </div>
+
+    </div>
+
+  }
+</div>

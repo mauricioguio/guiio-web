@@ -65,4 +65,31 @@ export class ProductsController {
   remove(@Param('id') id: string) {
     return this.productsService.remove(id);
   }
+
+  // ── Cost items (insumos) ──────────────────────────────────────────────────
+
+  @Get(':id/cost-items')
+  @UseGuards(JwtAuthGuard)
+  getCostItems(@Param('id') id: string) {
+    return this.productsService.getCostItems(id);
+  }
+
+  @Post(':id/cost-items')
+  @HttpCode(201)
+  @UseGuards(JwtAuthGuard)
+  addCostItem(@Param('id') productId: string, @Body() body: { name: string; amount: number }) {
+    return this.productsService.addCostItem(productId, body.name, body.amount);
+  }
+
+  @Patch('cost-items/:costId')
+  @UseGuards(JwtAuthGuard)
+  updateCostItem(@Param('costId') costId: string, @Body() body: { name?: string; amount?: number }) {
+    return this.productsService.updateCostItem(costId, body);
+  }
+
+  @Delete('cost-items/:costId')
+  @UseGuards(JwtAuthGuard)
+  deleteCostItem(@Param('costId') costId: string) {
+    return this.productsService.deleteCostItem(costId);
+  }
 }

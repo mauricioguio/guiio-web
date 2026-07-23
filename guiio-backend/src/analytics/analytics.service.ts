@@ -5,6 +5,180 @@ import { PrismaService } from '../prisma/prisma.service';
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getProfits(fromStr?: string, toStr?: string) {
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const now  = new Date();
+    const from: Date = fromStr ? new Date(fromStr + 'T05:00:00Z') : new Date(now.getTime() - 30 * msPerDay);
+    const to:   Date = toStr   ? new Date(toStr   + 'T04:59:59Z') : now;
+
+    const [onlineAgg, physicalByChannel, dailyOnline, dailyPhysical, topOnline, topPhysical] =
+      await Promise.all([
+
+        // Online totals
+        this.prisma.$queryRaw<{ revenue: number; cost: number; count: number }[]>`
+          SELECT
+            COALESCE(SUM(o.total), 0)::float                                             AS revenue,
+            COALESCE(SUM(oi.quantity * COALESCE(pc.unit_cost, 0)), 0)::float             AS cost,
+            COUNT(DISTINCT o.id)::int                                                    AS count
+          FROM "Order" o
+          JOIN "OrderItem" oi ON oi."orderId" = o.id
+          LEFT JOIN (
+            SELECT p2.name, COALESCE(SUM(pci.amount), 0) AS unit_cost
+            FROM "Product" p2
+            LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
+            GROUP BY p2.name
+          ) pc ON LOWER(pc.name) = LOWER(oi."productName")
+          WHERE o.status NOT IN ('CANCELLED','PENDING')
+            AND o."createdAt" >= ${from} AND o."createdAt" <= ${to}
+        `,
+
+        // Physical by channel
+        this.prisma.$queryRaw<{ channel: string; revenue: number; cost: number; count: number }[]>`
+          SELECT
+            COALESCE(s.channel, se.name)                                                 AS channel,
+            COALESCE(SUM(s.total), 0)::float                                             AS revenue,
+            COALESCE(SUM(si.quantity * COALESCE(pc.unit_cost, 0)), 0)::float             AS cost,
+            COUNT(DISTINCT s.id)::int                                                    AS count
+          FROM "Sale" s
+          JOIN "Sede" se ON se.id = s."sedeId"
+          JOIN "SaleItem" si ON si."saleId" = s.id
+          LEFT JOIN (
+            SELECT p2.id, COALESCE(SUM(pci.amount), 0) AS unit_cost
+            FROM "Product" p2
+            LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
+            GROUP BY p2.id
+          ) pc ON pc.id = si."productId"
+          WHERE s.status NOT IN ('CANCELLED')
+            AND s."createdAt" >= ${from} AND s."createdAt" <= ${to}
+          GROUP BY COALESCE(s.channel, se.name)
+        `,
+
+        // Daily online
+        this.prisma.$queryRaw<{ date: string; revenue: number; cost: number }[]>`
+          SELECT
+            DATE(o."createdAt" AT TIME ZONE 'America/Bogota')::text AS date,
+            COALESCE(SUM(o.total), 0)::float                        AS revenue,
+            COALESCE(SUM(oi.quantity * COALESCE(pc.unit_cost, 0)), 0)::float AS cost
+          FROM "Order" o
+          JOIN "OrderItem" oi ON oi."orderId" = o.id
+          LEFT JOIN (
+            SELECT p2.name, COALESCE(SUM(pci.amount), 0) AS unit_cost
+            FROM "Product" p2
+            LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
+            GROUP BY p2.name
+          ) pc ON LOWER(pc.name) = LOWER(oi."productName")
+          WHERE o.status NOT IN ('CANCELLED','PENDING')
+            AND o."createdAt" >= ${from} AND o."createdAt" <= ${to}
+          GROUP BY DATE(o."createdAt" AT TIME ZONE 'America/Bogota')
+        `,
+
+        // Daily physical
+        this.prisma.$queryRaw<{ date: string; revenue: number; cost: number }[]>`
+          SELECT
+            DATE(s."createdAt" AT TIME ZONE 'America/Bogota')::text AS date,
+            COALESCE(SUM(s.total), 0)::float                        AS revenue,
+            COALESCE(SUM(si.quantity * COALESCE(pc.unit_cost, 0)), 0)::float AS cost
+          FROM "Sale" s
+          JOIN "SaleItem" si ON si."saleId" = s.id
+          LEFT JOIN (
+            SELECT p2.id, COALESCE(SUM(pci.amount), 0) AS unit_cost
+            FROM "Product" p2
+            LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
+            GROUP BY p2.id
+          ) pc ON pc.id = si."productId"
+          WHERE s.status NOT IN ('CANCELLED')
+            AND s."createdAt" >= ${from} AND s."createdAt" <= ${to}
+          GROUP BY DATE(s."createdAt" AT TIME ZONE 'America/Bogota')
+        `,
+
+        // Top products online
+        this.prisma.$queryRaw<{ name: string; revenue: number; cost: number; units: number }[]>`
+          SELECT
+            oi."productName"                                                              AS name,
+            SUM(oi.price * oi.quantity)::float                                           AS revenue,
+            COALESCE(SUM(oi.quantity * COALESCE(pc.unit_cost, 0)), 0)::float             AS cost,
+            SUM(oi.quantity)::int                                                         AS units
+          FROM "OrderItem" oi
+          JOIN "Order" o ON o.id = oi."orderId"
+          LEFT JOIN (
+            SELECT p2.name, COALESCE(SUM(pci.amount), 0) AS unit_cost
+            FROM "Product" p2
+            LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
+            GROUP BY p2.name
+          ) pc ON LOWER(pc.name) = LOWER(oi."productName")
+          WHERE o.status NOT IN ('CANCELLED','PENDING')
+            AND o."createdAt" >= ${from} AND o."createdAt" <= ${to}
+          GROUP BY oi."productName"
+          ORDER BY revenue DESC
+          LIMIT 8
+        `,
+
+        // Top products physical
+        this.prisma.$queryRaw<{ name: string; revenue: number; cost: number; units: number }[]>`
+          SELECT
+            si."productName"                                                              AS name,
+            SUM(si.price * si.quantity)::float                                           AS revenue,
+            COALESCE(SUM(si.quantity * COALESCE(pc.unit_cost, 0)), 0)::float             AS cost,
+            SUM(si.quantity)::int                                                         AS units
+          FROM "SaleItem" si
+          JOIN "Sale" s ON s.id = si."saleId"
+          LEFT JOIN (
+            SELECT p2.id, COALESCE(SUM(pci.amount), 0) AS unit_cost
+            FROM "Product" p2
+            LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
+            GROUP BY p2.id
+          ) pc ON pc.id = si."productId"
+          WHERE s.status NOT IN ('CANCELLED')
+            AND s."createdAt" >= ${from} AND s."createdAt" <= ${to}
+          GROUP BY si."productName"
+          ORDER BY revenue DESC
+          LIMIT 8
+        `,
+      ]);
+
+    // Merge daily buckets
+    const dailyMap = new Map<string, { revenue: number; cost: number }>();
+    for (const r of [...dailyOnline, ...dailyPhysical]) {
+      const key = String(r.date).slice(0, 10);
+      const prev = dailyMap.get(key) ?? { revenue: 0, cost: 0 };
+      dailyMap.set(key, { revenue: prev.revenue + Number(r.revenue), cost: prev.cost + Number(r.cost) });
+    }
+    const rangeDays = Math.max(1, Math.round((to.getTime() - from.getTime()) / msPerDay) + 1);
+    const daily = Array.from({ length: rangeDays }, (_, i) => {
+      const d   = new Date(from.getTime() + i * msPerDay);
+      const key = d.toISOString().slice(0, 10);
+      const v   = dailyMap.get(key) ?? { revenue: 0, cost: 0 };
+      return { date: key, revenue: v.revenue, cost: v.cost, profit: v.revenue - v.cost };
+    });
+
+    // Merge top products
+    const prodMap = new Map<string, { revenue: number; cost: number; units: number }>();
+    for (const p of [...topOnline, ...topPhysical]) {
+      const key  = p.name.toLowerCase();
+      const prev = prodMap.get(key) ?? { revenue: 0, cost: 0, units: 0 };
+      prodMap.set(key, { revenue: prev.revenue + Number(p.revenue), cost: prev.cost + Number(p.cost), units: prev.units + Number(p.units) });
+    }
+    const topProducts = [...prodMap.entries()]
+      .map(([name, v]) => ({ name, ...v, profit: v.revenue - v.cost, margin: v.revenue > 0 ? Math.round((v.revenue - v.cost) / v.revenue * 100) : 0 }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 8);
+
+    // Build channel summary
+    const onlineR = Number(onlineAgg[0]?.revenue ?? 0);
+    const onlineC = Number(onlineAgg[0]?.cost    ?? 0);
+    const channels = [
+      { channel: 'Online', revenue: onlineR, cost: onlineC, count: Number(onlineAgg[0]?.count ?? 0) },
+      ...physicalByChannel.map(r => ({ channel: String(r.channel), revenue: Number(r.revenue), cost: Number(r.cost), count: Number(r.count) })),
+    ].map(c => ({ ...c, profit: c.revenue - c.cost, margin: c.revenue > 0 ? Math.round((c.revenue - c.cost) / c.revenue * 100) : 0 }));
+
+    const totalRevenue = channels.reduce((s, c) => s + c.revenue, 0);
+    const totalCost    = channels.reduce((s, c) => s + c.cost,    0);
+    const grossProfit  = totalRevenue - totalCost;
+    const grossMarginPct = totalRevenue > 0 ? Math.round(grossProfit / totalRevenue * 100) : 0;
+
+    return { totalRevenue, totalCost, grossProfit, grossMarginPct, daily, channels, topProducts };
+  }
+
   async getGeoStats(fromStr?: string, toStr?: string) {
     const msPerDay = 24 * 60 * 60 * 1000;
     const now = new Date();

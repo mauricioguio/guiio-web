@@ -16,6 +16,8 @@ export interface Product {
 
 export type ProductPayload = Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'active'>;
 
+export interface CostItem { id: string; productId: string; name: string; amount: number; createdAt: string; }
+
 @Injectable({ providedIn: 'root' })
 export class ProductsApiService {
   private readonly http = inject(HttpClient);
@@ -27,4 +29,9 @@ export class ProductsApiService {
   patchActive(id: string, active: boolean) { return this.http.patch<Product>(`${API_URL}/products/${id}/active`, { active }); }
   patchCollection(id: string, collection: string) { return this.http.patch<Product>(`${API_URL}/products/${id}/collection`, { collection }); }
   remove(id: string) { return this.http.delete(`${API_URL}/products/${id}`); }
+
+  getCostItems(productId: string) { return this.http.get<CostItem[]>(`${API_URL}/products/${productId}/cost-items`); }
+  addCostItem(productId: string, name: string, amount: number) { return this.http.post<CostItem>(`${API_URL}/products/${productId}/cost-items`, { name, amount }); }
+  updateCostItem(costId: string, name: string, amount: number) { return this.http.patch<CostItem>(`${API_URL}/products/cost-items/${costId}`, { name, amount }); }
+  deleteCostItem(costId: string) { return this.http.delete(`${API_URL}/products/cost-items/${costId}`); }
 }
