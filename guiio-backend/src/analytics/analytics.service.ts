@@ -176,7 +176,46 @@ export class AnalyticsService {
     const grossProfit  = totalRevenue - totalCost;
     const grossMarginPct = totalRevenue > 0 ? Math.round(grossProfit / totalRevenue * 100) : 0;
 
-    return { totalRevenue, totalCost, grossProfit, grossMarginPct, daily, channels, topProducts };
+    // Gastos fijos para los meses que caen en el período
+    const months = this.monthsInRange(from, to);
+    const fixedExpenses = months.length
+      ? await this.prisma.fixedExpense.findMany({ where: { month: { in: months } }, orderBy: { month: 'asc' } })
+      : [];
+    const totalFixedExpenses = fixedExpenses.reduce((s, e) => s + e.amount, 0);
+    const netProfit    = grossProfit - totalFixedExpenses;
+    const netMarginPct = totalRevenue > 0 ? Math.round(netProfit / totalRevenue * 100) : 0;
+
+    return { totalRevenue, totalCost, grossProfit, grossMarginPct, fixedExpenses, totalFixedExpenses, netProfit, netMarginPct, daily, channels, topProducts };
+  }
+
+  private monthsInRange(from: Date, to: Date): string[] {
+    const months: string[] = [];
+    const cur = new Date(from.getFullYear(), from.getMonth(), 1);
+    const end = new Date(to.getFullYear(), to.getMonth(), 1);
+    while (cur <= end) {
+      months.push(`${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}`);
+      cur.setMonth(cur.getMonth() + 1);
+    }
+    return months;
+  }
+
+  async getFixedExpenses(month?: string) {
+    return this.prisma.fixedExpense.findMany({
+      where: month ? { month } : undefined,
+      orderBy: [{ month: 'desc' }, { createdAt: 'asc' }],
+    });
+  }
+
+  async createFixedExpense(name: string, amount: number, month: string) {
+    return this.prisma.fixedExpense.create({ data: { name, amount, month } });
+  }
+
+  async updateFixedExpense(id: string, data: { name?: string; amount?: number; month?: string }) {
+    return this.prisma.fixedExpense.update({ where: { id }, data });
+  }
+
+  async deleteFixedExpense(id: string) {
+    return this.prisma.fixedExpense.delete({ where: { id } });
   }
 
   async getGeoStats(fromStr?: string, toStr?: string) {

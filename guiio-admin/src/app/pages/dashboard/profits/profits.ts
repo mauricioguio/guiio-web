@@ -1,11 +1,13 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { ProfitsApiService, ProfitsData, DailyPoint } from '../../../services/profits-api';
+import { FormsModule } from '@angular/forms';
+import { ProfitsApiService, ProfitsData, DailyPoint, FixedExpense } from '../../../services/profits-api';
 
 type Period = '30d' | '7d' | 'month' | '90d';
 
 @Component({
   selector: 'app-profits',
   templateUrl: './profits.html',
+  imports: [FormsModule],
 })
 export class Profits implements OnInit {
   private readonly api = inject(ProfitsApiService);
@@ -14,6 +16,96 @@ export class Profits implements OnInit {
   protected loading = signal(true);
   protected error   = signal(false);
   protected period  = signal<Period>('30d');
+
+  // ── Gastos fijos ──────────────────────────────────────────────────────────
+  protected showExpensePanel = signal(false);
+  protected expenseMonth  = signal(this.currentMonth());
+  protected expensesList  = signal<FixedExpense[]>([]);
+  protected expensesLoading = signal(false);
+
+  protected newName   = '';
+  protected newAmount = 0;
+
+  protected editingId     = signal<string | null>(null);
+  protected editingName   = '';
+  protected editingAmount = 0;
+  protected editingMonth  = '';
+
+  protected readonly expensesTotal = computed(() =>
+    this.expensesList().reduce((s, e) => s + e.amount, 0)
+  );
+
+  private currentMonth(): string {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  protected monthLabel(month: string): string {
+    const [y, m] = month.split('-');
+    return new Date(+y, +m - 1, 1).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' });
+  }
+
+  openExpensePanel() {
+    this.showExpensePanel.set(true);
+    this.loadExpenses();
+  }
+
+  loadExpenses() {
+    this.expensesLoading.set(true);
+    this.api.getFixedExpenses(this.expenseMonth()).subscribe({
+      next: list => { this.expensesList.set(list); this.expensesLoading.set(false); },
+      error: ()  => this.expensesLoading.set(false),
+    });
+  }
+
+  changeExpenseMonth(month: string) {
+    this.expenseMonth.set(month);
+    this.loadExpenses();
+  }
+
+  addExpense() {
+    const name = this.newName.trim();
+    if (!name || this.newAmount <= 0) return;
+    this.api.createFixedExpense(name, this.newAmount, this.expenseMonth()).subscribe({
+      next: exp => {
+        this.expensesList.update(l => [...l, exp]);
+        this.newName   = '';
+        this.newAmount = 0;
+        this.load();
+      },
+    });
+  }
+
+  startEdit(exp: FixedExpense) {
+    this.editingId.set(exp.id);
+    this.editingName   = exp.name;
+    this.editingAmount = exp.amount;
+    this.editingMonth  = exp.month;
+  }
+
+  saveEdit() {
+    const id = this.editingId();
+    if (!id) return;
+    this.api.updateFixedExpense(id, { name: this.editingName, amount: this.editingAmount, month: this.editingMonth }).subscribe({
+      next: updated => {
+        this.expensesList.update(l => l.map(e => e.id === id ? updated : e));
+        this.editingId.set(null);
+        this.load();
+      },
+    });
+  }
+
+  cancelEdit() { this.editingId.set(null); }
+
+  deleteExpense(id: string) {
+    if (!confirm('¿Eliminar este gasto?')) return;
+    this.api.deleteFixedExpense(id).subscribe({
+      next: () => {
+        this.expensesList.update(l => l.filter(e => e.id !== id));
+        this.load();
+      },
+    });
+  }
 
   protected readonly PERIODS: { value: Period; label: string }[] = [
     { value: '7d',    label: 'Últimos 7 días' },

@@ -14,6 +14,13 @@
           [class]="period() === p.value ? 'bg-indigo-600 text-white' : 'bg-gray-900 border border-gray-800 text-gray-400 hover:text-white'"
         >{{ p.label }}</button>
       }
+      <button (click)="openExpensePanel()"
+        class="px-3 py-1.5 rounded-xl text-xs font-medium bg-gray-900 border border-gray-700 text-gray-300 hover:text-white transition-colors flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Gastos fijos
+      </button>
       <button (click)="load()" class="text-gray-500 hover:text-white p-1.5 transition-colors" title="Actualizar">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
           <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
@@ -46,22 +53,22 @@
       </div>
     }
 
-    <!-- KPI cards -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <!-- KPI cards — fila 1: ingresos / costos / bruto / margen bruto -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
       <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4">
         <p class="text-gray-400 text-xs">Ingresos</p>
         <p class="text-white text-lg sm:text-2xl font-bold mt-1 truncate">{{ formatPrice(d.totalRevenue) }}</p>
         <p class="text-gray-600 text-xs mt-1">ventas del período</p>
       </div>
       <div class="bg-red-500/10 border border-red-500/20 rounded-2xl p-4">
-        <p class="text-red-400 text-xs">Costo estimado</p>
+        <p class="text-red-400 text-xs">Costo producción</p>
         <p class="text-red-300 text-lg sm:text-2xl font-bold mt-1 truncate">{{ formatPrice(d.totalCost) }}</p>
-        <p class="text-red-600 text-xs mt-1">costo de producción</p>
+        <p class="text-red-600 text-xs mt-1">insumos estimados</p>
       </div>
       <div class="bg-green-500/10 border border-green-500/20 rounded-2xl p-4">
         <p class="text-green-400 text-xs">Ganancia bruta</p>
         <p class="text-green-300 text-lg sm:text-2xl font-bold mt-1 truncate">{{ formatPrice(d.grossProfit) }}</p>
-        <p class="text-green-600 text-xs mt-1">ingresos − costos</p>
+        <p class="text-green-600 text-xs mt-1">ingresos − producción</p>
       </div>
       <div class="rounded-2xl p-4" [class]="d.grossMarginPct >= 40 ? 'bg-emerald-500/10 border border-emerald-500/20' : d.grossMarginPct >= 20 ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-red-500/10 border border-red-500/20'">
         <p class="text-xs" [class]="d.grossMarginPct >= 40 ? 'text-emerald-400' : d.grossMarginPct >= 20 ? 'text-yellow-400' : 'text-red-400'">Margen bruto</p>
@@ -71,6 +78,36 @@
         </p>
       </div>
     </div>
+
+    <!-- KPI cards — fila 2: gastos fijos / ganancia neta / margen neto -->
+    @if (d.totalFixedExpenses > 0 || d.fixedExpenses?.length > 0) {
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+        <div class="bg-orange-500/10 border border-orange-500/20 rounded-2xl p-4">
+          <p class="text-orange-400 text-xs">Gastos fijos del período</p>
+          <p class="text-orange-300 text-lg sm:text-2xl font-bold mt-1 truncate">{{ formatPrice(d.totalFixedExpenses) }}</p>
+          <p class="text-orange-600 text-xs mt-1">{{ d.fixedExpenses?.length ?? 0 }} conceptos registrados</p>
+        </div>
+        <div class="rounded-2xl p-4" [class]="d.netProfit >= 0 ? 'bg-teal-500/10 border border-teal-500/20' : 'bg-red-500/10 border border-red-500/20'">
+          <p class="text-xs" [class]="d.netProfit >= 0 ? 'text-teal-400' : 'text-red-400'">Ganancia neta</p>
+          <p class="text-lg sm:text-2xl font-bold mt-1 truncate" [class]="d.netProfit >= 0 ? 'text-teal-300' : 'text-red-300'">{{ formatPrice(d.netProfit) }}</p>
+          <p class="text-xs mt-1" [class]="d.netProfit >= 0 ? 'text-teal-600' : 'text-red-600'">bruta − gastos fijos</p>
+        </div>
+        <div class="rounded-2xl p-4" [class]="d.netMarginPct >= 20 ? 'bg-emerald-500/10 border border-emerald-500/20' : d.netMarginPct >= 0 ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-red-500/10 border border-red-500/20'">
+          <p class="text-xs" [class]="d.netMarginPct >= 20 ? 'text-emerald-400' : d.netMarginPct >= 0 ? 'text-yellow-400' : 'text-red-400'">Margen neto</p>
+          <p class="text-2xl font-bold mt-1" [class]="d.netMarginPct >= 20 ? 'text-emerald-300' : d.netMarginPct >= 0 ? 'text-yellow-300' : 'text-red-300'">{{ d.netMarginPct }}%</p>
+          <p class="text-xs mt-1" [class]="d.netMarginPct >= 20 ? 'text-emerald-600' : d.netMarginPct >= 0 ? 'text-yellow-600' : 'text-red-600'">
+            {{ d.netMarginPct >= 20 ? 'Saludable' : d.netMarginPct >= 0 ? 'Ajustado' : 'Pérdida' }}
+          </p>
+        </div>
+      </div>
+    } @else {
+      <div class="mb-6 bg-gray-900/60 border border-dashed border-gray-700 rounded-2xl p-4 flex items-center justify-between gap-4">
+        <p class="text-gray-500 text-xs">No hay gastos fijos registrados para este período. Agrégalos para ver la ganancia neta real.</p>
+        <button (click)="openExpensePanel()" class="shrink-0 text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+          Agregar →
+        </button>
+      </div>
+    }
 
     <!-- Chart -->
     <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-5 mb-6">
@@ -161,3 +198,115 @@
 
   }
 </div>
+
+<!-- Panel de gastos fijos -->
+@if (showExpensePanel()) {
+  <div class="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4"
+       (click)="showExpensePanel.set(false)">
+    <div class="bg-gray-950 border border-gray-800 rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] flex flex-col"
+         (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-800 shrink-0">
+        <div>
+          <p class="text-white font-semibold text-sm">Gastos fijos mensuales</p>
+          <p class="text-gray-500 text-xs mt-0.5">Arriendos, salarios, servicios y otros gastos recurrentes</p>
+        </div>
+        <button (click)="showExpensePanel.set(false)" class="text-gray-500 hover:text-white transition-colors p-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Selector de mes -->
+      <div class="px-5 pt-4 pb-3 shrink-0">
+        <div class="flex items-center gap-2">
+          <label class="text-gray-400 text-xs shrink-0">Mes:</label>
+          <input type="month"
+            [value]="expenseMonth()"
+            (change)="changeExpenseMonth(($event.target as HTMLInputElement).value)"
+            class="bg-gray-900 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+          <span class="text-gray-500 text-xs">{{ monthLabel(expenseMonth()) }}</span>
+        </div>
+      </div>
+
+      <!-- Lista de gastos -->
+      <div class="overflow-y-auto flex-1 px-5 pb-3 space-y-2 min-h-0">
+        @if (expensesLoading()) {
+          <p class="text-gray-500 text-xs text-center py-6">Cargando...</p>
+        } @else if (expensesList().length === 0) {
+          <p class="text-gray-600 text-xs text-center py-6">No hay gastos registrados para este mes.</p>
+        } @else {
+          @for (exp of expensesList(); track exp.id) {
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-3">
+              @if (editingId() === exp.id) {
+                <!-- Modo edición -->
+                <div class="flex flex-col gap-2">
+                  <input [(ngModel)]="editingName" placeholder="Concepto"
+                    class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500 w-full">
+                  <div class="flex gap-2">
+                    <input type="number" [(ngModel)]="editingAmount" placeholder="Monto" min="0"
+                      class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500 flex-1">
+                    <input type="month" [(ngModel)]="editingMonth"
+                      class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                  </div>
+                  <div class="flex gap-2">
+                    <button (click)="saveEdit()" class="flex-1 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors">Guardar</button>
+                    <button (click)="cancelEdit()" class="flex-1 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">Cancelar</button>
+                  </div>
+                </div>
+              } @else {
+                <!-- Vista normal -->
+                <div class="flex items-center justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="text-gray-200 text-sm font-medium truncate">{{ exp.name }}</p>
+                    <p class="text-gray-500 text-xs">{{ monthLabel(exp.month) }}</p>
+                  </div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <p class="text-orange-300 text-sm font-semibold">{{ formatPrice(exp.amount) }}</p>
+                    <button (click)="startEdit(exp)" class="text-gray-600 hover:text-gray-300 transition-colors p-1">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button (click)="deleteExpense(exp.id)" class="text-gray-600 hover:text-red-400 transition-colors p-1">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Total del mes -->
+          <div class="bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 flex justify-between items-center mt-3">
+            <p class="text-orange-400 text-xs font-medium">Total {{ monthLabel(expenseMonth()) }}</p>
+            <p class="text-orange-300 text-sm font-bold">
+              {{ formatPrice(expensesTotal()) }}
+            </p>
+          </div>
+        }
+      </div>
+
+      <!-- Formulario nuevo gasto -->
+      <div class="px-5 py-4 border-t border-gray-800 shrink-0">
+        <p class="text-gray-400 text-xs font-medium mb-2">Agregar gasto para {{ monthLabel(expenseMonth()) }}</p>
+        <div class="flex gap-2">
+          <input [(ngModel)]="newName" placeholder="Concepto (ej: Arriendo)"
+            class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-colors min-w-0">
+          <input type="number" [(ngModel)]="newAmount" placeholder="Monto" min="0"
+            class="w-32 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-colors">
+          <button (click)="addExpense()"
+            [disabled]="!newName.trim() || newAmount <= 0"
+            class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors shrink-0">
+            +
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+}
