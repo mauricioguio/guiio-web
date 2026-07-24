@@ -15,6 +15,7 @@ export interface Product {
   featured: boolean;
   inStock: boolean;
   tags: string[];
+  createdAt?: string;
 }
 
 export interface ProductColor {

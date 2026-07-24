@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal, DestroyRef } from '@angular/core';
+import { Component, inject, computed, signal, DestroyRef, HostListener } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgClass } from '@angular/common';
 import { ProductService } from '../../services/product';
@@ -68,6 +68,30 @@ export class Home {
     return map;
   });
 
+  protected readonly newIn = computed(() =>
+    [...this.productService.getAll()()]
+      .filter(p => p.images?.length)
+      .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
+      .slice(0, 10)
+  );
+
+  protected newInIndex   = signal(0);
+  protected newInPerView = signal(typeof window !== 'undefined' && window.innerWidth < 768 ? 2 : 3);
+
+  protected readonly newInMaxIndex = computed(() =>
+    Math.max(0, this.newIn().length - this.newInPerView())
+  );
+
+  protected readonly newInDots = computed(() =>
+    Array.from({ length: this.newInMaxIndex() + 1 })
+  );
+
+  @HostListener('window:resize')
+  onResize() {
+    this.newInPerView.set(window.innerWidth < 768 ? 2 : 3);
+    this.newInIndex.update(i => Math.min(i, this.newInMaxIndex()));
+  }
+
   protected readonly cycleIndex    = signal(0);
   protected readonly fading        = signal(false);
   protected readonly colCycleIndex = signal(0);
@@ -87,7 +111,11 @@ export class Home {
       return Math.max(...[...this.firstImageByCollection().values()].map(v => v.length), 1);
     }), 5000);
 
-    this.destroyRef.onDestroy(() => { clearInterval(id); clearInterval(colId); });
+    const niId = setInterval(() => {
+      this.newInIndex.update(i => i >= this.newInMaxIndex() ? 0 : i + 1);
+    }, 3500);
+
+    this.destroyRef.onDestroy(() => { clearInterval(id); clearInterval(colId); clearInterval(niId); });
   }
 
   protected colImg(colName: string): string {
@@ -101,6 +129,10 @@ export class Home {
     if (!imgs.length) return '';
     const half = Math.max(1, Math.floor(imgs.length / 2));
     return imgs[(this.cycleIndex() + slot * half) % imgs.length];
+  }
+
+  protected formatPrice(p: number): string {
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(p);
   }
 
   protected readonly slugify = slugify;
