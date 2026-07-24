@@ -80,7 +80,7 @@
     </div>
 
     <!-- KPI cards — fila 2: gastos fijos / ganancia neta / margen neto -->
-    @if (d.totalFixedExpenses > 0 || d.fixedExpenses?.length > 0) {
+    @if (d.totalFixedExpenses > 0 || (d.fixedExpenses?.length ?? 0) > 0) {
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
         <div class="bg-orange-500/10 border border-orange-500/20 rounded-2xl p-4">
           <p class="text-orange-400 text-xs">Gastos fijos del período</p>
@@ -223,9 +223,9 @@
       <div class="px-5 pt-4 pb-3 shrink-0">
         <div class="flex items-center gap-2">
           <label class="text-gray-400 text-xs shrink-0">Mes:</label>
-          <input type="month"
+          <input type="month" #monthPicker
             [value]="expenseMonth()"
-            (change)="changeExpenseMonth(($event.target as HTMLInputElement).value)"
+            (change)="changeExpenseMonth(monthPicker.value)"
             class="bg-gray-900 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
           <span class="text-gray-500 text-xs">{{ monthLabel(expenseMonth()) }}</span>
         </div>
