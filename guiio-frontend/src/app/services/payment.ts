@@ -29,6 +29,7 @@ export class PaymentService {
       image:      item.product.images[0],
       topSize:    item.selectedTopSize,
       bottomSize: item.selectedBottomSize,
+      legStyle:   item.legStyle,
       color:      item.selectedColor?.name ?? '',
     }));
   }

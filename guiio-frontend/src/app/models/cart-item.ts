@@ -6,5 +6,6 @@ export interface CartItem {
   selectedColor: ProductColor;
   selectedTopSize: string;
   selectedBottomSize: string;
+  legStyle?: 'recta' | 'resortada';
   priceOverride?: number;
 }

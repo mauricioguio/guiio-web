@@ -159,8 +159,14 @@ export class ProductDetail {
   protected readonly selectedColor = signal<ProductColor | null>(null);
   protected readonly selectedTopSize = signal<string | null>(null);
   protected readonly selectedBottomSize = signal<string | null>(null);
+  protected readonly selectedLegStyle = signal<'recta' | 'resortada' | null>(null);
   protected readonly selectedImageIndex = signal(0);
   protected readonly added = signal(false);
+
+  protected needsLegStyle = computed(() => {
+    const p = this.product();
+    return p?.gender === 'hombre' && (p.type === 'conjunto' || p.type === 'bottom');
+  });
 
   private readonly sizeCalcService = inject(SizeCalcService);
 
@@ -445,6 +451,7 @@ export class ProductDetail {
   get canAddToCart(): boolean {
     const p = this.product();
     if (!p?.inStock) return false;
+    if (this.needsLegStyle() && !this.selectedLegStyle()) return false;
     switch (p.type) {
       case 'conjunto': return !!this.selectedTopSize() && !!this.selectedBottomSize();
       case 'top':      return !!this.selectedTopSize();
@@ -458,7 +465,8 @@ export class ProductDetail {
     if (!product || !this.canAddToCart) return;
     const color = this.selectedColor() ?? product.colors[0] ?? { name: '', hex: '' };
     const priceOverride = this.xxlSurchargeApplies() ? this.effectivePrice() : undefined;
-    this.cartService.addItem(product, color, this.selectedTopSize() ?? '', this.selectedBottomSize() ?? '', priceOverride);
+    const legStyle = this.needsLegStyle() ? (this.selectedLegStyle() ?? undefined) : undefined;
+    this.cartService.addItem(product, color, this.selectedTopSize() ?? '', this.selectedBottomSize() ?? '', priceOverride, legStyle);
     this.added.set(true);
     setTimeout(() => this.added.set(false), 2000);
   }
@@ -468,6 +476,7 @@ export class ProductDetail {
     if (!p) return '';
     if (!p.inStock) return 'Agotado';
     if (this.added()) return '✓ Agregado al carrito';
+    if (this.needsLegStyle() && !this.selectedLegStyle()) return 'Selecciona el tipo de bota';
     switch (p.type) {
       case 'conjunto':
         if (!this.selectedTopSize()) return 'Selecciona primero la talla de la blusa';

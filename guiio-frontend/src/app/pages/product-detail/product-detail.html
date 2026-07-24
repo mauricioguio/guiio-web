@@ -89,6 +89,38 @@
           </div>
         }
 
+        <!-- Tipo de bota (solo hombre con pantalón) -->
+        @if (needsLegStyle()) {
+          <div class="mb-6">
+            <p class="text-sm font-medium text-gray-900 mb-3">
+              Tipo de bota
+              @if (selectedLegStyle()) {
+                <span class="text-gray-500 font-normal ml-1">— {{ selectedLegStyle() === 'recta' ? 'Bota recta' : 'Bota resortada' }}</span>
+              }
+            </p>
+            <div class="flex gap-3">
+              <button (click)="selectedLegStyle.set('recta')"
+                class="flex-1 py-3 rounded-xl border text-sm font-medium transition-all"
+                [class.bg-gray-900]="selectedLegStyle() === 'recta'"
+                [class.text-white]="selectedLegStyle() === 'recta'"
+                [class.border-gray-900]="selectedLegStyle() === 'recta'"
+                [class.text-gray-700]="selectedLegStyle() !== 'recta'"
+                [class.border-gray-200]="selectedLegStyle() !== 'recta'">
+                Bota recta
+              </button>
+              <button (click)="selectedLegStyle.set('resortada')"
+                class="flex-1 py-3 rounded-xl border text-sm font-medium transition-all"
+                [class.bg-gray-900]="selectedLegStyle() === 'resortada'"
+                [class.text-white]="selectedLegStyle() === 'resortada'"
+                [class.border-gray-900]="selectedLegStyle() === 'resortada'"
+                [class.text-gray-700]="selectedLegStyle() !== 'resortada'"
+                [class.border-gray-200]="selectedLegStyle() !== 'resortada'">
+                Bota resortada
+              </button>
+            </div>
+          </div>
+        }
+
         <!-- Calculadora de tallas -->
         @if (p.type === 'conjunto' || p.type === 'top' || p.type === 'bottom') {
           <button (click)="openCalc()"

@@ -76,12 +76,21 @@
                           [style.background-color]="item.selectedColor.hex"></span>
                     {{ item.selectedColor.name }}
                   </span>
-                  <span class="text-xs bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 rounded-full">
-                    Blusa {{ item.selectedTopSize }}
-                  </span>
-                  <span class="text-xs bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 rounded-full">
-                    Pantalón {{ item.selectedBottomSize }}
-                  </span>
+                  @if (item.selectedTopSize) {
+                    <span class="text-xs bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 rounded-full">
+                      Blusa {{ item.selectedTopSize }}
+                    </span>
+                  }
+                  @if (item.selectedBottomSize) {
+                    <span class="text-xs bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 rounded-full">
+                      Pantalón {{ item.selectedBottomSize }}
+                    </span>
+                  }
+                  @if (item.legStyle) {
+                    <span class="text-xs bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 rounded-full">
+                      {{ item.legStyle === 'recta' ? 'Bota recta' : 'Bota resortada' }}
+                    </span>
+                  }
                 </div>
 
                 <!-- Precio y cantidad -->

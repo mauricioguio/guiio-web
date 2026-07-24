@@ -236,7 +236,7 @@
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-900 truncate">{{ item.product.name }}</p>
                 <p class="text-xs text-gray-500">
-                  {{ item.selectedColor.name }} · Blusa {{ item.selectedTopSize }} · Pantalón {{ item.selectedBottomSize }}
+                  {{ item.selectedColor.name }}{{ item.selectedTopSize ? ' · Blusa ' + item.selectedTopSize : '' }}{{ item.selectedBottomSize ? ' · Pantalón ' + item.selectedBottomSize : '' }}{{ item.legStyle ? ' · ' + (item.legStyle === 'recta' ? 'Bota recta' : 'Bota resortada') : '' }}
                 </p>
                 <p class="text-xs text-gray-500">x{{ item.quantity }}</p>
               </div>

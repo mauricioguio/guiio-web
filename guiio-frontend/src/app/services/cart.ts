@@ -57,18 +57,19 @@ export class CartService {
     }
   }
 
-  addItem(product: Product, color: ProductColor, topSize: string, bottomSize: string, priceOverride?: number) {
+  addItem(product: Product, color: ProductColor, topSize: string, bottomSize: string, priceOverride?: number, legStyle?: 'recta' | 'resortada') {
     this.items.update(items => {
       const existing = items.find(
         i => i.product.id === product.id &&
              i.selectedColor.name === color.name &&
              i.selectedTopSize === topSize &&
-             i.selectedBottomSize === bottomSize
+             i.selectedBottomSize === bottomSize &&
+             i.legStyle === legStyle
       );
       if (existing) {
         return items.map(i => i === existing ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...items, { product, quantity: 1, selectedColor: color, selectedTopSize: topSize, selectedBottomSize: bottomSize, priceOverride }];
+      return [...items, { product, quantity: 1, selectedColor: color, selectedTopSize: topSize, selectedBottomSize: bottomSize, legStyle, priceOverride }];
     });
 
     (window as any).fbq?.('track', 'AddToCart', {
