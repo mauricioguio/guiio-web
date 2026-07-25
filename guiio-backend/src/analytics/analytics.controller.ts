@@ -22,7 +22,29 @@ export class AnalyticsController {
     return this.analyticsService.getProfits(from, to);
   }
 
-  // ── Gastos fijos ──────────────────────────────────────────────────────────
+  // ── Gastos recurrentes (aplican todos los meses) ─────────────────────────
+
+  @Get('expense-templates')
+  getExpenseTemplates() {
+    return this.analyticsService.getExpenseTemplates();
+  }
+
+  @Post('expense-templates')
+  createExpenseTemplate(@Body() body: { name: string; amount: number }) {
+    return this.analyticsService.createExpenseTemplate(body.name, body.amount);
+  }
+
+  @Patch('expense-templates/:id')
+  updateExpenseTemplate(@Param('id') id: string, @Body() body: { name?: string; amount?: number; active?: boolean; order?: number }) {
+    return this.analyticsService.updateExpenseTemplate(id, body);
+  }
+
+  @Delete('expense-templates/:id')
+  deleteExpenseTemplate(@Param('id') id: string) {
+    return this.analyticsService.deleteExpenseTemplate(id);
+  }
+
+  // ── Gastos adicionales por mes ────────────────────────────────────────────
 
   @Get('fixed-expenses')
   getFixedExpenses(@Query('month') month?: string) {

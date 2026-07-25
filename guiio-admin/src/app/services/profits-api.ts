@@ -6,11 +6,15 @@ const API_URL = 'https://api.guiiouniformes.com/api';
 export interface DailyPoint  { date: string; revenue: number; cost: number; profit: number; }
 export interface ChannelStat { channel: string; revenue: number; cost: number; profit: number; margin: number; count: number; }
 export interface TopProduct  { name: string; revenue: number; cost: number; profit: number; margin: number; units: number; }
-export interface FixedExpense { id: string; name: string; amount: number; month: string; }
+export interface ExpenseTemplate { id: string; name: string; amount: number; active: boolean; order: number; }
+export interface FixedExpense    { id: string; name: string; amount: number; month: string; }
 
 export interface ProfitsData {
   totalRevenue: number; totalCost: number; grossProfit: number; grossMarginPct: number;
-  fixedExpenses: FixedExpense[]; totalFixedExpenses: number; netProfit: number; netMarginPct: number;
+  templates: ExpenseTemplate[]; recurringPerMonth: number; totalRecurring: number;
+  extras: FixedExpense[]; totalExtras: number;
+  totalFixedExpenses: number; netProfit: number; netMarginPct: number;
+  monthsInRange: string[];
   daily: DailyPoint[]; channels: ChannelStat[]; topProducts: TopProduct[];
 }
 
@@ -25,21 +29,31 @@ export class ProfitsApiService {
     return this.http.get<ProfitsData>(`${API_URL}/analytics/profits`, { params });
   }
 
-  getFixedExpenses(month?: string) {
-    const params: Record<string, string> = {};
-    if (month) params['month'] = month;
-    return this.http.get<FixedExpense[]>(`${API_URL}/analytics/fixed-expenses`, { params });
+  // ── Plantillas recurrentes ────────────────────────────────────────────────
+  getTemplates() {
+    return this.http.get<ExpenseTemplate[]>(`${API_URL}/analytics/expense-templates`);
+  }
+  createTemplate(name: string, amount: number) {
+    return this.http.post<ExpenseTemplate>(`${API_URL}/analytics/expense-templates`, { name, amount });
+  }
+  updateTemplate(id: string, data: { name?: string; amount?: number; active?: boolean }) {
+    return this.http.patch<ExpenseTemplate>(`${API_URL}/analytics/expense-templates/${id}`, data);
+  }
+  deleteTemplate(id: string) {
+    return this.http.delete(`${API_URL}/analytics/expense-templates/${id}`);
   }
 
-  createFixedExpense(name: string, amount: number, month: string) {
+  // ── Gastos adicionales por mes ────────────────────────────────────────────
+  getExtras(month: string) {
+    return this.http.get<FixedExpense[]>(`${API_URL}/analytics/fixed-expenses`, { params: { month } });
+  }
+  createExtra(name: string, amount: number, month: string) {
     return this.http.post<FixedExpense>(`${API_URL}/analytics/fixed-expenses`, { name, amount, month });
   }
-
-  updateFixedExpense(id: string, data: { name?: string; amount?: number; month?: string }) {
+  updateExtra(id: string, data: { name?: string; amount?: number }) {
     return this.http.patch<FixedExpense>(`${API_URL}/analytics/fixed-expenses/${id}`, data);
   }
-
-  deleteFixedExpense(id: string) {
+  deleteExtra(id: string) {
     return this.http.delete(`${API_URL}/analytics/fixed-expenses/${id}`);
   }
 }

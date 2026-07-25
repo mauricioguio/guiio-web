@@ -176,16 +176,30 @@ export class AnalyticsService {
     const grossProfit  = totalRevenue - totalCost;
     const grossMarginPct = totalRevenue > 0 ? Math.round(grossProfit / totalRevenue * 100) : 0;
 
-    // Gastos fijos para los meses que caen en el período
+    // Gastos fijos del período
     const months = this.monthsInRange(from, to);
-    const fixedExpenses = months.length
-      ? await this.prisma.fixedExpense.findMany({ where: { month: { in: months } }, orderBy: { month: 'asc' } })
-      : [];
-    const totalFixedExpenses = fixedExpenses.reduce((s, e) => s + e.amount, 0);
+    const [templates, extras] = await Promise.all([
+      this.prisma.fixedExpenseTemplate.findMany({ where: { active: true }, orderBy: { order: 'asc' } }),
+      months.length
+        ? this.prisma.fixedExpense.findMany({ where: { month: { in: months } }, orderBy: { month: 'asc' } })
+        : Promise.resolve([]),
+    ]);
+    // Recurrentes: cada plantilla activa aplica una vez por mes en el período
+    const recurringPerMonth = templates.reduce((s, t) => s + t.amount, 0);
+    const totalRecurring    = recurringPerMonth * months.length;
+    const totalExtras       = extras.reduce((s, e) => s + e.amount, 0);
+    const totalFixedExpenses = totalRecurring + totalExtras;
     const netProfit    = grossProfit - totalFixedExpenses;
     const netMarginPct = totalRevenue > 0 ? Math.round(netProfit / totalRevenue * 100) : 0;
 
-    return { totalRevenue, totalCost, grossProfit, grossMarginPct, fixedExpenses, totalFixedExpenses, netProfit, netMarginPct, daily, channels, topProducts };
+    return {
+      totalRevenue, totalCost, grossProfit, grossMarginPct,
+      templates, recurringPerMonth, totalRecurring,
+      extras, totalExtras,
+      totalFixedExpenses, netProfit, netMarginPct,
+      monthsInRange: months,
+      daily, channels, topProducts,
+    };
   }
 
   private monthsInRange(from: Date, to: Date): string[] {
@@ -198,6 +212,27 @@ export class AnalyticsService {
     }
     return months;
   }
+
+  // ── Plantillas recurrentes ────────────────────────────────────────────────
+
+  async getExpenseTemplates() {
+    return this.prisma.fixedExpenseTemplate.findMany({ orderBy: { order: 'asc' } });
+  }
+
+  async createExpenseTemplate(name: string, amount: number) {
+    const count = await this.prisma.fixedExpenseTemplate.count();
+    return this.prisma.fixedExpenseTemplate.create({ data: { name, amount, order: count } });
+  }
+
+  async updateExpenseTemplate(id: string, data: { name?: string; amount?: number; active?: boolean; order?: number }) {
+    return this.prisma.fixedExpenseTemplate.update({ where: { id }, data });
+  }
+
+  async deleteExpenseTemplate(id: string) {
+    return this.prisma.fixedExpenseTemplate.delete({ where: { id } });
+  }
+
+  // ── Gastos adicionales por mes ────────────────────────────────────────────
 
   async getFixedExpenses(month?: string) {
     return this.prisma.fixedExpense.findMany({

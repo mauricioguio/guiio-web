@@ -319,6 +319,18 @@ model AbandonedCart {
   @@index([convertedAt])
 }
 
+// Gastos que se repiten automáticamente cada mes
+model FixedExpenseTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  amount    Float
+  active    Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Gastos adicionales puntuales de un mes específico
 model FixedExpense {
   id        String   @id @default(cuid())
   name      String
