@@ -14,78 +14,98 @@ export class AnalyticsService {
     const [onlineAgg, physicalByChannel, dailyOnline, dailyPhysical, topOnline, topPhysical] =
       await Promise.all([
 
-        // Online totals
+        // Online totals — CTE pre-agrega costos por pedido para evitar multiplicación con o.total
         this.prisma.$queryRaw<{ revenue: number; cost: number; count: number }[]>`
+          WITH item_costs AS (
+            SELECT oi."orderId", COALESCE(SUM(oi.quantity * COALESCE(pc.unit_cost, 0)), 0) AS cost
+            FROM "OrderItem" oi
+            LEFT JOIN (
+              SELECT p2.name, COALESCE(SUM(pci.quantity * pci.amount), 0) AS unit_cost
+              FROM "Product" p2
+              LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
+              GROUP BY p2.name
+            ) pc ON LOWER(pc.name) = LOWER(oi."productName")
+            GROUP BY oi."orderId"
+          )
           SELECT
-            COALESCE(SUM(o.total), 0)::float                                             AS revenue,
-            COALESCE(SUM(oi.quantity * COALESCE(pc.unit_cost, 0)), 0)::float             AS cost,
-            COUNT(DISTINCT o.id)::int                                                    AS count
+            COALESCE(SUM(o.total), 0)::float   AS revenue,
+            COALESCE(SUM(ic.cost), 0)::float   AS cost,
+            COUNT(o.id)::int                   AS count
           FROM "Order" o
-          JOIN "OrderItem" oi ON oi."orderId" = o.id
-          LEFT JOIN (
-            SELECT p2.name, COALESCE(SUM(pci.quantity * pci.amount), 0) AS unit_cost
-            FROM "Product" p2
-            LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
-            GROUP BY p2.name
-          ) pc ON LOWER(pc.name) = LOWER(oi."productName")
+          LEFT JOIN item_costs ic ON ic."orderId" = o.id
           WHERE o.status NOT IN ('CANCELLED','PENDING')
             AND o."createdAt" >= ${from} AND o."createdAt" <= ${to}
         `,
 
-        // Physical by channel
+        // Physical by channel — CTE pre-agrega costos por venta
         this.prisma.$queryRaw<{ channel: string; revenue: number; cost: number; count: number }[]>`
+          WITH item_costs AS (
+            SELECT si."saleId", COALESCE(SUM(si.quantity * COALESCE(pc.unit_cost, 0)), 0) AS cost
+            FROM "SaleItem" si
+            LEFT JOIN (
+              SELECT p2.id, COALESCE(SUM(pci.quantity * pci.amount), 0) AS unit_cost
+              FROM "Product" p2
+              LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
+              GROUP BY p2.id
+            ) pc ON pc.id = si."productId"
+            GROUP BY si."saleId"
+          )
           SELECT
-            COALESCE(s.channel, se.name)                                                 AS channel,
-            COALESCE(SUM(s.total), 0)::float                                             AS revenue,
-            COALESCE(SUM(si.quantity * COALESCE(pc.unit_cost, 0)), 0)::float             AS cost,
-            COUNT(DISTINCT s.id)::int                                                    AS count
+            COALESCE(s.channel, se.name)       AS channel,
+            COALESCE(SUM(s.total), 0)::float   AS revenue,
+            COALESCE(SUM(ic.cost), 0)::float   AS cost,
+            COUNT(s.id)::int                   AS count
           FROM "Sale" s
           JOIN "Sede" se ON se.id = s."sedeId"
-          JOIN "SaleItem" si ON si."saleId" = s.id
-          LEFT JOIN (
-            SELECT p2.id, COALESCE(SUM(pci.quantity * pci.amount), 0) AS unit_cost
-            FROM "Product" p2
-            LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
-            GROUP BY p2.id
-          ) pc ON pc.id = si."productId"
+          LEFT JOIN item_costs ic ON ic."saleId" = s.id
           WHERE s.status NOT IN ('CANCELLED')
             AND s."createdAt" >= ${from} AND s."createdAt" <= ${to}
           GROUP BY COALESCE(s.channel, se.name)
         `,
 
-        // Daily online
+        // Daily online — CTE pre-agrega costos por pedido
         this.prisma.$queryRaw<{ date: string; revenue: number; cost: number }[]>`
+          WITH item_costs AS (
+            SELECT oi."orderId", COALESCE(SUM(oi.quantity * COALESCE(pc.unit_cost, 0)), 0) AS cost
+            FROM "OrderItem" oi
+            LEFT JOIN (
+              SELECT p2.name, COALESCE(SUM(pci.quantity * pci.amount), 0) AS unit_cost
+              FROM "Product" p2
+              LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
+              GROUP BY p2.name
+            ) pc ON LOWER(pc.name) = LOWER(oi."productName")
+            GROUP BY oi."orderId"
+          )
           SELECT
             DATE(o."createdAt" AT TIME ZONE 'America/Bogota')::text AS date,
             COALESCE(SUM(o.total), 0)::float                        AS revenue,
-            COALESCE(SUM(oi.quantity * COALESCE(pc.unit_cost, 0)), 0)::float AS cost
+            COALESCE(SUM(ic.cost), 0)::float                        AS cost
           FROM "Order" o
-          JOIN "OrderItem" oi ON oi."orderId" = o.id
-          LEFT JOIN (
-            SELECT p2.name, COALESCE(SUM(pci.quantity * pci.amount), 0) AS unit_cost
-            FROM "Product" p2
-            LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
-            GROUP BY p2.name
-          ) pc ON LOWER(pc.name) = LOWER(oi."productName")
+          LEFT JOIN item_costs ic ON ic."orderId" = o.id
           WHERE o.status NOT IN ('CANCELLED','PENDING')
             AND o."createdAt" >= ${from} AND o."createdAt" <= ${to}
           GROUP BY DATE(o."createdAt" AT TIME ZONE 'America/Bogota')
         `,
 
-        // Daily physical
+        // Daily physical — CTE pre-agrega costos por venta
         this.prisma.$queryRaw<{ date: string; revenue: number; cost: number }[]>`
+          WITH item_costs AS (
+            SELECT si."saleId", COALESCE(SUM(si.quantity * COALESCE(pc.unit_cost, 0)), 0) AS cost
+            FROM "SaleItem" si
+            LEFT JOIN (
+              SELECT p2.id, COALESCE(SUM(pci.quantity * pci.amount), 0) AS unit_cost
+              FROM "Product" p2
+              LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
+              GROUP BY p2.id
+            ) pc ON pc.id = si."productId"
+            GROUP BY si."saleId"
+          )
           SELECT
             DATE(s."createdAt" AT TIME ZONE 'America/Bogota')::text AS date,
             COALESCE(SUM(s.total), 0)::float                        AS revenue,
-            COALESCE(SUM(si.quantity * COALESCE(pc.unit_cost, 0)), 0)::float AS cost
+            COALESCE(SUM(ic.cost), 0)::float                        AS cost
           FROM "Sale" s
-          JOIN "SaleItem" si ON si."saleId" = s.id
-          LEFT JOIN (
-            SELECT p2.id, COALESCE(SUM(pci.quantity * pci.amount), 0) AS unit_cost
-            FROM "Product" p2
-            LEFT JOIN "ProductCostItem" pci ON pci."productId" = p2.id
-            GROUP BY p2.id
-          ) pc ON pc.id = si."productId"
+          LEFT JOIN item_costs ic ON ic."saleId" = s.id
           WHERE s.status NOT IN ('CANCELLED')
             AND s."createdAt" >= ${from} AND s."createdAt" <= ${to}
           GROUP BY DATE(s."createdAt" AT TIME ZONE 'America/Bogota')
