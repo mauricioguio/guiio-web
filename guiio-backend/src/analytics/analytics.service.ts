@@ -180,9 +180,9 @@ export class AnalyticsService {
     const months = this.monthsInRange(from, to);
     const [templates, extras] = await Promise.all([
       this.prisma.fixedExpenseTemplate.findMany({ where: { active: true }, orderBy: { order: 'asc' } }),
-      months.length
+      months.length > 0
         ? this.prisma.fixedExpense.findMany({ where: { month: { in: months } }, orderBy: { month: 'asc' } })
-        : Promise.resolve([]),
+        : this.prisma.fixedExpense.findMany({ where: { id: 'none' } }),
     ]);
     // Recurrentes: cada plantilla activa aplica una vez por mes en el período
     const recurringPerMonth = templates.reduce((s, t) => s + t.amount, 0);
