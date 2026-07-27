@@ -40,13 +40,13 @@ export class Home {
 
   protected readonly featuredCollections = computed(() =>
     this.collectionService.getAll()()
-      .filter(c => c.featured)
+      .filter(c => c.featured && c.name.toLowerCase() !== 'new in')
       .sort((a, b) => a.order - b.order)
   );
 
   protected readonly mainCollections = computed(() =>
     this.collectionService.getAll()()
-      .filter(c => !c.featured)
+      .filter(c => !c.featured && c.name.toLowerCase() !== 'new in')
       .sort((a, b) => a.order - b.order)
   );
 
@@ -68,12 +68,9 @@ export class Home {
     return map;
   });
 
-  protected readonly newIn = computed(() =>
-    [...this.productService.getAll()()]
-      .filter(p => p.images?.length)
-      .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
-      .slice(0, 10)
-  );
+  protected readonly newInProducts = signal<any[]>([]);
+
+  protected readonly newIn = computed(() => this.newInProducts());
 
   protected newInIndex   = signal(0);
   protected newInPerView = signal(typeof window !== 'undefined' && window.innerWidth < 768 ? 2 : 3);
@@ -98,6 +95,17 @@ export class Home {
   protected readonly colFading     = signal(false);
 
   constructor() {
+    this.collectionService.getProductsByName('New In').subscribe({
+      next: (products) => {
+        const arr = products.filter(p => p.images?.length);
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        this.newInProducts.set(arr);
+      },
+    });
+
     const fade = (fadingSignal: ReturnType<typeof signal<boolean>>, indexSignal: ReturnType<typeof signal<number>>, getTotal: () => number) => {
       fadingSignal.set(true);
       setTimeout(() => {
