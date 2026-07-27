@@ -187,10 +187,8 @@ export class ProductsService {
 
   async update(id: string, data: any) {
     const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = data;
-    const p = await this.prisma.product.update({
-      where: { id },
-      data: { ...rest, type: (rest.type as string).toUpperCase() as any },
-    });
+    if (rest.type) rest.type = (rest.type as string).toUpperCase();
+    const p = await this.prisma.product.update({ where: { id }, data: rest });
     return { ...p, type: p.type.toLowerCase() };
   }
 
