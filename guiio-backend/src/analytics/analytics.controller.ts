@@ -22,6 +22,11 @@ export class AnalyticsController {
     return this.analyticsService.getProfits(from, to);
   }
 
+  @Get('top-viewed-products')
+  getTopViewedProducts(@Query('from') from?: string, @Query('to') to?: string) {
+    return this.analyticsService.getTopViewedProducts(from, to);
+  }
+
   // ── Gastos recurrentes (aplican todos los meses) ─────────────────────────
 
   @Get('expense-templates')

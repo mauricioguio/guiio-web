@@ -453,4 +453,26 @@ export class AnalyticsService {
       })),
     };
   }
+
+  async getTopViewedProducts(from?: string, to?: string) {
+    const rangeFrom = new Date(from ? `${from}T00:00:00Z` : '2020-01-01T00:00:00Z');
+    const rangeTo   = new Date(to   ? `${to}T23:59:59Z`   : new Date().toISOString());
+
+    const rows = await this.prisma.$queryRaw<{ name: string; collection: string; views: number }[]>`
+      SELECT
+        p.name,
+        p.collection,
+        COUNT(pv.id)::int AS views
+      FROM "PageView" pv
+      JOIN "Product" p ON p.id = SPLIT_PART(pv.path, '/', 3)
+      WHERE pv.path LIKE '/producto/%'
+        AND pv."createdAt" >= ${rangeFrom}
+        AND pv."createdAt" <= ${rangeTo}
+      GROUP BY p.id, p.name, p.collection
+      ORDER BY views DESC
+      LIMIT 10
+    `;
+
+    return rows.map(r => ({ name: r.name, collection: r.collection, views: Number(r.views) }));
+  }
 }

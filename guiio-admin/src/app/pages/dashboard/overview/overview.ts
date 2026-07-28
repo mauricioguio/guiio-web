@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AnalyticsApiService, OverviewData, GeoData } from '../../../services/analytics-api';
+import { AnalyticsApiService, OverviewData, GeoData, TopViewed } from '../../../services/analytics-api';
 import { forkJoin } from 'rxjs';
 
 const COP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
@@ -18,10 +18,11 @@ function toISO(d: Date) { return d.toISOString().slice(0, 10); }
 export class Overview {
   private readonly api = inject(AnalyticsApiService);
 
-  protected data    = signal<OverviewData | null>(null);
-  protected geoData = signal<GeoData | null>(null);
-  protected loading = signal(true);
-  protected error   = signal(false);
+  protected data       = signal<OverviewData | null>(null);
+  protected geoData    = signal<GeoData | null>(null);
+  protected topViewed  = signal<TopViewed[]>([]);
+  protected loading    = signal(true);
+  protected error      = signal(false);
 
   protected datePreset  = signal<DatePreset>('month');
   protected customFrom  = signal<string>('');
@@ -96,10 +97,16 @@ export class Overview {
     this.error.set(false);
     const { from, to } = this.getRange();
     forkJoin({
-      overview: this.api.getOverview(from, to),
-      geo:      this.api.getGeoStats(from, to),
+      overview:   this.api.getOverview(from, to),
+      geo:        this.api.getGeoStats(from, to),
+      topViewed:  this.api.getTopViewedProducts(from, to),
     }).subscribe({
-      next:  ({ overview, geo }) => { this.data.set(overview); this.geoData.set(geo); this.loading.set(false); },
+      next:  ({ overview, geo, topViewed }) => {
+        this.data.set(overview);
+        this.geoData.set(geo);
+        this.topViewed.set(topViewed);
+        this.loading.set(false);
+      },
       error: () => { this.error.set(true); this.loading.set(false); },
     });
   }

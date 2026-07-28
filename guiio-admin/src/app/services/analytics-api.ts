@@ -5,7 +5,8 @@ const API_URL = 'https://api.guiiouniformes.com/api';
 
 export interface DailySale { date: string; total: number; count: number; }
 export interface TopProduct { name: string; revenue: number; quantity: number; }
-export interface TopCarted { name: string; count: number; }
+export interface TopCarted  { name: string; count: number; }
+export interface TopViewed { name: string; collection: string; views: number; }
 export interface HourlySession { hour: number; count: number; }
 
 export interface GeoCountry { country: string; count: number; }
@@ -44,5 +45,12 @@ export class AnalyticsApiService {
     if (from) params['from'] = from;
     if (to)   params['to']   = to;
     return this.http.get<GeoData>(`${API_URL}/analytics/geo`, { params });
+  }
+
+  getTopViewedProducts(from?: string, to?: string) {
+    const params: Record<string, string> = {};
+    if (from) params['from'] = from;
+    if (to)   params['to']   = to;
+    return this.http.get<TopViewed[]>(`${API_URL}/analytics/top-viewed-products`, { params });
   }
 }

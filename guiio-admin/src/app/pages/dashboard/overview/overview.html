@@ -228,6 +228,39 @@
       }
     </div>
 
+    <!-- Productos más vistos -->
+    @if (topViewed().length > 0) {
+      <div class="bg-gray-900 rounded-2xl border border-gray-800 p-5 mb-4">
+        <p class="text-gray-400 text-xs mb-4">Uniformes más vistos por los clientes — período seleccionado</p>
+        <div class="space-y-3">
+          @for (p of topViewed(); track p.name; let i = $index) {
+            <div class="flex items-center gap-3">
+              <span class="text-gray-600 text-xs w-4 shrink-0 text-right">{{ i + 1 }}</span>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-baseline gap-2">
+                  <p class="text-white text-sm truncate">{{ p.name }}</p>
+                  <p class="text-gray-600 text-xs shrink-0">{{ p.collection }}</p>
+                </div>
+                <div class="mt-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+                  <div class="h-full bg-teal-500 rounded-full transition-all"
+                       [style.width.%]="(p.views / topViewed()[0].views) * 100"></div>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <p class="text-white text-sm font-medium">{{ p.views }}</p>
+                <p class="text-gray-500 text-xs">visitas</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    } @else if (!loading()) {
+      <div class="bg-gray-900 rounded-2xl border border-gray-800 p-5 mb-4">
+        <p class="text-gray-400 text-xs mb-2">Uniformes más vistos por los clientes</p>
+        <p class="text-gray-600 text-sm">Sin visitas a productos en el período seleccionado.</p>
+      </div>
+    }
+
     <!-- Top carted products -->
     @if ((data()!.topCarted?.length ?? 0) > 0) {
       <div class="bg-gray-900 rounded-2xl border border-gray-800 p-5 mb-4">
