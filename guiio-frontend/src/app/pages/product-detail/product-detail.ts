@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect, untracked } from '@angular/core';
+import { Component, inject, signal, computed, effect, untracked, HostListener } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -444,6 +444,26 @@ export class ProductDetail {
   }
 
   selectImage(index: number) { this.selectedImageIndex.set(index); }
+
+  protected readonly zoomOpen    = signal(false);
+  protected readonly zoomHovered = signal(false);
+  protected readonly zoomOrigin  = signal('50% 50%');
+
+  openZoom()  { this.zoomOpen.set(true); }
+  closeZoom() { this.zoomOpen.set(false); this.zoomHovered.set(false); }
+
+  zoomNext(images: string[]) { this.selectedImageIndex.update(i => (i + 1) % images.length); }
+  zoomPrev(images: string[]) { this.selectedImageIndex.update(i => (i - 1 + images.length) % images.length); }
+
+  onZoomMove(e: MouseEvent) {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    this.zoomOrigin.set(`${x}% ${y}%`);
+  }
+
+  @HostListener('keydown.escape')
+  onEscape() { if (this.zoomOpen()) this.closeZoom(); }
   selectColor(color: ProductColor) { this.selectedColor.set(color); }
   selectTopSize(size: string) { this.selectedTopSize.set(size); }
   selectBottomSize(size: string) { this.selectedBottomSize.set(size); }

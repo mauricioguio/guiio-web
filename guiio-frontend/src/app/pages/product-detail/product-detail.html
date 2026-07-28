@@ -39,13 +39,22 @@
             </button>
           }
         </div>
-        <div class="flex-1 overflow-hidden"
+        <div class="flex-1 overflow-hidden relative group cursor-zoom-in"
              [class.aspect-[3/4]]="!p.images?.length"
-             [style.background-color]="!p.images?.length ? (p.colors.length > 0 ? (selectedColor() ?? p.colors[0]).hex : '#f3f4f6') : null">
+             [style.background-color]="!p.images?.length ? (p.colors.length > 0 ? (selectedColor() ?? p.colors[0]).hex : '#f3f4f6') : null"
+             (click)="openZoom()">
           @if (p.images?.length) {
             <img [src]="p.images[selectedImageIndex()]" [alt]="p.name"
                  class="w-full h-auto block transition-opacity duration-200"
                  onerror="this.style.display='none'">
+            <div class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              <div class="bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-md">
+                <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+                </svg>
+              </div>
+            </div>
           }
         </div>
       </div>
@@ -455,6 +464,69 @@
     </section>
   }
 
+}
+
+<!-- Lightbox zoom -->
+@if (zoomOpen() && product()?.images?.length) {
+  <div class="fixed inset-0 z-50 bg-black/92 flex items-center justify-center"
+       (click)="closeZoom()">
+
+    <!-- Botón cerrar -->
+    <button class="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            (click)="closeZoom()">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+
+    <!-- Imagen con hover-zoom -->
+    <div class="overflow-hidden select-none"
+         style="max-width:90vw; max-height:90vh;"
+         (click)="$event.stopPropagation()"
+         (mousemove)="onZoomMove($event)"
+         (mouseenter)="zoomHovered.set(true)"
+         (mouseleave)="zoomHovered.set(false)">
+      <img [src]="product()!.images[selectedImageIndex()]"
+           [alt]="product()!.name"
+           style="display:block; max-width:90vw; max-height:90vh; object-fit:contain;"
+           [style.transform]="zoomHovered() ? 'scale(2.5)' : 'scale(1)'"
+           [style.transform-origin]="zoomOrigin()"
+           [style.transition]="zoomHovered() ? 'transform 0.05s ease-out' : 'transform 0.25s ease'"
+           [style.cursor]="zoomHovered() ? 'zoom-in' : 'default'">
+    </div>
+
+    <!-- Flechas de navegación -->
+    @if (product()!.images.length > 1) {
+      <button class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+              (click)="$event.stopPropagation(); zoomPrev(product()!.images)">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <button class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+              (click)="$event.stopPropagation(); zoomNext(product()!.images)">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+
+      <!-- Indicador de imagen -->
+      <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+        @for (img of product()!.images; track $index) {
+          <button class="w-2 h-2 rounded-full transition-all"
+                  [class.bg-white]="selectedImageIndex() === $index"
+                  [class.bg-white/35]="selectedImageIndex() !== $index"
+                  (click)="$event.stopPropagation(); selectImage($index)">
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Miniatura de imagen actual -->
+    <div class="absolute bottom-4 right-4 text-white/50 text-xs">
+      {{ selectedImageIndex() + 1 }} / {{ product()!.images.length }}
+    </div>
+  </div>
 }
 
 <!-- Modal calculadora de tallas -->
