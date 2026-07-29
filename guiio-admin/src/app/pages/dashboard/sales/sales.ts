@@ -237,7 +237,7 @@ export class Sales implements OnInit {
   }
 
   formatDateShort(iso: string) {
-    return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium' }).format(new Date(iso));
+    return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(iso));
   }
 
   statusLabel(s: string) {

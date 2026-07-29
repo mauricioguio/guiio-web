@@ -392,7 +392,7 @@ export class Pedidos implements OnInit {
   }
 
   formatDateShort(iso: string) {
-    return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium' }).format(new Date(iso));
+    return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(iso));
   }
 
   formatOnlineSize(topSize: string, bottomSize: string): string {

@@ -424,7 +424,7 @@ export class SellerService {
     const headerUpdate: any = {};
     if ('customerName'  in data) headerUpdate.customerName  = data.customerName  || null;
     if ('customerPhone' in data) headerUpdate.customerPhone = data.customerPhone || null;
-    if ('deliveryDate'  in data) headerUpdate.deliveryDate  = data.deliveryDate ? new Date(data.deliveryDate) : null;
+    if ('deliveryDate'  in data) headerUpdate.deliveryDate  = data.deliveryDate ? new Date(data.deliveryDate + 'T12:00:00Z') : null;
     if ('paymentMethod' in data) headerUpdate.paymentMethod = data.paymentMethod || null;
     if ('notes'         in data) headerUpdate.notes         = data.notes         || null;
     if ('channel'       in data) headerUpdate.channel       = data.channel       || null;
