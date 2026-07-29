@@ -1,7 +1,12 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { SellerSalesApiService, SellerSale } from '../../../services/seller-sales-api';
 import { OrdersApiService, Order } from '../../../services/orders-api';
+
+interface ItemDraft { id: string; productName: string; size: string; price: number; note: string; }
+interface SaleDraft { customerName: string; customerPhone: string; deliveryDate: string; paymentMethod: string; notes: string; items: ItemDraft[]; }
+interface SaleChange { label: string; from: string; to: string; }
 
 type ChannelFilter = 'ALL' | 'salitre' | 'veraguas' | 'whatsapp' | 'online';
 
@@ -48,6 +53,7 @@ interface PedidoRow {
 @Component({
   selector: 'app-pedidos',
   templateUrl: './pedidos.html',
+  imports: [FormsModule],
 })
 export class Pedidos implements OnInit {
   private readonly physicalApi = inject(SellerSalesApiService);
@@ -65,6 +71,12 @@ export class Pedidos implements OnInit {
   protected updatingId   = signal<string | null>(null);
   protected confirmDelete = signal<SellerSale | null>(null);
   protected deletingId   = signal<string | null>(null);
+
+  // Edit state
+  protected editingId   = signal<string | null>(null);
+  protected editDraft   = signal<SaleDraft | null>(null);
+  protected confirmEdit = signal<{ sale: SellerSale; draft: SaleDraft; changes: SaleChange[] } | null>(null);
+  protected savingId    = signal<string | null>(null);
 
   protected updatingOrderId = signal<string | null>(null);
   protected emailSentPopup  = signal<{ email: string; reference: string } | null>(null);
@@ -299,6 +311,76 @@ export class Pedidos implements OnInit {
     if (s === 'DELIVERED') return 'border-blue-700 text-blue-300 bg-blue-500/10';
     if (s === 'COMPLETED') return 'border-green-700 text-green-300 bg-green-500/10';
     return 'border-gray-700 text-gray-300 bg-gray-800';
+  }
+
+  startEdit(sale: SellerSale) {
+    const deliveryDate = sale.deliveryDate ? new Date(sale.deliveryDate).toISOString().slice(0, 10) : '';
+    this.editDraft.set({
+      customerName: sale.customerName ?? '', customerPhone: sale.customerPhone ?? '',
+      deliveryDate, paymentMethod: sale.paymentMethod ?? '', notes: sale.notes ?? '',
+      items: sale.items.map(i => ({ id: i.id, productName: i.productName, size: i.size, price: i.price, note: i.note ?? '' })),
+    });
+    this.editingId.set(sale.id);
+  }
+
+  cancelEdit() { this.editingId.set(null); this.editDraft.set(null); }
+
+  prepareSave(sale: SellerSale) {
+    const draft = this.editDraft();
+    if (!draft) return;
+    const changes = this.buildDiff(sale, draft);
+    if (changes.length === 0) { this.cancelEdit(); return; }
+    this.confirmEdit.set({ sale, draft, changes });
+  }
+
+  confirmSave() {
+    const ctx = this.confirmEdit();
+    if (!ctx) return;
+    const { sale, draft } = ctx;
+    this.savingId.set(sale.id);
+    const origDate = sale.deliveryDate ? new Date(sale.deliveryDate).toISOString().slice(0, 10) : '';
+    const payload: any = {};
+    if (draft.customerName  !== (sale.customerName  ?? '')) payload.customerName  = draft.customerName  || null;
+    if (draft.customerPhone !== (sale.customerPhone ?? '')) payload.customerPhone = draft.customerPhone || null;
+    if (draft.deliveryDate  !== origDate)                   payload.deliveryDate  = draft.deliveryDate  || null;
+    if (draft.paymentMethod !== (sale.paymentMethod ?? '')) payload.paymentMethod = draft.paymentMethod || null;
+    if (draft.notes         !== (sale.notes         ?? '')) payload.notes         = draft.notes         || null;
+    const changedItems = draft.items.map(di => {
+      const orig = sale.items.find(i => i.id === di.id)!;
+      const upd: any = { id: di.id };
+      if (di.productName !== orig.productName) upd.productName = di.productName;
+      if (di.size        !== orig.size)        upd.size        = di.size;
+      if (di.price       !== orig.price)       upd.price       = di.price;
+      if (di.note        !== (orig.note ?? '')) upd.note       = di.note || null;
+      return Object.keys(upd).length > 1 ? upd : null;
+    }).filter(Boolean);
+    if (changedItems.length) payload.items = changedItems;
+    this.physicalApi.updateSale(sale.id, payload).subscribe({
+      next: updated => {
+        this.sales.update(list => list.map(s => s.id === updated.id ? updated : s));
+        this.confirmEdit.set(null); this.editingId.set(null); this.editDraft.set(null); this.savingId.set(null);
+      },
+      error: () => this.savingId.set(null),
+    });
+  }
+
+  private buildDiff(sale: SellerSale, draft: SaleDraft): SaleChange[] {
+    const changes: SaleChange[] = [];
+    const origDate = sale.deliveryDate ? new Date(sale.deliveryDate).toISOString().slice(0, 10) : '';
+    if (draft.customerName  !== (sale.customerName  ?? '')) changes.push({ label: 'Nombre cliente', from: sale.customerName  ?? '—', to: draft.customerName  || '—' });
+    if (draft.customerPhone !== (sale.customerPhone ?? '')) changes.push({ label: 'Teléfono',       from: sale.customerPhone ?? '—', to: draft.customerPhone || '—' });
+    if (draft.deliveryDate  !== origDate)                   changes.push({ label: 'Fecha entrega',  from: origDate           || '—', to: draft.deliveryDate  || '—' });
+    if (draft.paymentMethod !== (sale.paymentMethod ?? '')) changes.push({ label: 'Método de pago', from: sale.paymentMethod ?? '—', to: draft.paymentMethod || '—' });
+    if (draft.notes         !== (sale.notes         ?? '')) changes.push({ label: 'Notas',          from: sale.notes         ?? '—', to: draft.notes         || '—' });
+    for (const di of draft.items) {
+      const orig = sale.items.find(i => i.id === di.id); if (!orig) continue;
+      const lbl = orig.productName.length > 22 ? orig.productName.slice(0, 22) + '…' : orig.productName;
+      if (di.productName !== orig.productName) changes.push({ label: `${lbl} — nombre`, from: orig.productName, to: di.productName });
+      if (di.size        !== orig.size)        changes.push({ label: `${lbl} — talla`,  from: orig.size, to: di.size });
+      if (di.price       !== orig.price)       changes.push({ label: `${lbl} — precio`, from: this.formatPrice(orig.price), to: this.formatPrice(di.price) });
+      if (di.note        !== (orig.note ?? '')) changes.push({ label: `${lbl} — nota`,  from: orig.note ?? '—', to: di.note || '—' });
+    }
+    return changes;
   }
 
   formatPrice(v: number) {
