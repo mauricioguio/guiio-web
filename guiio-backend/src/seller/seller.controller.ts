@@ -105,6 +105,12 @@ export class SellerController {
     return this.sellerService.updateSaleStatus(id, status);
   }
 
+  @Patch('admin/sales/:id')
+  @UseGuards(JwtAuthGuard)
+  updateSale(@Param('id') id: string, @Body() body: any) {
+    return this.sellerService.updateSale(id, body);
+  }
+
   @Delete('admin/sales/:id')
   @UseGuards(JwtAuthGuard)
   deleteSale(@Param('id') id: string) {

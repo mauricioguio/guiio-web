@@ -364,6 +364,45 @@ export class SellerService {
     return this.prisma.sale.delete({ where: { id } });
   }
 
+  async updateSale(id: string, data: {
+    customerName?: string | null;
+    customerPhone?: string | null;
+    deliveryDate?: string | null;
+    paymentMethod?: string | null;
+    notes?: string | null;
+    channel?: string | null;
+    items?: { id: string; productName?: string; size?: string; price?: number; note?: string | null }[];
+  }) {
+    const headerUpdate: any = {};
+    if ('customerName'  in data) headerUpdate.customerName  = data.customerName  || null;
+    if ('customerPhone' in data) headerUpdate.customerPhone = data.customerPhone || null;
+    if ('deliveryDate'  in data) headerUpdate.deliveryDate  = data.deliveryDate ? new Date(data.deliveryDate) : null;
+    if ('paymentMethod' in data) headerUpdate.paymentMethod = data.paymentMethod || null;
+    if ('notes'         in data) headerUpdate.notes         = data.notes         || null;
+    if ('channel'       in data) headerUpdate.channel       = data.channel       || null;
+
+    if (data.items?.length) {
+      for (const item of data.items) {
+        const itemUpd: any = {};
+        if (item.productName !== undefined) itemUpd.productName = item.productName;
+        if (item.size        !== undefined) itemUpd.size        = item.size;
+        if (item.price       !== undefined) itemUpd.price       = item.price;
+        if (item.note        !== undefined) itemUpd.note        = item.note || null;
+        if (Object.keys(itemUpd).length) {
+          await this.prisma.saleItem.update({ where: { id: item.id, saleId: id }, data: itemUpd });
+        }
+      }
+      const allItems = await this.prisma.saleItem.findMany({ where: { saleId: id } });
+      headerUpdate.total = allItems.reduce((s, i) => s + i.price * i.quantity, 0);
+    }
+
+    return this.prisma.sale.update({
+      where: { id },
+      data: headerUpdate,
+      include: { items: true, payments: { orderBy: { createdAt: 'asc' } }, sede: { select: { id: true, name: true } } },
+    });
+  }
+
   async editSaleItem(saleId: string, itemId: string, data: { size?: string; note?: string | null; price?: number; productName?: string }) {
     await this.prisma.saleItem.update({
       where: { id: itemId, saleId },

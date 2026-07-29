@@ -39,6 +39,17 @@ export class SellerSalesApiService {
     return this.http.patch<SellerSale>(`${API_URL}/seller/admin/fabricar/${saleId}/items`, { items });
   }
 
+  updateSale(saleId: string, data: {
+    customerName?: string | null;
+    customerPhone?: string | null;
+    deliveryDate?: string | null;
+    paymentMethod?: string | null;
+    notes?: string | null;
+    items?: { id: string; productName?: string; size?: string; price?: number; note?: string | null }[];
+  }) {
+    return this.http.patch<SellerSale>(`${API_URL}/seller/admin/sales/${saleId}`, data);
+  }
+
   delete(saleId: string) {
     return this.http.delete<void>(`${API_URL}/seller/admin/sales/${saleId}`);
   }
