@@ -1,0 +1,126 @@
+<div class="p-8">
+
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-white text-xl font-semibold">Clientes</h2>
+    @if (!loading()) {
+      <span class="text-xs text-gray-500">{{ filtered().length }} cliente{{ filtered().length !== 1 ? 's' : '' }}</span>
+    }
+  </div>
+
+  <!-- Filtros y búsqueda -->
+  <div class="flex flex-wrap gap-3 mb-6">
+    <input
+      [ngModel]="search()" (ngModelChange)="search.set($event)"
+      placeholder="Buscar por nombre, teléfono o email..."
+      class="flex-1 min-w-48 bg-gray-900 border border-gray-800 text-white text-sm rounded-xl px-4 py-2 placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-colors"
+    >
+    <div class="flex gap-1">
+      @for (tab of [['ALL','Todos'],['online','Online'],['physical','Tienda física']]; track tab[0]) {
+        <button
+          (click)="filter.set($any(tab[0]))"
+          class="text-xs px-3 py-2 rounded-xl border transition-colors"
+          [class]="filter() === tab[0]
+            ? 'bg-white text-gray-900 border-white'
+            : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-600'"
+        >{{ tab[1] }}</button>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-400 text-sm">Cargando clientes...</p>
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-500 text-sm">No se encontraron clientes.</p>
+    </div>
+  } @else {
+    <div class="space-y-2">
+      @for (client of filtered(); track client.id) {
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+
+          <!-- Fila principal -->
+          <div
+            class="p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-800/30 transition-colors"
+            (click)="expanded.set(expanded() === client.id ? null : client.id)"
+          >
+            <!-- Avatar -->
+            <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-bold"
+              [class]="client.source === 'online' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-emerald-500/20 text-emerald-400'">
+              {{ client.name.charAt(0).toUpperCase() }}
+            </div>
+
+            <!-- Info -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-white text-sm font-medium">{{ client.name }}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full border font-medium"
+                  [class]="client.source === 'online'
+                    ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                    : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'">
+                  {{ client.source === 'online' ? 'Online' : 'Tienda' }}
+                </span>
+              </div>
+              <p class="text-gray-500 text-xs mt-0.5">{{ client.phone }}@if (client.email) { · {{ client.email }}}</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="text-right shrink-0 hidden sm:block">
+              <p class="text-white text-sm font-semibold">{{ formatPrice(client.totalSpent) }}</p>
+              <p class="text-gray-600 text-xs">{{ client.orderCount }} pedido{{ client.orderCount !== 1 ? 's' : '' }}</p>
+            </div>
+
+            <!-- Chevron -->
+            <svg class="w-4 h-4 text-gray-600 shrink-0 transition-transform" [class.rotate-180]="expanded() === client.id"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+
+          <!-- Detalle expandido -->
+          @if (expanded() === client.id) {
+            <div class="border-t border-gray-800 p-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div>
+                <p class="text-gray-600 text-xs mb-1">Teléfono</p>
+                <p class="text-gray-300 text-sm">{{ client.phone }}</p>
+              </div>
+              @if (client.email) {
+                <div>
+                  <p class="text-gray-600 text-xs mb-1">Email</p>
+                  <p class="text-gray-300 text-sm break-all">{{ client.email }}</p>
+                </div>
+              }
+              @if (client.cedula) {
+                <div>
+                  <p class="text-gray-600 text-xs mb-1">Cédula</p>
+                  <p class="text-gray-300 text-sm">{{ client.cedula }}</p>
+                </div>
+              }
+              <div>
+                <p class="text-gray-600 text-xs mb-1">Total comprado</p>
+                <p class="text-white text-sm font-semibold">{{ formatPrice(client.totalSpent) }}</p>
+              </div>
+              <div>
+                <p class="text-gray-600 text-xs mb-1">Pedidos</p>
+                <p class="text-gray-300 text-sm">{{ client.orderCount }}</p>
+              </div>
+              <div>
+                <p class="text-gray-600 text-xs mb-1">Cliente desde</p>
+                <p class="text-gray-300 text-sm">{{ formatDate(client.createdAt) }}</p>
+              </div>
+              @if (client.lastOrderAt) {
+                <div>
+                  <p class="text-gray-600 text-xs mb-1">Último pedido</p>
+                  <p class="text-gray-300 text-sm">{{ formatDate(client.lastOrderAt) }}</p>
+                </div>
+              }
+            </div>
+          }
+
+        </div>
+      }
+    </div>
+  }
+
+</div>

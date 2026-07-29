@@ -364,6 +364,54 @@ export class SellerService {
     return this.prisma.sale.delete({ where: { id } });
   }
 
+  async getAdminCustomers(empresa = 'GUIIO') {
+    const [onlineCustomers, sellerCustomers, sales] = await Promise.all([
+      this.prisma.customer.findMany({
+        include: { orders: { select: { total: true, status: true, createdAt: true } } },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.sellerCustomer.findMany({
+        where: { empresa },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.sale.findMany({
+        where: { sede: { empresa } },
+        select: { customerName: true, customerPhone: true, total: true, createdAt: true },
+      }),
+    ]);
+
+    const online = onlineCustomers.map(c => ({
+      source: 'online' as const,
+      id: c.id,
+      name: c.name,
+      email: c.email,
+      phone: c.phone,
+      cedula: c.cedula,
+      createdAt: c.createdAt,
+      orderCount: c.orders.length,
+      totalSpent: c.orders.reduce((s, o) => s + o.total, 0),
+      lastOrderAt: c.orders.length ? c.orders[0].createdAt : null,
+    }));
+
+    const physical = sellerCustomers.map(c => {
+      const cSales = sales.filter(s => s.customerPhone === c.phone);
+      return {
+        source: 'physical' as const,
+        id: c.phone,
+        name: c.name,
+        email: null,
+        phone: c.phone,
+        cedula: null,
+        createdAt: c.createdAt,
+        orderCount: cSales.length,
+        totalSpent: cSales.reduce((s, x) => s + x.total, 0),
+        lastOrderAt: cSales.length ? cSales.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0].createdAt : null,
+      };
+    });
+
+    return [...online, ...physical].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
   async updateSale(id: string, data: {
     customerName?: string | null;
     customerPhone?: string | null;

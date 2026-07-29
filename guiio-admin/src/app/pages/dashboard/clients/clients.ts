@@ -1,14 +1,60 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+
+const API_URL = 'https://api.guiiouniformes.com/api';
+
+interface AdminClient {
+  source: 'online' | 'physical';
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string;
+  cedula: string | null;
+  createdAt: string;
+  orderCount: number;
+  totalSpent: number;
+  lastOrderAt: string | null;
+}
 
 @Component({
   selector: 'app-clients',
-  template: `
-    <div class="p-8">
-      <h2 class="text-white text-xl font-semibold mb-4">Clientes</h2>
-      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
-        <p class="text-gray-500 text-sm">Los clientes registrados aparecerán aquí una vez conectada la base de datos.</p>
-      </div>
-    </div>
-  `,
+  templateUrl: './clients.html',
+  imports: [FormsModule],
 })
-export class Clients {}
+export class Clients implements OnInit {
+  private readonly http = inject(HttpClient);
+
+  protected clients   = signal<AdminClient[]>([]);
+  protected loading   = signal(true);
+  protected search    = signal('');
+  protected filter    = signal<'ALL' | 'online' | 'physical'>('ALL');
+  protected expanded  = signal<string | null>(null);
+
+  protected filtered = computed(() => {
+    const q = this.search().toLowerCase().trim();
+    const f = this.filter();
+    return this.clients().filter(c => {
+      if (f !== 'ALL' && c.source !== f) return false;
+      if (!q) return true;
+      return c.name.toLowerCase().includes(q)
+        || c.phone.includes(q)
+        || (c.email ?? '').toLowerCase().includes(q);
+    });
+  });
+
+  ngOnInit() {
+    this.http.get<AdminClient[]>(`${API_URL}/seller/admin/customers`).subscribe({
+      next: list => { this.clients.set(list); this.loading.set(false); },
+      error: () => this.loading.set(false),
+    });
+  }
+
+  formatPrice(v: number) {
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v);
+  }
+
+  formatDate(iso: string) {
+    return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium' }).format(new Date(iso));
+  }
+}
