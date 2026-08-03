@@ -5,7 +5,7 @@ const API_URL = 'https://api.guiiouniformes.com/api';
 
 export interface OrderItem {
   id: string; quantity: number; price: number;
-  productName: string; topSize: string; bottomSize: string; color: string;
+  productName: string; topSize: string; bottomSize: string; color: string; legStyle?: string | null;
 }
 
 export interface Order {

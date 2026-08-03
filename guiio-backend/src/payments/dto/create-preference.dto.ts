@@ -7,6 +7,7 @@ export class CartItemDto {
   topSize: string;
   bottomSize: string;
   color: string;
+  legStyle?: string;
 }
 
 export class CustomerDto {

@@ -210,13 +210,14 @@ model Order {
 }
 
 model OrderItem {
-  id          String @id @default(cuid())
+  id          String  @id @default(cuid())
   quantity    Int
   price       Float
   productName String
   topSize     String
   bottomSize  String
   color       String
+  legStyle    String?
 
   orderId String
   order   Order  @relation(fields: [orderId], references: [id])

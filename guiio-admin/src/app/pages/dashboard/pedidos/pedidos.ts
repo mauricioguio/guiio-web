@@ -395,10 +395,12 @@ export class Pedidos implements OnInit {
     return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(iso));
   }
 
-  formatOnlineSize(topSize: string, bottomSize: string): string {
-    if (topSize && bottomSize) return `Blusa ${topSize} / Pantalón ${bottomSize}`;
-    if (topSize)               return `Talla ${topSize}`;
-    if (bottomSize)            return `Talla ${bottomSize}`;
-    return '';
+  formatOnlineSize(topSize: string, bottomSize: string, legStyle?: string | null): string {
+    let size = '';
+    if (topSize && bottomSize) size = `Blusa ${topSize} / Pantalón ${bottomSize}`;
+    else if (topSize)          size = `Talla ${topSize}`;
+    else if (bottomSize)       size = `Talla ${bottomSize}`;
+    if (legStyle) size += ` · Bota ${legStyle}`;
+    return size;
   }
 }

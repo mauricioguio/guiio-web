@@ -83,6 +83,7 @@ export class PaymentsService {
               topSize: item.topSize,
               bottomSize: item.bottomSize,
               color: item.color,
+              legStyle: item.legStyle ?? null,
             })),
           },
         },

@@ -310,10 +310,12 @@ export class Orders {
     }).format(value);
   }
 
-  formatOnlineSize(topSize: string, bottomSize: string): string {
-    if (topSize && bottomSize) return `Blusa ${topSize} / Pantalón ${bottomSize}`;
-    if (topSize) return `Blusa ${topSize}`;
-    if (bottomSize) return `Pantalón ${bottomSize}`;
-    return '';
+  formatOnlineSize(topSize: string, bottomSize: string, legStyle?: string | null): string {
+    let size = '';
+    if (topSize && bottomSize) size = `Blusa ${topSize} / Pantalón ${bottomSize}`;
+    else if (topSize) size = `Blusa ${topSize}`;
+    else if (bottomSize) size = `Pantalón ${bottomSize}`;
+    if (legStyle) size += ` · Bota ${legStyle}`;
+    return size;
   }
 }

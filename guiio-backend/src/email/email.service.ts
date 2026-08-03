@@ -7,6 +7,7 @@ interface OrderItem {
   color: string;
   topSize: string;
   bottomSize: string;
+  legStyle?: string | null;
   quantity: number;
   price: number;
 }
@@ -49,7 +50,7 @@ export class EmailService {
       <tr>
         <td style="padding:10px 0;border-bottom:1px solid #f0f0f0;">
           <strong style="color:#111;">${item.productName}</strong><br>
-          <span style="color:#666;font-size:13px;">Color: ${item.color} &nbsp;·&nbsp; Blusa: ${item.topSize} &nbsp;·&nbsp; Pantalón: ${item.bottomSize} &nbsp;·&nbsp; Cant: ${item.quantity}</span>
+          <span style="color:#666;font-size:13px;">Color: ${item.color} &nbsp;·&nbsp; Blusa: ${item.topSize} &nbsp;·&nbsp; Pantalón: ${item.bottomSize}${item.legStyle ? ` &nbsp;·&nbsp; Bota: ${item.legStyle}` : ''} &nbsp;·&nbsp; Cant: ${item.quantity}</span>
         </td>
         <td style="padding:10px 0;border-bottom:1px solid #f0f0f0;text-align:right;white-space:nowrap;">
           <strong style="color:#111;">${this.formatCOP(item.price * item.quantity)}</strong>
