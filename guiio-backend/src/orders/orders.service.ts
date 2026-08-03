@@ -55,6 +55,7 @@ export class OrdersService {
           color: i.color,
           topSize: i.topSize,
           bottomSize: i.bottomSize ?? '',
+          legStyle: i.legStyle ?? null,
           quantity: i.quantity,
           price: i.price,
         })),
