@@ -15,7 +15,7 @@ export class AnalyticsService {
       await Promise.all([
 
         // Online totals — CTE pre-agrega costos por pedido para evitar multiplicación con o.total
-        this.prisma.$queryRaw<{ revenue: number; cost: number; count: number }[]>`
+        this.prisma.$queryRaw<{ revenue: number; cost: number; count: number; units: number }[]>`
           WITH item_costs AS (
             SELECT oi."orderId", COALESCE(SUM(oi.quantity * COALESCE(pc.unit_cost, 0)), 0) AS cost
             FROM "OrderItem" oi
@@ -26,19 +26,26 @@ export class AnalyticsService {
               GROUP BY p2.name
             ) pc ON LOWER(pc.name) = LOWER(oi."productName")
             GROUP BY oi."orderId"
+          ),
+          order_units AS (
+            SELECT oi2."orderId", SUM(oi2.quantity)::int AS units
+            FROM "OrderItem" oi2
+            GROUP BY oi2."orderId"
           )
           SELECT
             COALESCE(SUM(o.total), 0)::float   AS revenue,
             COALESCE(SUM(ic.cost), 0)::float   AS cost,
-            COUNT(o.id)::int                   AS count
+            COUNT(o.id)::int                   AS count,
+            COALESCE(SUM(ou.units), 0)::int    AS units
           FROM "Order" o
           LEFT JOIN item_costs ic ON ic."orderId" = o.id
+          LEFT JOIN order_units ou ON ou."orderId" = o.id
           WHERE o.status NOT IN ('CANCELLED','PENDING')
             AND o."createdAt" >= ${from} AND o."createdAt" <= ${to}
         `,
 
         // Physical by channel — CTE pre-agrega costos por venta
-        this.prisma.$queryRaw<{ channel: string; revenue: number; cost: number; count: number }[]>`
+        this.prisma.$queryRaw<{ channel: string; revenue: number; cost: number; count: number; units: number }[]>`
           WITH item_costs AS (
             SELECT si."saleId", COALESCE(SUM(si.quantity * COALESCE(pc.unit_cost, 0)), 0) AS cost
             FROM "SaleItem" si
@@ -49,15 +56,22 @@ export class AnalyticsService {
               GROUP BY p2.id
             ) pc ON pc.id = si."productId"
             GROUP BY si."saleId"
+          ),
+          sale_units AS (
+            SELECT si2."saleId", SUM(si2.quantity)::int AS units
+            FROM "SaleItem" si2
+            GROUP BY si2."saleId"
           )
           SELECT
-            COALESCE(s.channel, se.name)       AS channel,
-            COALESCE(SUM(s.total), 0)::float   AS revenue,
-            COALESCE(SUM(ic.cost), 0)::float   AS cost,
-            COUNT(s.id)::int                   AS count
+            COALESCE(s.channel, se.name)         AS channel,
+            COALESCE(SUM(s.total), 0)::float     AS revenue,
+            COALESCE(SUM(ic.cost), 0)::float     AS cost,
+            COUNT(s.id)::int                     AS count,
+            COALESCE(SUM(su.units), 0)::int      AS units
           FROM "Sale" s
           JOIN "Sede" se ON se.id = s."sedeId"
           LEFT JOIN item_costs ic ON ic."saleId" = s.id
+          LEFT JOIN sale_units su ON su."saleId" = s.id
           WHERE s.status NOT IN ('CANCELLED')
             AND s."createdAt" >= ${from} AND s."createdAt" <= ${to}
           GROUP BY COALESCE(s.channel, se.name)
@@ -193,6 +207,7 @@ export class AnalyticsService {
 
     const totalRevenue = channels.reduce((s, c) => s + c.revenue, 0);
     const totalCost    = channels.reduce((s, c) => s + c.cost,    0);
+    const totalUnits   = Number(onlineAgg[0]?.units ?? 0) + physicalByChannel.reduce((s, c) => s + Number(c.units ?? 0), 0);
     const grossProfit  = totalRevenue - totalCost;
     const grossMarginPct = totalRevenue > 0 ? Math.round(grossProfit / totalRevenue * 100) : 0;
 
@@ -214,6 +229,7 @@ export class AnalyticsService {
 
     return {
       totalRevenue, totalCost, grossProfit, grossMarginPct,
+      totalUnits,
       templates, recurringPerMonth, totalRecurring,
       extras, totalExtras,
       totalFixedExpenses, netProfit, netMarginPct,

@@ -11,6 +11,7 @@ export interface FixedExpense    { id: string; name: string; amount: number; mon
 
 export interface ProfitsData {
   totalRevenue: number; totalCost: number; grossProfit: number; grossMarginPct: number;
+  totalUnits: number;
   templates: ExpenseTemplate[]; recurringPerMonth: number; totalRecurring: number;
   extras: FixedExpense[]; totalExtras: number;
   totalFixedExpenses: number; netProfit: number; netMarginPct: number;

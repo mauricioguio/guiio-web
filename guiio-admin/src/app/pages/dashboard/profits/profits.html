@@ -63,6 +63,22 @@
       </div>
     }
 
+    <!-- KPI fila 0: unidades vendidas -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex items-center gap-4">
+        <div class="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-gray-400 text-xs">Unidades vendidas</p>
+          <p class="text-white text-2xl font-bold mt-0.5">{{ d.totalUnits }}</p>
+          <p class="text-gray-600 text-xs mt-0.5">prendas en el período</p>
+        </div>
+      </div>
+    </div>
+
     <!-- KPI fila 1: ingresos / producción / ganancia bruta / margen bruto -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
       <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4">
