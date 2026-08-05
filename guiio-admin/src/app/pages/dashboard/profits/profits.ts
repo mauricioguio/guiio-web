@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ProfitsApiService, ProfitsData, DailyPoint, ExpenseTemplate, FixedExpense } from '../../../services/profits-api';
 
-type Period   = '30d' | '7d' | 'month' | '90d';
+type Period   = '30d' | '7d' | 'month' | '90d' | 'custom-month';
 type PanelTab = 'recurring' | 'extras';
 
 @Component({
@@ -13,10 +13,11 @@ type PanelTab = 'recurring' | 'extras';
 export class Profits implements OnInit {
   private readonly api = inject(ProfitsApiService);
 
-  protected data    = signal<ProfitsData | null>(null);
-  protected loading = signal(true);
-  protected error   = signal(false);
-  protected period  = signal<Period>('30d');
+  protected data        = signal<ProfitsData | null>(null);
+  protected loading     = signal(true);
+  protected error       = signal(false);
+  protected period      = signal<Period>('30d');
+  protected filterMonth = signal<string>(this.currentMonth());
 
   protected readonly PERIODS: { value: Period; label: string }[] = [
     { value: '7d',    label: 'Últimos 7 días' },
@@ -70,15 +71,28 @@ export class Profits implements OnInit {
 
   changePeriod(p: Period) { this.period.set(p); this.load(); }
 
+  selectCustomMonth(value: string) {
+    if (!value) return;
+    this.filterMonth.set(value);
+    this.period.set('custom-month');
+    this.load();
+  }
+
   private dateRange(): { from: string; to: string } {
     const now = new Date();
-    const to  = now.toISOString().slice(0, 10);
+    const p   = this.period();
+    if (p === 'custom-month') {
+      const [y, m] = this.filterMonth().split('-').map(Number);
+      const from   = new Date(y, m - 1, 1);
+      const to     = new Date(y, m, 0); // último día del mes
+      return { from: from.toISOString().slice(0, 10), to: to.toISOString().slice(0, 10) };
+    }
+    const to = now.toISOString().slice(0, 10);
     let from: Date;
-    const p = this.period();
-    if (p === '7d')      { from = new Date(now); from.setDate(from.getDate() - 6); }
-    else if (p === '90d') { from = new Date(now); from.setDate(from.getDate() - 89); }
+    if      (p === '7d')    { from = new Date(now); from.setDate(from.getDate() - 6); }
+    else if (p === '90d')   { from = new Date(now); from.setDate(from.getDate() - 89); }
     else if (p === 'month') { from = new Date(now.getFullYear(), now.getMonth(), 1); }
-    else                  { from = new Date(now); from.setDate(from.getDate() - 29); }
+    else                    { from = new Date(now); from.setDate(from.getDate() - 29); }
     return { from: from.toISOString().slice(0, 10), to };
   }
 
