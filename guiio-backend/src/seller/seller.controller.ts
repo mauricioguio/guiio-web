@@ -215,8 +215,9 @@ export class SellerController {
     @Param('id') id: string,
     @Body('amount') amount: number,
     @Body('note') note?: string,
+    @Body('paymentMethod') paymentMethod?: string,
   ) {
-    return this.sellerService.addPayment(id, amount, note);
+    return this.sellerService.addPayment(id, amount, note, paymentMethod);
   }
 
   @Patch('fabricar/:id/items')
@@ -242,8 +243,9 @@ export class SellerController {
     @Param('id') id: string,
     @Body('amount') amount: number,
     @Body('note') note?: string,
+    @Body('paymentMethod') paymentMethod?: string,
   ) {
-    return this.sellerService.addPayment(id, amount, note);
+    return this.sellerService.addPayment(id, amount, note, paymentMethod);
   }
 
   @Patch('admin/fabricar/:id/items')

@@ -35,9 +35,10 @@ export class Pedidos implements OnInit {
   protected selectedId  = signal<string | null>(null);
 
   // Payment form
-  protected paymentInput  = signal('');
-  protected paymentNote   = signal('');
-  protected savingPayment = signal(false);
+  protected paymentInput        = signal('');
+  protected paymentNote         = signal('');
+  protected paymentMethodAbono  = signal('EFECTIVO');
+  protected savingPayment       = signal(false);
 
   protected paymentExceedsBalance = computed(() => {
     const order = this.selected();
@@ -193,7 +194,7 @@ export class Pedidos implements OnInit {
     this.savingPayment.set(true);
 
     const doSavePayment = (currentOrder: FabricarOrder) => {
-      this.api.addPayment(currentOrder.id, amount, this.paymentNote() || undefined).subscribe({
+      this.api.addPayment(currentOrder.id, amount, this.paymentNote() || undefined, this.paymentMethodAbono()).subscribe({
         next: payment => {
           this.orders.update(list => list.map(o =>
             o.id === currentOrder.id ? { ...o, payments: [...o.payments, payment] } : o,

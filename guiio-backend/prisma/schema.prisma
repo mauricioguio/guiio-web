@@ -132,11 +132,12 @@ model SaleItem {
 }
 
 model SalePayment {
-  id        String   @id @default(cuid())
-  saleId    String
-  amount    Float
-  note      String?
-  createdAt DateTime @default(now())
+  id            String   @id @default(cuid())
+  saleId        String
+  amount        Float
+  note          String?
+  paymentMethod String?
+  createdAt     DateTime @default(now())
 
   sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
 }

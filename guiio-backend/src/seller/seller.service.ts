@@ -199,7 +199,7 @@ export class SellerService {
     });
   }
 
-  async addPayment(saleId: string, amount: number, note?: string) {
+  async addPayment(saleId: string, amount: number, note?: string, paymentMethod?: string) {
     const sale = await this.prisma.sale.findUnique({
       where: { id: saleId },
       include: { payments: true },
@@ -211,11 +211,21 @@ export class SellerService {
     if (amount > maxAllowed) throw new BadRequestException(`El abono no puede exceder el saldo pendiente`);
 
     const payment = await this.prisma.salePayment.create({
-      data: { saleId, amount, note: note || null },
+      data: { saleId, amount, note: note || null, paymentMethod: paymentMethod || null },
     });
     if (totalPaid + amount >= sale.total) {
       await this.prisma.sale.update({ where: { id: saleId }, data: { status: 'COMPLETED' } });
     }
+
+    if (paymentMethod === 'EFECTIVO' && sale.sedeId) {
+      await this.cash.createIncome(
+        sale.sedeId,
+        amount,
+        `Abono ${sale.customerName ?? 'cliente'} · FABRICAR`,
+        saleId,
+      );
+    }
+
     return payment;
   }
 

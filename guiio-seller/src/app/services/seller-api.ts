@@ -175,8 +175,8 @@ export class SellerApiService {
     return this.http.get<FabricarOrder[]>(`${API}/fabricar`, { headers: this.headers });
   }
 
-  addPayment(orderId: string, amount: number, note?: string) {
-    return this.http.post<SalePayment>(`${API}/fabricar/${orderId}/payment`, { amount, note }, { headers: this.headers });
+  addPayment(orderId: string, amount: number, note?: string, paymentMethod?: string) {
+    return this.http.post<SalePayment>(`${API}/fabricar/${orderId}/payment`, { amount, note, paymentMethod }, { headers: this.headers });
   }
 
   updateDeliveredQty(orderId: string, items: { itemId: string; deliveredQty: number }[]) {

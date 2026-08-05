@@ -408,6 +408,18 @@
                   }
                 }
               </div>
+              <div class="flex gap-2 mb-2">
+                <button (click)="paymentMethodAbono.set('EFECTIVO')"
+                  class="flex-1 py-2 rounded-xl text-xs font-semibold border transition-colors"
+                  [class]="paymentMethodAbono() === 'EFECTIVO' ? 'bg-green-600 border-green-600 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'">
+                  Efectivo
+                </button>
+                <button (click)="paymentMethodAbono.set('TRANSFERENCIA')"
+                  class="flex-1 py-2 rounded-xl text-xs font-semibold border transition-colors"
+                  [class]="paymentMethodAbono() === 'TRANSFERENCIA' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'">
+                  Transferencia
+                </button>
+              </div>
               <div class="flex gap-2">
                 <input
                   type="text" inputmode="numeric"
