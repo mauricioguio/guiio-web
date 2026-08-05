@@ -141,6 +141,7 @@ export class SellerService {
     if (data.paymentMethod === 'EFECTIVO') {
       const cashAmount = hasAbono ? data.initialPayment! : total;
       await this.cash.createIncome(
+        sedeId,
         cashAmount,
         `Venta ${data.customerName ?? 'cliente'} · ${data.type}`,
         sale.id,

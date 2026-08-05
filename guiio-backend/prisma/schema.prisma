@@ -148,6 +148,7 @@ enum SaleType {
 
 model CashMovement {
   id          String           @id @default(cuid())
+  sedeId      String?
   type        CashMovementType
   amount      Float
   description String

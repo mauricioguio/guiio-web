@@ -51,12 +51,17 @@ export class Caja implements OnInit {
 
   ngOnInit() { this.load(); }
 
+  private get sedeId(): string {
+    return this.auth.currentSede()?.sedeId ?? '';
+  }
+
   load() {
     this.loading.set(true);
-    this.http.get<{ balance: number }>(`${API}/cash/balance`).subscribe({
+    const sid = this.sedeId;
+    this.http.get<{ balance: number }>(`${API}/cash/balance`, { params: { sedeId: sid } }).subscribe({
       next: r => this.balance.set(r.balance),
     });
-    this.http.get<CashMovement[]>(`${API}/cash/movements`, { params: { from: this.today, to: this.today } }).subscribe({
+    this.http.get<CashMovement[]>(`${API}/cash/movements`, { params: { sedeId: sid, from: this.today, to: this.today } }).subscribe({
       next: list => { this.movements.set(list); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
@@ -69,6 +74,7 @@ export class Caja implements OnInit {
 
     this.saving.set(true);
     this.http.post<CashMovement>(`${API}/cash/expense`, {
+      sedeId: this.sedeId,
       amount: this.expenseAmount,
       description: this.expenseDesc.trim(),
       createdBy: this.auth.currentSede()?.sedeName ?? 'seller',

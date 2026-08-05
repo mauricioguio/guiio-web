@@ -3,10 +3,21 @@
   <!-- Header -->
   <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
     <div>
-      <h2 class="text-white text-xl font-semibold">Caja · Salitre</h2>
+      <h2 class="text-white text-xl font-semibold">
+        Caja{{ selectedSede() ? ' · ' + selectedSede()!.name : '' }}
+      </h2>
       <p class="text-gray-500 text-xs mt-0.5">Efectivo en sede, métodos de pago y gastos</p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
+      <!-- Selector de sede -->
+      @if (sedes().length > 1) {
+        <select (change)="changeSede($any($event.target).value)" [value]="selectedSedeId()"
+          class="px-3 py-1.5 rounded-xl text-xs bg-gray-900 border border-gray-700 text-gray-300 focus:outline-none focus:border-indigo-500">
+          @for (s of sedes(); track s.id) {
+            <option [value]="s.id">{{ s.name }}</option>
+          }
+        </select>
+      }
       @for (p of PERIODS; track p.value) {
         <button (click)="changePeriod(p.value)"
           class="px-3 py-1.5 rounded-xl text-xs font-medium transition-colors"

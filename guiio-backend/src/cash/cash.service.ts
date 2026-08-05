@@ -5,41 +5,38 @@ import { PrismaService } from '../prisma/prisma.service';
 export class CashService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createIncome(amount: number, description: string, saleId: string) {
+  async createIncome(sedeId: string, amount: number, description: string, saleId: string) {
     return this.prisma.cashMovement.create({
-      data: { type: 'INCOME', amount, description, saleId },
+      data: { sedeId, type: 'INCOME', amount, description, saleId },
     });
   }
 
-  async createExpense(amount: number, description: string, createdBy?: string) {
+  async createExpense(sedeId: string, amount: number, description: string, createdBy?: string) {
     return this.prisma.cashMovement.create({
-      data: { type: 'EXPENSE', amount, description, createdBy },
+      data: { sedeId, type: 'EXPENSE', amount, description, createdBy },
     });
   }
 
-  async getBalance(): Promise<number> {
+  async getBalance(sedeId: string): Promise<number> {
     const [income, expense] = await Promise.all([
-      this.prisma.cashMovement.aggregate({ where: { type: 'INCOME' }, _sum: { amount: true } }),
-      this.prisma.cashMovement.aggregate({ where: { type: 'EXPENSE' }, _sum: { amount: true } }),
+      this.prisma.cashMovement.aggregate({ where: { sedeId, type: 'INCOME' }, _sum: { amount: true } }),
+      this.prisma.cashMovement.aggregate({ where: { sedeId, type: 'EXPENSE' }, _sum: { amount: true } }),
     ]);
     return (income._sum.amount ?? 0) - (expense._sum.amount ?? 0);
   }
 
-  async getMovements(from?: string, to?: string) {
-    const where: any = {};
+  async getMovements(sedeId: string, from?: string, to?: string) {
+    const where: any = { sedeId };
     if (from || to) {
       where.createdAt = {};
       if (from) where.createdAt.gte = new Date(from + 'T00:00:00');
       if (to)   where.createdAt.lte = new Date(to   + 'T23:59:59');
     }
-    return this.prisma.cashMovement.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-    });
+    return this.prisma.cashMovement.findMany({ where, orderBy: { createdAt: 'desc' } });
   }
 
-  async getPaymentStats(from?: string, to?: string) {
-    const where: any = { paymentMethod: { not: null } };
+  async getPaymentStats(sedeId: string, from?: string, to?: string) {
+    const where: any = { sedeId, paymentMethod: { not: null } };
     if (from || to) {
       where.createdAt = {};
       if (from) where.createdAt.gte = new Date(from + 'T00:00:00');
@@ -60,8 +57,8 @@ export class CashService {
     }));
   }
 
-  async getDailyRevenue(from?: string, to?: string) {
-    const where: any = {};
+  async getDailyRevenue(sedeId: string, from?: string, to?: string) {
+    const where: any = { sedeId };
     if (from || to) {
       where.createdAt = {};
       if (from) where.createdAt.gte = new Date(from + 'T00:00:00');
@@ -79,9 +76,9 @@ export class CashService {
       const d = s.createdAt.toISOString().slice(0, 10);
       const prev = byDate.get(d) ?? { efectivo: 0, transferencia: 0, otro: 0 };
       const m = (s.paymentMethod ?? '').toUpperCase();
-      if (m === 'EFECTIVO')       prev.efectivo += s.total;
+      if (m === 'EFECTIVO')           prev.efectivo      += s.total;
       else if (m === 'TRANSFERENCIA') prev.transferencia += s.total;
-      else                        prev.otro += s.total;
+      else                            prev.otro          += s.total;
       byDate.set(d, prev);
     }
 

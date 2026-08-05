@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { SedesApiService, Sede } from '../../../services/sedes-api';
 
 const API = 'https://api.guiiouniformes.com/api';
 
@@ -22,26 +23,22 @@ interface PaymentStat {
   count: number;
 }
 
-interface DailyPoint {
-  date: string;
-  efectivo: number;
-  transferencia: number;
-  otro: number;
-}
-
 @Component({
   selector: 'app-caja',
   templateUrl: './caja.html',
   imports: [FormsModule],
 })
 export class Caja implements OnInit {
-  private readonly http = inject(HttpClient);
+  private readonly http       = inject(HttpClient);
+  private readonly sedesApi   = inject(SedesApiService);
+
+  protected sedes      = signal<Sede[]>([]);
+  protected selectedSedeId = signal<string>('');
 
   protected balance   = signal<number>(0);
   protected movements = signal<CashMovement[]>([]);
   protected stats     = signal<PaymentStat[]>([]);
-  protected daily     = signal<DailyPoint[]>([]);
-  protected loading   = signal(true);
+  protected loading   = signal(false);
   protected saving    = signal(false);
   protected showForm  = signal(false);
 
@@ -60,7 +57,10 @@ export class Caja implements OnInit {
     { value: '90d',   label: 'Últimos 90 días' },
   ];
 
-  // ── Computed stats ────────────────────────────────────────────────────────
+  protected readonly selectedSede = computed(() =>
+    this.sedes().find(s => s.id === this.selectedSedeId()) ?? null
+  );
+
   protected readonly totalRevenue = computed(() =>
     this.stats().reduce((s, r) => s + r.total, 0)
   );
@@ -85,14 +85,23 @@ export class Caja implements OnInit {
     this.movements().filter(m => m.type === 'EXPENSE').reduce((s, m) => s + m.amount, 0)
   );
 
-  ngOnInit() { this.loadAll(); }
+  ngOnInit() {
+    this.sedesApi.getAll().subscribe({
+      next: list => {
+        const active = list.filter(s => s.active);
+        this.sedes.set(active);
+        if (active.length) {
+          this.selectedSedeId.set(active[0].id);
+          this.loadAll();
+        }
+      },
+    });
+  }
 
   private dateRange(): { from: string; to: string } {
     const now = new Date();
     const p   = this.period();
-    if (p === 'custom') {
-      return { from: this.customFrom, to: this.customTo };
-    }
+    if (p === 'custom') return { from: this.customFrom, to: this.customTo };
     const to = now.toISOString().slice(0, 10);
     let from: Date;
     if      (p === '7d')    { from = new Date(now); from.setDate(from.getDate() - 6); }
@@ -103,11 +112,13 @@ export class Caja implements OnInit {
   }
 
   loadAll() {
+    const sid = this.selectedSedeId();
+    if (!sid) return;
     this.loading.set(true);
     const { from, to } = this.dateRange();
-    const params = { from, to };
+    const params = { sedeId: sid, from, to };
 
-    this.http.get<{ balance: number }>(`${API}/cash/balance`).subscribe({
+    this.http.get<{ balance: number }>(`${API}/cash/balance`, { params: { sedeId: sid } }).subscribe({
       next: r => this.balance.set(r.balance),
     });
 
@@ -119,12 +130,13 @@ export class Caja implements OnInit {
       next: s => this.stats.set(s),
     });
 
-    this.http.get<DailyPoint[]>(`${API}/cash/daily`, { params }).subscribe({
-      next: d => { this.daily.set(d); this.loading.set(false); },
+    this.http.get<any[]>(`${API}/cash/daily`, { params }).subscribe({
+      next: () => this.loading.set(false),
       error: () => this.loading.set(false),
     });
   }
 
+  changeSede(id: string) { this.selectedSedeId.set(id); this.loadAll(); }
   changePeriod(p: Period) { this.period.set(p); this.loadAll(); }
 
   applyCustom() {
@@ -140,6 +152,7 @@ export class Caja implements OnInit {
 
     this.saving.set(true);
     this.http.post<CashMovement>(`${API}/cash/expense`, {
+      sedeId: this.selectedSedeId(),
       amount: this.expenseAmount,
       description: this.expenseDesc.trim(),
       createdBy: 'admin',
@@ -170,7 +183,7 @@ export class Caja implements OnInit {
   }
 
   methodLabel(m: string | null) {
-    if (m === 'EFECTIVO')     return 'Efectivo';
+    if (m === 'EFECTIVO')      return 'Efectivo';
     if (m === 'TRANSFERENCIA') return 'Transferencia';
     return m ?? 'Otro';
   }
