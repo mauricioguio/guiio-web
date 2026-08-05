@@ -1,0 +1,222 @@
+<div class="p-4 sm:p-8" style="max-width:1100px;margin:0 auto">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+    <div>
+      <h2 class="text-white text-xl font-semibold">Caja · Salitre</h2>
+      <p class="text-gray-500 text-xs mt-0.5">Efectivo en sede, métodos de pago y gastos</p>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+      @for (p of PERIODS; track p.value) {
+        <button (click)="changePeriod(p.value)"
+          class="px-3 py-1.5 rounded-xl text-xs font-medium transition-colors"
+          [class]="period() === p.value ? 'bg-indigo-600 text-white' : 'bg-gray-900 border border-gray-800 text-gray-400 hover:text-white'"
+        >{{ p.label }}</button>
+      }
+      <div class="flex items-center gap-1">
+        <input type="date" [(ngModel)]="customFrom"
+          class="px-2 py-1.5 rounded-xl text-xs bg-gray-900 border text-gray-300 focus:outline-none focus:border-indigo-500 cursor-pointer"
+          [class.border-indigo-600]="period() === 'custom'" [class.border-gray-800]="period() !== 'custom'" />
+        <span class="text-gray-600 text-xs">–</span>
+        <input type="date" [(ngModel)]="customTo"
+          class="px-2 py-1.5 rounded-xl text-xs bg-gray-900 border text-gray-300 focus:outline-none focus:border-indigo-500 cursor-pointer"
+          [class.border-indigo-600]="period() === 'custom'" [class.border-gray-800]="period() !== 'custom'" />
+        <button (click)="applyCustom()" class="px-2.5 py-1.5 rounded-xl text-xs bg-gray-800 text-gray-300 hover:text-white transition-colors">Aplicar</button>
+      </div>
+      <button (click)="loadAll()" class="text-gray-500 hover:text-white p-1.5 transition-colors" title="Actualizar">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-gray-400 text-sm">Cargando caja...</p>
+    </div>
+  } @else {
+
+    <!-- Fila 1: Saldo + resumen período -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+
+      <!-- Saldo actual (siempre total, no filtrado) -->
+      <div class="col-span-2 sm:col-span-1 rounded-2xl p-5 flex flex-col justify-between"
+           [class]="balance() >= 0 ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'">
+        <p class="text-xs" [class]="balance() >= 0 ? 'text-green-400' : 'text-red-400'">Saldo en caja</p>
+        <p class="text-2xl font-bold mt-1" [class]="balance() >= 0 ? 'text-green-300' : 'text-red-400'">
+          {{ formatPrice(balance()) }}
+        </p>
+        <p class="text-xs mt-1 text-gray-600">saldo total acumulado</p>
+      </div>
+
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+        <p class="text-xs text-gray-400">Efectivo ingresado</p>
+        <p class="text-2xl font-bold text-white mt-1">{{ formatPrice(cashInPeriod()) }}</p>
+        <p class="text-xs text-gray-600 mt-1">ventas efectivo período</p>
+      </div>
+
+      <div class="bg-red-500/10 border border-red-500/20 rounded-2xl p-4">
+        <p class="text-xs text-red-400">Gastos registrados</p>
+        <p class="text-2xl font-bold text-red-300 mt-1">{{ formatPrice(expensesInPeriod()) }}</p>
+        <p class="text-xs text-red-600 mt-1">salidas de caja período</p>
+      </div>
+
+      <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4">
+        <p class="text-xs text-indigo-400">Total ventas período</p>
+        <p class="text-2xl font-bold text-indigo-300 mt-1">{{ formatPrice(totalRevenue()) }}</p>
+        <p class="text-xs text-indigo-600 mt-1">todos los métodos</p>
+      </div>
+
+    </div>
+
+    <!-- Fila 2: Métodos de pago -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-sm font-medium text-white">Métodos de pago</p>
+        <p class="text-xs text-gray-500">{{ stats().reduce($any(0), $any(null)) !== null ? '' : '' }}{{ stats().reduce((s, r) => s + r.count, 0) }} ventas</p>
+      </div>
+
+      @if (stats().length === 0) {
+        <p class="text-gray-600 text-sm text-center py-6">Sin ventas en el período</p>
+      } @else {
+        <div class="space-y-4">
+          <!-- Efectivo -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-green-400 shrink-0"></span>
+                <span class="text-sm text-white">Efectivo</span>
+                <span class="text-xs text-gray-500">{{ effectivo().count }} ventas</span>
+              </div>
+              <div class="text-right">
+                <span class="text-sm font-semibold text-white">{{ formatPrice(effectivo().total) }}</span>
+                <span class="text-xs text-gray-500 ml-2">{{ pct(effectivo().total) }}%</span>
+              </div>
+            </div>
+            <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
+              <div class="h-2 bg-green-500 rounded-full transition-all" [style.width.%]="pct(effectivo().total)"></div>
+            </div>
+          </div>
+
+          <!-- Transferencia -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0"></span>
+                <span class="text-sm text-white">Transferencia</span>
+                <span class="text-xs text-gray-500">{{ transferencia().count }} ventas</span>
+              </div>
+              <div class="text-right">
+                <span class="text-sm font-semibold text-white">{{ formatPrice(transferencia().total) }}</span>
+                <span class="text-xs text-gray-500 ml-2">{{ pct(transferencia().total) }}%</span>
+              </div>
+            </div>
+            <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
+              <div class="h-2 bg-blue-500 rounded-full transition-all" [style.width.%]="pct(transferencia().total)"></div>
+            </div>
+          </div>
+
+          <!-- Otros métodos -->
+          @for (s of otroStats(); track s.method) {
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-purple-400 shrink-0"></span>
+                  <span class="text-sm text-white">{{ methodLabel(s.method) }}</span>
+                  <span class="text-xs text-gray-500">{{ s.count }} ventas</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-sm font-semibold text-white">{{ formatPrice(s.total) }}</span>
+                  <span class="text-xs text-gray-500 ml-2">{{ pct(s.total) }}%</span>
+                </div>
+              </div>
+              <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
+                <div class="h-2 bg-purple-500 rounded-full transition-all" [style.width.%]="pct(s.total)"></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Movimientos: historial + botón agregar gasto -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-sm font-medium text-white">Movimientos de caja</p>
+        <button (click)="showForm.set(!showForm())"
+          class="px-3 py-1.5 rounded-xl text-xs font-medium border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition-colors flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Registrar gasto
+        </button>
+      </div>
+
+      <!-- Formulario gasto -->
+      @if (showForm()) {
+        <div class="bg-gray-800 rounded-xl p-4 mb-4 space-y-3">
+          <p class="text-xs font-medium text-gray-300">Nuevo gasto</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">Descripción</label>
+              <input [(ngModel)]="expenseDesc" placeholder="Ej: Jabón, bolsas..."
+                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-400" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">Monto</label>
+              <input type="number" [(ngModel)]="expenseAmount" placeholder="0"
+                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-400" />
+            </div>
+          </div>
+          @if (formError) { <p class="text-red-400 text-xs">{{ formError }}</p> }
+          <div class="flex gap-2">
+            <button (click)="showForm.set(false); formError = ''"
+              class="px-4 py-2 rounded-lg border border-gray-600 text-gray-400 hover:text-white text-sm transition-colors">Cancelar</button>
+            <button (click)="saveExpense()" [disabled]="saving()"
+              class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-medium transition-colors">
+              {{ saving() ? 'Guardando...' : 'Registrar' }}
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Lista de movimientos -->
+      @if (movements().length === 0) {
+        <p class="text-gray-600 text-sm text-center py-8">Sin movimientos en el período</p>
+      } @else {
+        <div class="space-y-1.5 max-h-[420px] overflow-y-auto pr-1">
+          @for (m of movements(); track m.id) {
+            <div class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-800 transition-colors">
+              <div class="flex items-center gap-3">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                     [class]="m.type === 'INCOME' ? 'bg-green-500/20' : 'bg-red-500/20'">
+                  @if (m.type === 'INCOME') {
+                    <svg class="w-3.5 h-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                      <path d="M12 19V5M5 12l7-7 7 7"/>
+                    </svg>
+                  } @else {
+                    <svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                      <path d="M12 5v14M5 12l7 7 7-7"/>
+                    </svg>
+                  }
+                </div>
+                <div>
+                  <p class="text-sm text-white leading-tight">{{ m.description }}</p>
+                  <p class="text-xs text-gray-500">
+                    {{ formatDate(m.createdAt) }}
+                    @if (m.createdBy) { · {{ m.createdBy }} }
+                  </p>
+                </div>
+              </div>
+              <p class="font-semibold text-sm shrink-0 ml-4" [class]="m.type === 'INCOME' ? 'text-green-400' : 'text-red-400'">
+                {{ m.type === 'INCOME' ? '+' : '−' }}{{ formatPrice(m.amount) }}
+              </p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  }
+</div>

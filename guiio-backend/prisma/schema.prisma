@@ -146,6 +146,21 @@ enum SaleType {
   FABRICAR
 }
 
+model CashMovement {
+  id          String           @id @default(cuid())
+  type        CashMovementType
+  amount      Float
+  description String
+  saleId      String?
+  createdBy   String?
+  createdAt   DateTime         @default(now())
+}
+
+enum CashMovementType {
+  INCOME
+  EXPENSE
+}
+
 enum SaleStatus {
   COMPLETED
   PENDING

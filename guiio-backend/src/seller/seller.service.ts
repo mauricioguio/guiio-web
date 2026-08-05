@@ -1,9 +1,13 @@
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CashService } from '../cash/cash.service';
 
 @Injectable()
 export class SellerService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cash: CashService,
+  ) {}
 
   async auth(sedeId: string, pin: string) {
     const sede = await this.prisma.sede.findUnique({ where: { id: sedeId } });
@@ -132,6 +136,15 @@ export class SellerService {
       await this.prisma.salePayment.create({
         data: { saleId: sale.id, amount: data.initialPayment! },
       });
+    }
+
+    if (data.paymentMethod === 'EFECTIVO') {
+      const cashAmount = hasAbono ? data.initialPayment! : total;
+      await this.cash.createIncome(
+        cashAmount,
+        `Venta ${data.customerName ?? 'cliente'} · ${data.type}`,
+        sale.id,
+      );
     }
 
     return sale;

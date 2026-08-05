@@ -15,10 +15,12 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { TrackingModule } from './tracking/tracking.module';
 import { AbandonedCartsModule } from './abandoned-carts/abandoned-carts.module';
 import { OrderEditRequestsModule } from './order-edit-requests/order-edit-requests.module';
+import { CashModule } from './cash/cash.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    CashModule,
     AuthModule,
     PaymentsModule,
     AddiModule,
