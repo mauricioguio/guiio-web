@@ -7,110 +7,111 @@
       <p class="text-gray-500 text-xs">{{ auth.currentSede()?.sedeName }}</p>
     </div>
     <div class="flex items-center gap-1">
-      <a routerLink="/ventas"    routerLinkActive="text-white bg-gray-800" class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">Ventas</a>
-      <a routerLink="/pedidos"   routerLinkActive="text-white bg-gray-800" class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">Pedidos</a>
+      <a routerLink="/ventas"     routerLinkActive="text-white bg-gray-800" class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">Ventas</a>
+      <a routerLink="/pedidos"    routerLinkActive="text-white bg-gray-800" class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">Pedidos</a>
       <a routerLink="/inventario" routerLinkActive="text-white bg-gray-800" class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">Inventario</a>
-      <a routerLink="/pos"       routerLinkActive="text-white bg-gray-800" class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">POS</a>
-      <a routerLink="/caja"      routerLinkActive="text-white bg-gray-800" class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">Caja</a>
+      <a routerLink="/pos"        routerLinkActive="text-white bg-gray-800" class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">POS</a>
+      <a routerLink="/caja"       routerLinkActive="text-white bg-gray-800" class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">Caja</a>
     </div>
   </nav>
 
-  <div class="p-4 max-w-lg mx-auto pt-6">
+  <div class="p-4 max-w-2xl mx-auto pt-6">
 
-    <!-- Saldo actual -->
-    <div class="rounded-2xl p-6 mb-6 text-center"
-         [class]="balance() >= 0 ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'">
-      <p class="text-xs text-gray-400 mb-1">Saldo en caja</p>
-      <p class="text-4xl font-bold" [class]="balance() >= 0 ? 'text-green-300' : 'text-red-400'">
-        {{ formatPrice(balance()) }}
-      </p>
-      <button (click)="load()" class="mt-3 text-xs text-gray-500 hover:text-gray-300 transition-colors">Actualizar</button>
-    </div>
-
-    <!-- Resumen del día -->
-    <div class="grid grid-cols-2 gap-3 mb-6">
-      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4">
-        <p class="text-xs text-gray-500 mb-1">Ingresado hoy</p>
-        <p class="text-lg font-bold text-white">{{ formatPrice(todayIncome()) }}</p>
+    <!-- Saldo + resumen -->
+    <div class="grid grid-cols-3 gap-3 mb-5">
+      <div class="col-span-3 sm:col-span-1 rounded-2xl p-5 text-center"
+           [class]="balance() >= 0 ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'">
+        <p class="text-xs mb-1" [class]="balance() >= 0 ? 'text-green-400' : 'text-red-400'">Saldo en caja</p>
+        <p class="text-3xl font-bold" [class]="balance() >= 0 ? 'text-green-300' : 'text-red-400'">
+          {{ formatPrice(balance()) }}
+        </p>
+        <button (click)="load()" class="mt-2 text-xs text-gray-600 hover:text-gray-400 transition-colors">Actualizar</button>
       </div>
-      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4">
-        <p class="text-xs text-gray-500 mb-1">Gastos hoy</p>
-        <p class="text-lg font-bold text-red-400">{{ formatPrice(todayExpenses()) }}</p>
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
+        <p class="text-xs text-gray-500 mb-1">Ingresos</p>
+        <p class="text-xl font-bold text-white">{{ formatPrice(totalIncome()) }}</p>
+      </div>
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
+        <p class="text-xs text-gray-500 mb-1">Gastos</p>
+        <p class="text-xl font-bold text-red-400">{{ formatPrice(totalExpenses()) }}</p>
       </div>
     </div>
 
-    <!-- Botón registrar gasto -->
-    @if (!showForm()) {
-      <button (click)="showForm.set(true)"
-        class="w-full mb-6 py-3 rounded-2xl border border-dashed border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition-colors text-sm font-medium flex items-center justify-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+    <!-- Filtros de período + botón gasto -->
+    <div class="flex items-center justify-between mb-4 gap-2 flex-wrap">
+      <div class="flex gap-1.5">
+        @for (p of PERIODS; track p.value) {
+          <button (click)="changePeriod(p.value)"
+            class="px-3 py-1.5 rounded-xl text-xs font-medium transition-colors"
+            [class]="period() === p.value ? 'bg-white text-gray-900' : 'bg-gray-900 border border-gray-800 text-gray-400 hover:text-white'">
+            {{ p.label }}
+          </button>
+        }
+      </div>
+      <button (click)="showForm.set(!showForm())"
+        class="px-3 py-1.5 rounded-xl text-xs font-medium border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition-colors flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
           <path d="M12 5v14M5 12h14"/>
         </svg>
         Registrar gasto
       </button>
-    } @else {
-      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 mb-6">
+    </div>
+
+    <!-- Formulario gasto -->
+    @if (showForm()) {
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 mb-4">
         <p class="text-sm font-medium text-white mb-3">Nuevo gasto</p>
         <div class="space-y-3">
-          <div>
-            <label class="text-xs text-gray-400 mb-1 block">Descripción</label>
-            <input [(ngModel)]="expenseDesc" placeholder="Ej: Jabón, escobas, bolsas..."
-              class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-500" />
-          </div>
-          <div>
-            <label class="text-xs text-gray-400 mb-1 block">Monto</label>
-            <input type="number" [(ngModel)]="expenseAmount" placeholder="0"
-              class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-500" />
-          </div>
-          @if (formError) {
-            <p class="text-red-400 text-xs">{{ formError }}</p>
-          }
-          <div class="flex gap-2 pt-1">
+          <input [(ngModel)]="expenseDesc" placeholder="Descripción del gasto"
+            class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-500" />
+          <input type="number" [(ngModel)]="expenseAmount" placeholder="Monto"
+            class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-500" />
+          @if (formError) { <p class="text-red-400 text-xs">{{ formError }}</p> }
+          <div class="flex gap-2">
             <button (click)="showForm.set(false); formError = ''"
-              class="flex-1 py-2 rounded-xl border border-gray-700 text-gray-400 hover:text-white text-sm transition-colors">
-              Cancelar
-            </button>
+              class="flex-1 py-2 rounded-xl border border-gray-700 text-gray-400 hover:text-white text-sm transition-colors">Cancelar</button>
             <button (click)="saveExpense()" [disabled]="saving()"
               class="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-medium transition-colors">
-              {{ saving() ? 'Guardando...' : 'Registrar gasto' }}
+              {{ saving() ? 'Guardando...' : 'Registrar' }}
             </button>
           </div>
         </div>
       </div>
     }
 
-    <!-- Movimientos de hoy -->
-    <div>
-      <p class="text-xs text-gray-500 font-medium uppercase tracking-wider mb-3">Movimientos de hoy</p>
+    <!-- Tabla de movimientos -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+        <p class="text-sm font-medium text-white">Movimientos</p>
+        <p class="text-xs text-gray-500">{{ movements().length }} registros</p>
+      </div>
 
       @if (loading()) {
-        <div class="py-10 text-center text-gray-500 text-sm">Cargando...</div>
-      } @else if (todayMovements().length === 0) {
-        <div class="py-10 text-center text-gray-600 text-sm">Sin movimientos hoy</div>
+        <div class="py-12 text-center text-gray-500 text-sm">Cargando...</div>
+      } @else if (movements().length === 0) {
+        <div class="py-12 text-center text-gray-600 text-sm">Sin movimientos en este período</div>
       } @else {
-        <div class="space-y-2">
-          @for (m of todayMovements(); track m.id) {
-            <div class="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-                     [class]="m.type === 'INCOME' ? 'bg-green-500/20' : 'bg-red-500/20'">
-                  @if (m.type === 'INCOME') {
-                    <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                      <path d="M12 19V5M5 12l7-7 7 7"/>
-                    </svg>
-                  } @else {
-                    <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                      <path d="M12 5v14M5 12l7 7 7-7"/>
-                    </svg>
-                  }
-                </div>
-                <div>
-                  <p class="text-sm text-white">{{ m.description }}</p>
-                  <p class="text-xs text-gray-500">{{ formatTime(m.createdAt) }}</p>
-                </div>
+        <!-- Encabezado tabla -->
+        <div class="grid grid-cols-[1fr_auto_auto] gap-3 px-4 py-2 border-b border-gray-800/50 text-xs text-gray-500 uppercase tracking-wider">
+          <span>Descripción</span>
+          <span class="text-center">Tipo</span>
+          <span class="text-right">Monto</span>
+        </div>
+        <!-- Filas -->
+        <div class="divide-y divide-gray-800/50">
+          @for (m of movements(); track m.id) {
+            <div class="grid grid-cols-[1fr_auto_auto] gap-3 px-4 py-3 items-center hover:bg-gray-800/40 transition-colors">
+              <div>
+                <p class="text-sm text-white leading-tight">{{ m.description }}</p>
+                <p class="text-xs text-gray-500 mt-0.5">{{ formatDate(m.createdAt) }}</p>
               </div>
-              <p class="font-semibold text-sm shrink-0" [class]="m.type === 'INCOME' ? 'text-green-400' : 'text-red-400'">
-                {{ m.type === 'INCOME' ? '+' : '-' }}{{ formatPrice(m.amount) }}
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full"
+                    [class]="m.type === 'INCOME' ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'">
+                {{ m.type === 'INCOME' ? 'Ingreso' : 'Gasto' }}
+              </span>
+              <p class="text-sm font-semibold text-right tabular-nums"
+                 [class]="m.type === 'INCOME' ? 'text-green-400' : 'text-red-400'">
+                {{ m.type === 'INCOME' ? '+' : '−' }}{{ formatPrice(m.amount) }}
               </p>
             </div>
           }

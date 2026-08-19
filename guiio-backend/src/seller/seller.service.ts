@@ -140,10 +140,11 @@ export class SellerService {
 
     if (data.paymentMethod === 'EFECTIVO') {
       const cashAmount = hasAbono ? data.initialPayment! : total;
+      const label = hasAbono ? 'Abono inicial' : 'Pago';
       await this.cash.createIncome(
         sedeId,
         cashAmount,
-        `Venta ${data.customerName ?? 'cliente'} · ${data.type}`,
+        `${label} · Factura N° ${String(sale.orderNumber).padStart(4, '0')} · ${data.customerName ?? 'cliente'}`,
         sale.id,
       );
     }
@@ -221,7 +222,7 @@ export class SellerService {
       await this.cash.createIncome(
         sale.sedeId,
         amount,
-        `Abono ${sale.customerName ?? 'cliente'} · FABRICAR`,
+        `Abono · Factura N° ${String(sale.orderNumber).padStart(4, '0')} · ${sale.customerName ?? 'cliente'}`,
         saleId,
       );
     }
