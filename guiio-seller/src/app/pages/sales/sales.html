@@ -1,3 +1,88 @@
+<!-- ===== Recibo para captura (fuera de pantalla) ===== -->
+@if (receiptSale(); as rs) {
+<div #saleReceiptEl
+     style="position:fixed;left:-9999px;top:0;width:360px;font-family:sans-serif"
+     class="bg-white text-gray-900 overflow-hidden">
+
+  <!-- Cabecera -->
+  <div style="background-color:#111827;padding:20px 24px;display:flex;flex-direction:column;align-items:center;gap:4px">
+    <img src="assets/logo-guiio.png" alt="Guiio" style="height:36px;width:auto" />
+    @if (rs.type === 'STOCK') {
+      <span style="color:#22c55e;font-size:13px;font-weight:500;margin-top:4px">Venta confirmada</span>
+    } @else {
+      <span style="color:#facc15;font-size:13px;font-weight:600;margin-top:4px">Pedido a fabricar</span>
+    }
+    <span style="color:#facc15;font-size:18px;font-weight:800;margin-top:4px">
+      Factura N° {{ rs.orderNumber.toString().padStart(4, '0') }}
+    </span>
+  </div>
+
+  <!-- Info -->
+  <div style="padding:16px 24px;border-bottom:1px solid #f3f4f6">
+    @if (rs.paymentMethod) {
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px">
+        <span style="color:#6b7280">Método de pago</span>
+        <span style="font-weight:600">{{ rs.paymentMethod }}</span>
+      </div>
+    }
+    <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px">
+      <span style="color:#6b7280">Fecha</span>
+      <span style="font-weight:500">{{ formatDateShort(rs.createdAt) }}</span>
+    </div>
+    @if (rs.customerName) {
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px">
+        <span style="color:#6b7280">Cliente</span>
+        <span style="font-weight:500">{{ rs.customerName }}</span>
+      </div>
+    }
+    @if (rs.customerPhone) {
+      <div style="display:flex;justify-content:space-between;font-size:14px">
+        <span style="color:#6b7280">Teléfono</span>
+        <span style="font-weight:500">{{ rs.customerPhone }}</span>
+      </div>
+    }
+    @if (rs.notes) {
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-top:6px">
+        <span style="color:#6b7280">Notas</span>
+        <span style="font-weight:500;text-align:right;max-width:60%">{{ rs.notes }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- Productos -->
+  <div style="padding:16px 24px;border-bottom:1px solid #f3f4f6">
+    <p style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Productos</p>
+    @for (item of rs.items; track $index) {
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px">
+        <div style="flex:1;min-width:0">
+          <p style="font-size:14px;font-weight:500;color:#111827;line-height:1.4">{{ item.productName }}</p>
+          <p style="font-size:12px;color:#6b7280;margin-top:2px">Talla {{ item.size }} · {{ item.quantity > 1 ? 'x' + item.quantity : '1 und' }}</p>
+          @if (item.note) {
+            <p style="font-size:12px;color:#ca8a04;margin-top:2px;font-style:italic">{{ item.note }}</p>
+          }
+        </div>
+        <span style="font-size:14px;font-weight:600;color:#111827;white-space:nowrap">{{ formatPrice(item.price * item.quantity) }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- Total -->
+  <div style="background-color:#f9fafb;padding:16px 24px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-weight:600;color:#4b5563">Total</span>
+      <span style="font-size:20px;font-weight:700;color:#111827">{{ formatPrice(rs.total) }}</span>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="background-color:#111827;padding:16px 24px;text-align:center">
+    <p style="color:#9ca3af;font-size:12px">
+      {{ rs.type === 'FABRICAR' ? 'Te avisaremos cuando tu pedido esté listo ✨' : '¡Gracias por tu compra! 🙏' }}
+    </p>
+  </div>
+</div>
+}
+
 <div class="min-h-screen bg-gray-950">
 
   <app-navbar />
@@ -39,7 +124,6 @@
             {{ p.label }}
           </button>
         }
-        <!-- Rango personalizado -->
         <button (click)="showCustomRange.set(!showCustomRange())"
           class="shrink-0 px-3 py-1.5 text-xs font-medium rounded-xl border transition-colors"
           [class]="filterPreset() === 'custom' ? 'bg-white text-gray-900 border-white' : 'bg-gray-900 text-gray-400 border-gray-800'">
@@ -47,7 +131,6 @@
         </button>
       </div>
 
-      <!-- Inputs rango personalizado -->
       @if (showCustomRange()) {
         <div class="flex items-center gap-2 flex-wrap">
           <input type="date" [value]="customFrom()" (input)="customFrom.set($any($event.target).value)"
@@ -62,13 +145,12 @@
         </div>
       }
 
-      <!-- Label del filtro activo (si no es preset estándar) -->
       @if (activePresetLabel()) {
         <p class="text-gray-500 text-xs">Mostrando: <span class="text-white">{{ activePresetLabel() }}</span></p>
       }
     </div>
 
-    <!-- ===== Tarjetas KPI ===== -->
+    <!-- ===== KPI ===== -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4">
         <p class="text-gray-500 text-xs mb-1">Ingresos totales</p>
@@ -112,16 +194,13 @@
                    [style]="'height:' + m.pct + '%;min-height:4px'"
                    [class]="isChartBarActive(m.month) ? 'opacity-100' : (filterPreset() === 'all' ? 'opacity-75 group-hover:opacity-100' : 'opacity-25 group-hover:opacity-60')">
                 @if (m.fabricar > 0) {
-                  <div class="w-full bg-yellow-400"
-                       [style]="'height:' + pct(m.fabricar, m.total) + '%'"></div>
+                  <div class="w-full bg-yellow-400" [style]="'height:' + pct(m.fabricar, m.total) + '%'"></div>
                 }
                 @if (m.stock > 0) {
-                  <div class="w-full bg-blue-500"
-                       [style]="'height:' + pct(m.stock, m.total) + '%'"></div>
+                  <div class="w-full bg-blue-500" [style]="'height:' + pct(m.stock, m.total) + '%'"></div>
                 }
               </div>
-              <p class="text-gray-500 text-xs truncate w-full text-center"
-                 [class.text-white]="isChartBarActive(m.month)">
+              <p class="text-gray-500 text-xs truncate w-full text-center" [class.text-white]="isChartBarActive(m.month)">
                 {{ formatMonth(m.month) }}
               </p>
             </div>
@@ -184,6 +263,7 @@
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-1">
                     <span class="text-white font-semibold text-sm">{{ formatPrice(sale.total) }}</span>
+                    <span class="text-gray-500 text-xs">Fact. N° {{ sale.orderNumber.toString().padStart(4,'0') }}</span>
                     @if (sale.type === 'FABRICAR') {
                       <span class="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-0.5 rounded-full">Fabricar</span>
                     }
@@ -223,6 +303,26 @@
                     <p class="text-gray-600 text-xs">{{ sale.notes }}</p>
                   </div>
                 }
+                <!-- Botón comprobante -->
+                <div class="pt-2 border-t border-gray-800">
+                  <button
+                    (click)="generateReceiptForSale(sale, $event)"
+                    [disabled]="generatingReceipt()"
+                    class="w-full py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 disabled:opacity-40 text-white text-xs font-medium transition-colors flex items-center justify-center gap-2">
+                    @if (generatingReceipt()) {
+                      <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                      </svg>
+                      Generando...
+                    } @else {
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                      </svg>
+                      Generar comprobante
+                    }
+                  </button>
+                </div>
               </div>
             }
           </div>
@@ -233,3 +333,45 @@
   </div>
   }
 </div>
+
+<!-- ===== Modal comprobante ===== -->
+@if (receiptImageUrl()) {
+  <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+       (click)="closeReceiptOverlay()">
+    <div class="bg-gray-900 rounded-2xl overflow-hidden max-w-sm w-full shadow-2xl"
+         (click)="$event.stopPropagation()">
+      <div class="p-4 border-b border-gray-800 flex items-center justify-between">
+        <p class="text-white text-sm font-medium">
+          Comprobante · Fact. N° {{ receiptSale()?.orderNumber?.toString()?.padStart(4,'0') }}
+        </p>
+        <button (click)="closeReceiptOverlay()" class="text-gray-500 hover:text-white transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4 overflow-y-auto max-h-[60vh]">
+        <img [src]="receiptImageUrl()!" class="w-full rounded-xl" alt="Comprobante" />
+      </div>
+      <div class="p-4 border-t border-gray-800 flex gap-2">
+        <button (click)="downloadReceipt()"
+          class="flex-1 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          Descargar
+        </button>
+        @if (receiptWaUrl()) {
+          <button (click)="copyAndOpenWhatsApp()"
+            class="flex-1 py-2.5 rounded-xl bg-green-600 hover:bg-green-500 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.556 4.121 1.526 5.847L.057 23.882l6.204-1.628A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.795 9.795 0 01-5.001-1.37l-.359-.213-3.721.976 1.003-3.635-.234-.374A9.818 9.818 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/>
+            </svg>
+            Enviar WhatsApp
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}

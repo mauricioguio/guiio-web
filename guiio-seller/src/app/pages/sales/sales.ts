@@ -1,8 +1,9 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { SellerApiService, Sale } from '../../services/seller-api';
 import { AuthService } from '../../services/auth';
 import { Navbar } from '../../components/navbar/navbar';
+import html2canvas from 'html2canvas';
 
 const PRESETS = [
   { key: 'all',        label: 'Todo' },
@@ -25,6 +26,8 @@ export class Sales implements OnInit {
   readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
+  @ViewChild('saleReceiptEl') saleReceiptEl!: ElementRef<HTMLDivElement>;
+
   protected sales = signal<Sale[]>([]);
   protected loading = signal(true);
   protected selectedSale = signal<Sale | null>(null);
@@ -36,6 +39,13 @@ export class Sales implements OnInit {
   protected showCustomRange = signal(false);
   protected customFrom = signal('');
   protected customTo = signal('');
+
+  // Receipt
+  protected receiptSale       = signal<Sale | null>(null);
+  protected receiptImageUrl   = signal<string | null>(null);
+  protected receiptWaUrl      = signal('');
+  protected generatingReceipt = signal(false);
+  private receiptBlob: Blob | null = null;
 
   readonly presets = PRESETS;
 
@@ -179,6 +189,10 @@ export class Sales implements OnInit {
     return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
   }
 
+  formatDateShort(iso: string) {
+    return new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso));
+  }
+
   formatMonth(m: string): string {
     const [y, mo] = m.split('-');
     const names = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -219,4 +233,79 @@ export class Sales implements OnInit {
   }
 
   logout() { this.auth.logout(); this.router.navigate(['/login']); }
+
+  // ── Comprobante ─────────────────────────────────────────────────────────────
+
+  async generateReceiptForSale(sale: Sale, event: Event) {
+    event.stopPropagation();
+    this.receiptSale.set(sale);
+    this.generatingReceipt.set(true);
+
+    await new Promise<void>(r => requestAnimationFrame(() => r()));
+    await new Promise<void>(r => requestAnimationFrame(() => r()));
+
+    const el = this.saleReceiptEl?.nativeElement;
+    if (!el) { this.generatingReceipt.set(false); return; }
+
+    const clone = el.cloneNode(true) as HTMLElement;
+    clone.style.cssText = 'position:absolute;left:0;top:0;width:360px;font-family:sans-serif;z-index:-1;';
+    document.body.appendChild(clone);
+    await new Promise<void>(r => requestAnimationFrame(() => r()));
+
+    try {
+      const canvas = await html2canvas(clone, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'));
+      if (blob) {
+        this.receiptBlob = blob;
+        const phone = sale.customerPhone?.replace(/\D/g, '') ?? '';
+        if (phone.length >= 10) {
+          const wa = `57${phone}`;
+          const name = sale.customerName?.split(' ')[0] ?? '';
+          const text = `Hola ${name}, aquí está tu comprobante de Guiio 🛍️`;
+          this.receiptWaUrl.set(`https://web.whatsapp.com/send?phone=${wa}&text=${encodeURIComponent(text)}`);
+        }
+        this.receiptImageUrl.set(URL.createObjectURL(blob));
+      }
+    } catch {
+      // ignore
+    } finally {
+      document.body.removeChild(clone);
+      this.generatingReceipt.set(false);
+    }
+  }
+
+  async copyAndOpenWhatsApp() {
+    const blob = this.receiptBlob;
+    const waUrl = this.receiptWaUrl();
+    if (!blob) return;
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    } catch {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'comprobante-guiio.png'; a.click();
+      URL.revokeObjectURL(url);
+    }
+    if (waUrl) window.open(waUrl, '_blank');
+    this.closeReceiptOverlay();
+  }
+
+  downloadReceipt() {
+    const blob = this.receiptBlob;
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `comprobante-factura-${String(this.receiptSale()?.orderNumber ?? '').padStart(4,'0')}.png`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.closeReceiptOverlay();
+  }
+
+  closeReceiptOverlay() {
+    if (this.receiptImageUrl()) URL.revokeObjectURL(this.receiptImageUrl()!);
+    this.receiptImageUrl.set(null);
+    this.receiptWaUrl.set('');
+    this.receiptBlob = null;
+    this.receiptSale.set(null);
+  }
 }
