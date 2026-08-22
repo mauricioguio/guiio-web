@@ -389,6 +389,77 @@ export class SellerService {
     return this.prisma.sale.delete({ where: { id } });
   }
 
+  async getProductionOrders(empresa = 'GUIIO') {
+    const [orders, sales] = await Promise.all([
+      this.prisma.order.findMany({
+        where: { status: { notIn: ['CANCELLED'] as any[] } },
+        include: { customer: true, items: true },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.sale.findMany({
+        where: {
+          sede: { empresa },
+          status: { notIn: ['CANCELLED'] as any[] },
+          OR: [
+            { type: 'FABRICAR' },
+            { channel: 'whatsapp' },
+          ],
+        },
+        include: { items: true, sede: { select: { id: true, name: true } } },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    type Row = {
+      id: string; ref: string; source: 'online' | 'whatsapp' | 'fabricar';
+      channelName: string; customerName: string | null; customerPhone: string | null;
+      createdAt: string; deliveryDate: string | null; status: string; notes: string | null;
+      items: { productName: string; size: string; quantity: number; note: string | null }[];
+    };
+
+    const onlineRows: Row[] = orders.map(o => ({
+      id: o.id,
+      ref: o.reference,
+      source: 'online',
+      channelName: 'Online',
+      customerName: o.customer?.name ?? null,
+      customerPhone: o.customer?.phone ?? null,
+      createdAt: o.createdAt.toISOString(),
+      deliveryDate: null,
+      status: o.status,
+      notes: o.notes ?? null,
+      items: o.items.map(i => ({
+        productName: i.productName,
+        size: [i.topSize && `Blusa ${i.topSize}`, i.bottomSize && `Pantalón ${i.bottomSize}`].filter(Boolean).join(' / '),
+        quantity: i.quantity,
+        note: null,
+      })),
+    }));
+
+    const physicalRows: Row[] = sales.map(s => ({
+      id: s.id,
+      ref: `N° ${String(s.orderNumber).padStart(4, '0')}`,
+      source: s.channel === 'whatsapp' ? 'whatsapp' : 'fabricar',
+      channelName: s.sede.name,
+      customerName: s.customerName ?? null,
+      customerPhone: s.customerPhone ?? null,
+      createdAt: s.createdAt.toISOString(),
+      deliveryDate: s.deliveryDate ? s.deliveryDate.toISOString() : null,
+      status: s.status,
+      notes: s.notes ?? null,
+      items: s.items.map(i => ({
+        productName: i.productName,
+        size: i.size,
+        quantity: i.quantity,
+        note: i.note ?? null,
+      })),
+    }));
+
+    return [...onlineRows, ...physicalRows].sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
+  }
+
   async getAdminCustomers(empresa = 'GUIIO') {
     const [onlineCustomers, sellerCustomers, sales] = await Promise.all([
       this.prisma.customer.findMany({

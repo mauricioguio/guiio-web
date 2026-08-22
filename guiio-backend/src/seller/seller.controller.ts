@@ -93,6 +93,12 @@ export class SellerController {
     return this.sellerService.getAdminCustomers(req.user?.empresa ?? 'GUIIO');
   }
 
+  @Get('admin/production-orders')
+  @UseGuards(JwtAuthGuard)
+  getProductionOrders(@Request() req: any) {
+    return this.sellerService.getProductionOrders(req.user?.empresa ?? 'GUIIO');
+  }
+
   @Get('admin/sales')
   @UseGuards(JwtAuthGuard)
   getAllSales(@Request() req: any) {
