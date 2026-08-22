@@ -61,20 +61,22 @@ export class Produccion implements OnInit {
     const st  = this.filterStatus();
     const hc  = this.hideCompleted();
 
-    return this.orders().filter(o => {
-      if (src !== 'ALL' && o.source !== src) return false;
-      if (st  !== 'ALL' && o.status !== st)  return false;
-      if (hc && (o.status === 'COMPLETED' || o.status === 'DELIVERED')) return false;
-      if (q) {
-        const haystack = [
-          o.customerName, o.customerPhone, o.ref,
-          ...o.items.map(i => i.productName + ' ' + i.size),
-          o.notes,
-        ].join(' ').toLowerCase();
-        if (!haystack.includes(q)) return false;
-      }
-      return true;
-    });
+    return this.orders()
+      .filter(o => {
+        if (src !== 'ALL' && o.source !== src) return false;
+        if (st  !== 'ALL' && o.status !== st)  return false;
+        if (hc && (o.status === 'COMPLETED' || o.status === 'DELIVERED')) return false;
+        if (q) {
+          const haystack = [
+            o.customerName, o.customerPhone,
+            ...o.items.map(i => i.productName + ' ' + i.size),
+            o.notes, o.channelName,
+          ].join(' ').toLowerCase();
+          if (!haystack.includes(q)) return false;
+        }
+        return true;
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   });
 
   ngOnInit() {
@@ -106,10 +108,19 @@ export class Produccion implements OnInit {
     return 'text-gray-300';
   }
 
-  sourceLabel(s: string) {
-    if (s === 'online')   return 'Online';
-    if (s === 'whatsapp') return 'WhatsApp';
-    return 'Tienda';
+  channelIconClass(order: ProductionOrder): string {
+    if (order.source === 'online')   return 'text-blue-400';
+    if (order.source === 'whatsapp') return 'text-green-400';
+    const name = (order.channelName ?? '').toLowerCase();
+    if (name.includes('salitre'))  return 'text-green-400';
+    if (name.includes('veraguas')) return 'text-purple-400';
+    return 'text-indigo-400';
+  }
+
+  channelTooltip(order: ProductionOrder): string {
+    if (order.source === 'online')   return 'Online';
+    if (order.source === 'whatsapp') return `WhatsApp · ${order.channelName}`;
+    return order.channelName ?? 'Tienda';
   }
 
   statusLabel(s: string) { return STATUS_LABELS[s] ?? s; }

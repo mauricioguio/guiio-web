@@ -7,7 +7,6 @@
       <p class="text-gray-500 text-sm mt-0.5">{{ filtered().length }} pedido{{ filtered().length !== 1 ? 's' : '' }} activo{{ filtered().length !== 1 ? 's' : '' }}</p>
     </div>
 
-    <!-- Ocultar entregados toggle -->
     <label class="flex items-center gap-2 cursor-pointer select-none">
       <div class="relative">
         <input type="checkbox" class="sr-only" [checked]="hideCompleted()" (change)="hideCompleted.set(!hideCompleted())">
@@ -20,21 +19,19 @@
 
   <!-- Filtros -->
   <div class="flex flex-col sm:flex-row gap-2">
-    <!-- Búsqueda -->
     <div class="relative flex-1">
       <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
       </svg>
       <input
         type="text"
-        placeholder="Buscar cliente, ref, producto..."
+        placeholder="Buscar cliente, producto, sede..."
         class="w-full pl-9 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
         [ngModel]="search()"
         (ngModelChange)="search.set($event)"
       >
     </div>
 
-    <!-- Canal -->
     <div class="flex rounded-lg overflow-hidden border border-gray-700 text-sm">
       @for (opt of [['ALL','Todos'],['online','Online'],['whatsapp','WhatsApp'],['fabricar','Tienda']] ; track opt[0]) {
         <button
@@ -48,7 +45,6 @@
       }
     </div>
 
-    <!-- Estado -->
     <select
       class="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-indigo-500"
       [ngModel]="filterStatus()"
@@ -83,9 +79,8 @@
         <table class="w-full text-sm">
           <thead class="bg-gray-900 text-gray-400 text-xs uppercase tracking-wide">
             <tr>
-              <th class="px-4 py-3 text-left">Ref</th>
-              <th class="px-4 py-3 text-left">Fecha pedido</th>
-              <th class="px-4 py-3 text-left">Canal</th>
+              <th class="px-4 py-3 text-left">Fecha</th>
+              <th class="px-3 py-3 text-center w-10">Canal</th>
               <th class="px-4 py-3 text-left">Entrega</th>
               <th class="px-4 py-3 text-left">Cliente</th>
               <th class="px-4 py-3 text-left">Productos</th>
@@ -97,37 +92,28 @@
             @for (order of filtered(); track order.id) {
               <tr class="bg-gray-900/40 hover:bg-gray-800/50 transition-colors">
 
-                <!-- Ref -->
-                <td class="px-4 py-3 font-mono text-gray-300 whitespace-nowrap">{{ order.ref }}</td>
-
-                <!-- Fecha pedido -->
+                <!-- Fecha -->
                 <td class="px-4 py-3 text-gray-400 whitespace-nowrap">{{ formatDate(order.createdAt) }}</td>
 
-                <!-- Canal -->
-                <td class="px-4 py-3 whitespace-nowrap">
+                <!-- Canal — solo icono con tooltip -->
+                <td class="px-3 py-3 text-center">
                   @if (order.source === 'online') {
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                        <path d="M2 12h20"/>
-                      </svg>
-                      Online
-                    </span>
+                    <!-- Globo online -->
+                    <svg class="w-4 h-4 mx-auto" [class]="channelIconClass(order)" fill="none" stroke="currentColor" viewBox="0 0 24 24" [title]="channelTooltip(order)">
+                      <circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                      <path d="M2 12h20"/>
+                    </svg>
                   } @else if (order.source === 'whatsapp') {
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-500/10 text-green-400 border border-green-500/20">
-                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.557 4.126 1.528 5.862L0 24l6.296-1.508A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.795 9.795 0 0 1-4.988-1.362l-.357-.212-3.738.895.952-3.632-.233-.374A9.814 9.814 0 0 1 2.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/>
-                      </svg>
-                      WhatsApp
-                    </span>
+                    <!-- WhatsApp -->
+                    <svg class="w-4 h-4 mx-auto" [class]="channelIconClass(order)" fill="currentColor" viewBox="0 0 24 24" [title]="channelTooltip(order)">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.557 4.126 1.528 5.862L0 24l6.296-1.508A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.795 9.795 0 0 1-4.988-1.362l-.357-.212-3.738.895.952-3.632-.233-.374A9.814 9.814 0 0 1 2.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/>
+                    </svg>
                   } @else {
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-                      </svg>
-                      Tienda
-                    </span>
+                    <!-- Casita tienda física -->
+                    <svg class="w-4 h-4 mx-auto" [class]="channelIconClass(order)" fill="none" stroke="currentColor" viewBox="0 0 24 24" [title]="channelTooltip(order)">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
                   }
                 </td>
 
@@ -193,27 +179,34 @@
         @for (order of filtered(); track order.id) {
           <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
 
-            <!-- Top row -->
             <div class="flex items-start justify-between gap-2">
-              <div>
-                <div class="font-mono text-sm text-gray-300">{{ order.ref }}</div>
-                <div class="text-xs text-gray-500 mt-0.5">{{ formatDate(order.createdAt) }}</div>
-              </div>
-              <div class="flex flex-col items-end gap-1">
-                <span class="inline-block px-2 py-0.5 rounded-full text-xs border" [class]="statusClass(order.status)">
-                  {{ statusLabel(order.status) }}
-                </span>
+              <div class="flex items-center gap-2">
+                <!-- Icono canal -->
                 @if (order.source === 'online') {
-                  <span class="text-xs text-blue-400">Online</span>
+                  <svg class="w-4 h-4 shrink-0" [class]="channelIconClass(order)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/>
+                  </svg>
                 } @else if (order.source === 'whatsapp') {
-                  <span class="text-xs text-green-400">WhatsApp</span>
+                  <svg class="w-4 h-4 shrink-0" [class]="channelIconClass(order)" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.127.557 4.126 1.528 5.862L0 24l6.296-1.508A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.795 9.795 0 0 1-4.988-1.362l-.357-.212-3.738.895.952-3.632-.233-.374A9.814 9.814 0 0 1 2.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/>
+                  </svg>
                 } @else {
-                  <span class="text-xs text-purple-400">Tienda</span>
+                  <svg class="w-4 h-4 shrink-0" [class]="channelIconClass(order)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                  </svg>
                 }
+                <div>
+                  <div class="text-xs text-gray-500">{{ formatDate(order.createdAt) }}</div>
+                  @if (order.source !== 'online') {
+                    <div class="text-xs" [class]="channelIconClass(order)">{{ order.channelName }}</div>
+                  }
+                </div>
               </div>
+              <span class="inline-block px-2 py-0.5 rounded-full text-xs border" [class]="statusClass(order.status)">
+                {{ statusLabel(order.status) }}
+              </span>
             </div>
 
-            <!-- Cliente + entrega -->
             <div class="flex items-center justify-between gap-2">
               <div>
                 <div class="text-sm text-gray-200">{{ order.customerName ?? '—' }}</div>
@@ -229,7 +222,6 @@
               }
             </div>
 
-            <!-- Productos -->
             <div class="border-t border-gray-800 pt-2 space-y-1">
               @for (item of order.items; track $index) {
                 <div class="text-sm text-gray-300">
@@ -245,7 +237,6 @@
               }
             </div>
 
-            <!-- Notas -->
             @if (order.notes) {
               <div class="border-t border-gray-800 pt-2">
                 <p class="text-xs text-gray-400 leading-relaxed">{{ order.notes }}</p>
