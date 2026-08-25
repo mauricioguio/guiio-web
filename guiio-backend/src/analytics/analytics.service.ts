@@ -9,7 +9,7 @@ export class AnalyticsService {
     const msPerDay = 24 * 60 * 60 * 1000;
     const now  = new Date();
     const from: Date = fromStr ? new Date(fromStr + 'T05:00:00Z') : new Date(now.getTime() - 30 * msPerDay);
-    const to:   Date = toStr   ? new Date(toStr   + 'T04:59:59Z') : now;
+    const to:   Date = toStr   ? new Date(new Date(toStr + 'T05:00:00Z').getTime() + msPerDay - 1000) : now;
 
     const [onlineAgg, physicalByChannel, dailyOnline, dailyPhysical, topOnline, topPhysical] =
       await Promise.all([
@@ -293,7 +293,7 @@ export class AnalyticsService {
     const msPerDay = 24 * 60 * 60 * 1000;
     const now = new Date();
     const rangeFrom: Date = fromStr ? new Date(fromStr + 'T05:00:00Z') : new Date(now.getTime() - 30 * msPerDay);
-    const rangeTo:   Date = toStr   ? new Date(toStr   + 'T04:59:59Z') : now;
+    const rangeTo:   Date = toStr   ? new Date(new Date(toStr + 'T05:00:00Z').getTime() + msPerDay - 1000) : now;
 
     const [topCountries, topCities] = await Promise.all([
       this.prisma.$queryRaw<{ country: string; count: number }[]>`
@@ -339,7 +339,7 @@ export class AnalyticsService {
 
     // Date range for filtered stats
     const rangeFrom: Date = fromStr ? new Date(fromStr + 'T05:00:00Z') : thirtyDaysAgo;
-    const rangeTo:   Date = toStr   ? new Date(toStr   + 'T04:59:59Z') : now;
+    const rangeTo:   Date = toStr   ? new Date(new Date(toStr + 'T05:00:00Z').getTime() + msPerDay - 1000) : now;
     const rangeFilter = { gte: rangeFrom, lte: rangeTo };
 
     // Days in range for chart buckets
@@ -497,8 +497,8 @@ export class AnalyticsService {
   }
 
   async getTopViewedProducts(from?: string, to?: string) {
-    const rangeFrom = new Date(from ? `${from}T00:00:00Z` : '2020-01-01T00:00:00Z');
-    const rangeTo   = new Date(to   ? `${to}T23:59:59Z`   : new Date().toISOString());
+    const rangeFrom = new Date(from ? `${from}T05:00:00Z` : '2020-01-01T05:00:00Z');
+    const rangeTo   = to ? new Date(new Date(`${to}T05:00:00Z`).getTime() + 86399000) : new Date();
 
     const rows = await this.prisma.$queryRaw<{ name: string; collection: string; views: number }[]>`
       SELECT
