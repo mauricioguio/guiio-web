@@ -10,7 +10,8 @@ import { AuthService } from '../../services/auth';
 export class Dashboard {
   private readonly router = inject(Router);
   protected readonly auth = inject(AuthService);
-  protected readonly menuOpen = signal(false);
+  protected readonly menuOpen    = signal(false);
+  protected readonly sidebarOpen = signal(true);
 
   logout() {
     this.auth.logout();
