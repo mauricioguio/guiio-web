@@ -17,44 +17,66 @@
     </label>
   </div>
 
-  <!-- Filtros -->
-  <div class="flex flex-col sm:flex-row gap-2">
-    <div class="relative flex-1">
-      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-      <input
-        type="text"
-        placeholder="Buscar cliente, producto, sede..."
-        class="w-full pl-9 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
-        [ngModel]="search()"
-        (ngModelChange)="search.set($event)"
-      >
-    </div>
-
-    <div class="flex rounded-lg overflow-hidden border border-gray-700 text-sm">
-      @for (opt of [['ALL','Todos'],['online','Online'],['whatsapp','WhatsApp'],['fabricar','Tienda']] ; track opt[0]) {
-        <button
-          class="px-3 py-2 transition-colors"
-          [class.bg-indigo-600]="filterSource() === opt[0]"
-          [class.text-white]="filterSource() === opt[0]"
-          [class.bg-gray-800]="filterSource() !== opt[0]"
-          [class.text-gray-400]="filterSource() !== opt[0]"
-          (click)="filterSource.set($any(opt[0]))"
-        >{{ opt[1] }}</button>
-      }
-    </div>
-
-    <select
-      class="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-indigo-500"
-      [ngModel]="filterStatus()"
-      (ngModelChange)="filterStatus.set($event)"
+  <!-- Filtros: toggle en móvil, siempre visible en sm+ -->
+  <div>
+    <!-- Botón toggle (solo móvil) -->
+    <button
+      class="sm:hidden w-full flex items-center justify-between px-3 py-2 mb-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-400 hover:text-white hover:border-gray-500 transition-colors"
+      (click)="showFilters.set(!showFilters())"
     >
-      <option value="ALL">Todos los estados</option>
-      @for (s of statuses; track s) {
-        <option [value]="s">{{ statusLabel(s) }}</option>
-      }
-    </select>
+      <span class="flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path d="M22 3H2l8 9.46V19l4 2v-8.54z"/>
+        </svg>
+        Filtros
+        @if (filterSource() !== 'ALL' || filterStatus() !== 'ALL' || search()) {
+          <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+        }
+      </span>
+      <svg class="w-4 h-4 transition-transform" [class.rotate-180]="showFilters()" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path d="m6 9 6 6 6-6"/>
+      </svg>
+    </button>
+
+    <!-- Contenedor filtros: colapsable en móvil, siempre visible en sm+ -->
+    <div [class.hidden]="!showFilters()" class="sm:!block flex flex-col sm:flex-row gap-2">
+      <div class="relative flex-1">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          type="text"
+          placeholder="Buscar cliente, producto, sede..."
+          class="w-full pl-9 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+        >
+      </div>
+
+      <div class="flex rounded-lg overflow-hidden border border-gray-700 text-sm">
+        @for (opt of [['ALL','Todos'],['online','Online'],['whatsapp','WhatsApp'],['fabricar','Tienda']] ; track opt[0]) {
+          <button
+            class="px-3 py-2 transition-colors"
+            [class.bg-indigo-600]="filterSource() === opt[0]"
+            [class.text-white]="filterSource() === opt[0]"
+            [class.bg-gray-800]="filterSource() !== opt[0]"
+            [class.text-gray-400]="filterSource() !== opt[0]"
+            (click)="filterSource.set($any(opt[0]))"
+          >{{ opt[1] }}</button>
+        }
+      </div>
+
+      <select
+        class="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-indigo-500"
+        [ngModel]="filterStatus()"
+        (ngModelChange)="filterStatus.set($event)"
+      >
+        <option value="ALL">Todos los estados</option>
+        @for (s of statuses; track s) {
+          <option [value]="s">{{ statusLabel(s) }}</option>
+        }
+      </select>
+    </div>
   </div>
 
   <!-- Loading -->

@@ -45,12 +45,13 @@ const STATUS_LABELS: Record<string, string> = {
 export class Produccion implements OnInit {
   private readonly http = inject(HttpClient);
 
-  protected orders   = signal<ProductionOrder[]>([]);
-  protected loading  = signal(true);
-  protected search   = signal('');
-  protected filterSource = signal<'ALL' | 'online' | 'whatsapp' | 'fabricar'>('ALL');
-  protected filterStatus = signal('ALL');
+  protected orders        = signal<ProductionOrder[]>([]);
+  protected loading       = signal(true);
+  protected search        = signal('');
+  protected filterSource  = signal<'ALL' | 'online' | 'whatsapp' | 'fabricar'>('ALL');
+  protected filterStatus  = signal('ALL');
   protected hideCompleted = signal(true);
+  protected showFilters   = signal(false);
 
   protected readonly statusLabels = STATUS_LABELS;
   protected readonly statuses = ['PENDING', 'PRODUCING', 'READY', 'IN_STORE', 'DELIVERED', 'COMPLETED', 'PAID', 'SHIPPED'];
