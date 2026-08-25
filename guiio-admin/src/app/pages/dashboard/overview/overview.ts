@@ -120,6 +120,10 @@ export class Overview {
     return `${d}/${m}`;
   }
 
+  // Visitas en el período seleccionado (para el embudo)
+  protected periodVisits = computed(() => this.data()?.pageViewsInRange ?? 0);
+
+  // Visitas en las últimas 24 h (para el gráfico de horas)
   totalVisits = computed(() =>
     (this.data()?.hourlySessions ?? []).reduce((s, h) => s + h.count, 0),
   );

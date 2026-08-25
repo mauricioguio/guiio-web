@@ -345,7 +345,7 @@ export class AnalyticsService {
     // Days in range for chart buckets
     const rangeDays = Math.max(1, Math.round((rangeTo.getTime() - rangeFrom.getTime()) / msPerDay) + 1);
 
-    const [ordersInRange, ordersToday, paidInRange, paidAll, totalCustomers, pendingOrders, recentPaidOrders, topProducts, rawHourly, adVisitsToday, addToCartToday, checkoutToday, topCarted] =
+    const [ordersInRange, ordersToday, paidInRange, paidAll, totalCustomers, pendingOrders, recentPaidOrders, topProducts, rawHourly, adVisits, addToCart, checkout, topCarted, saleRangeAgg, orderRangeAgg, pageViewCount, ordersInPeriod] =
       await Promise.all([
         this.prisma.order.count({ where: { createdAt: rangeFilter } }),
 
@@ -393,16 +393,17 @@ export class AnalyticsService {
           ORDER  BY hour
         `,
 
+        // Funnel events — respetan el rango de fechas seleccionado
         this.prisma.pageView.count({
-          where: { source: 'facebook', createdAt: { gte: startOfToday } },
+          where: { source: 'facebook', createdAt: rangeFilter },
         }),
 
         this.prisma.funnelEvent.count({
-          where: { event: 'add_to_cart', createdAt: { gte: startOfToday } },
+          where: { event: 'add_to_cart', createdAt: rangeFilter },
         }),
 
         this.prisma.funnelEvent.count({
-          where: { event: 'initiate_checkout', createdAt: { gte: startOfToday } },
+          where: { event: 'initiate_checkout', createdAt: rangeFilter },
         }),
 
         this.prisma.$queryRaw<{ productName: string; count: number }[]>`
@@ -416,6 +417,26 @@ export class AnalyticsService {
           ORDER  BY count DESC
           LIMIT  5
         `,
+
+        // Ingresos de ventas físicas/WhatsApp en el rango
+        this.prisma.sale.aggregate({
+          where: { status: { not: 'CANCELLED' }, createdAt: rangeFilter },
+          _sum: { total: true },
+        }),
+
+        // Ingresos de pedidos online confirmados en el rango
+        this.prisma.order.aggregate({
+          where: { status: { notIn: ['CANCELLED', 'PENDING'] }, createdAt: rangeFilter },
+          _sum: { total: true },
+        }),
+
+        // Visitas totales al sitio en el rango (para el embudo)
+        this.prisma.pageView.count({ where: { createdAt: rangeFilter } }),
+
+        // Pedidos no cancelados en el rango (para "Compraron" en el embudo)
+        this.prisma.order.count({
+          where: { status: { not: 'CANCELLED' }, createdAt: rangeFilter },
+        }),
       ]);
 
     // Build daily buckets for selected range (oldest → newest)
@@ -446,16 +467,21 @@ export class AnalyticsService {
       count: hourlyMap.get(h) ?? 0,
     }));
 
+    const saleRangeRevenue  = Number(saleRangeAgg._sum.total  ?? 0);
+    const orderRangeRevenue = Number(orderRangeAgg._sum.total ?? 0);
+
     return {
       ordersToday,
-      salesMonth:      rangePaidSum,
+      salesMonth:       saleRangeRevenue + orderRangeRevenue,
       totalCustomers,
       pendingOrders,
-      avgOrderValue:   rangePaidCount > 0 ? rangePaidSum / rangePaidCount : 0,
-      totalRevenue:    totalPaidSum,
-      adVisitsToday,
-      addToCartToday,
-      checkoutToday,
+      avgOrderValue:    rangePaidCount > 0 ? rangePaidSum / rangePaidCount : 0,
+      totalRevenue:     totalPaidSum,
+      adVisits:         Number(adVisits),
+      addToCart:        Number(addToCart),
+      checkout:         Number(checkout),
+      pageViewsInRange: Number(pageViewCount),
+      ordersInPeriod:   Number(ordersInPeriod),
       dailySales,
       hourlySessions,
       topProducts: topProducts.map(p => ({

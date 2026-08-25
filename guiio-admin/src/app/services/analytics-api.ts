@@ -20,9 +20,11 @@ export interface OverviewData {
   pendingOrders: number;
   avgOrderValue: number;
   totalRevenue: number;
-  adVisitsToday: number;
-  addToCartToday: number;
-  checkoutToday: number;
+  pageViewsInRange: number;
+  adVisits: number;
+  addToCart: number;
+  checkout: number;
+  ordersInPeriod: number;
   dailySales: DailySale[];
   hourlySessions: HourlySession[];
   topProducts: TopProduct[];

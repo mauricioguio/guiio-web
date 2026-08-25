@@ -49,11 +49,11 @@
 
     <!-- KPI Cards -->
     <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-      <!-- Ventas del mes -->
+      <!-- Ventas del período -->
       <div class="bg-gray-900 rounded-2xl p-5 border border-gray-800">
-        <p class="text-gray-400 text-xs mb-1">Ventas del mes</p>
+        <p class="text-gray-400 text-xs mb-1">Ventas del período</p>
         <p class="text-white text-2xl font-bold">{{ fmt(data()!.salesMonth) }}</p>
-        <p class="text-gray-500 text-xs mt-2">pedidos pagados en el mes actual</p>
+        <p class="text-gray-500 text-xs mt-2">ventas físicas + pedidos online confirmados</p>
       </div>
 
       <!-- Pedidos hoy -->
@@ -82,29 +82,29 @@
 
       <!-- Visitas desde pauta -->
       <div class="rounded-2xl p-5 border"
-        [class]="data()!.adVisitsToday > 0
+        [class]="data()!.adVisits > 0
           ? 'bg-blue-500/10 border-blue-500/20'
           : 'bg-gray-900 border-gray-800'">
         <div class="flex items-center gap-2 mb-1">
-          <svg class="w-3.5 h-3.5" [class]="data()!.adVisitsToday > 0 ? 'text-blue-400' : 'text-gray-500'" viewBox="0 0 24 24" fill="currentColor">
+          <svg class="w-3.5 h-3.5" [class]="data()!.adVisits > 0 ? 'text-blue-400' : 'text-gray-500'" viewBox="0 0 24 24" fill="currentColor">
             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
           </svg>
-          <p class="text-xs" [class]="data()!.adVisitsToday > 0 ? 'text-blue-400' : 'text-gray-400'">Desde pauta hoy</p>
+          <p class="text-xs" [class]="data()!.adVisits > 0 ? 'text-blue-400' : 'text-gray-400'">Desde pauta</p>
         </div>
-        <p class="text-2xl font-bold" [class]="data()!.adVisitsToday > 0 ? 'text-blue-300' : 'text-white'">{{ data()!.adVisitsToday }}</p>
+        <p class="text-2xl font-bold" [class]="data()!.adVisits > 0 ? 'text-blue-300' : 'text-white'">{{ data()!.adVisits }}</p>
         <p class="text-gray-500 text-xs mt-2">visitas llegadas desde Facebook Ads</p>
       </div>
     </div>
 
-    <!-- Embudo de conversión (hoy) -->
+    <!-- Embudo de conversión (período seleccionado) -->
     <div class="bg-gray-900 rounded-2xl border border-gray-800 p-5 mb-6">
-      <p class="text-gray-400 text-xs mb-4">Embudo de conversion — hoy</p>
+      <p class="text-gray-400 text-xs mb-4">Embudo de conversión — período seleccionado</p>
       <div class="flex items-stretch gap-0">
 
         <!-- Visitas -->
         <div class="flex-1 text-center px-3 py-4 relative">
           <p class="text-gray-500 text-xs mb-1">Visitas</p>
-          <p class="text-white text-2xl font-bold">{{ totalVisits() }}</p>
+          <p class="text-white text-2xl font-bold">{{ periodVisits() }}</p>
           <p class="text-gray-600 text-xs mt-1">100%</p>
           <div class="absolute right-0 top-1/2 -translate-y-1/2 text-gray-700 text-lg">›</div>
         </div>
@@ -112,10 +112,10 @@
         <!-- Agrego al carrito -->
         <div class="flex-1 text-center px-3 py-4 relative">
           <p class="text-gray-500 text-xs mb-1">Agregaron al carrito</p>
-          <p class="text-white text-2xl font-bold">{{ data()!.addToCartToday }}</p>
+          <p class="text-white text-2xl font-bold">{{ data()!.addToCart }}</p>
           <p class="text-xs mt-1"
-             [class]="data()!.addToCartToday > 0 ? 'text-violet-400' : 'text-gray-600'">
-            {{ totalVisits() > 0 ? ((data()!.addToCartToday / totalVisits()) * 100 | number:'1.0-0') : 0 }}%
+             [class]="data()!.addToCart > 0 ? 'text-violet-400' : 'text-gray-600'">
+            {{ periodVisits() > 0 ? ((data()!.addToCart / periodVisits()) * 100 | number:'1.0-0') : 0 }}%
           </p>
           <div class="absolute right-0 top-1/2 -translate-y-1/2 text-gray-700 text-lg">›</div>
         </div>
@@ -123,10 +123,10 @@
         <!-- Iniciaron checkout -->
         <div class="flex-1 text-center px-3 py-4 relative">
           <p class="text-gray-500 text-xs mb-1">Iniciaron compra</p>
-          <p class="text-white text-2xl font-bold">{{ data()!.checkoutToday }}</p>
+          <p class="text-white text-2xl font-bold">{{ data()!.checkout }}</p>
           <p class="text-xs mt-1"
-             [class]="data()!.checkoutToday > 0 ? 'text-blue-400' : 'text-gray-600'">
-            {{ data()!.addToCartToday > 0 ? ((data()!.checkoutToday / data()!.addToCartToday) * 100 | number:'1.0-0') : 0 }}%
+             [class]="data()!.checkout > 0 ? 'text-blue-400' : 'text-gray-600'">
+            {{ data()!.addToCart > 0 ? ((data()!.checkout / data()!.addToCart) * 100 | number:'1.0-0') : 0 }}%
           </p>
           <div class="absolute right-0 top-1/2 -translate-y-1/2 text-gray-700 text-lg">›</div>
         </div>
@@ -134,15 +134,15 @@
         <!-- Compraron -->
         <div class="flex-1 text-center px-3 py-4">
           <p class="text-gray-500 text-xs mb-1">Compraron</p>
-          <p class="text-white text-2xl font-bold">{{ data()!.ordersToday }}</p>
+          <p class="text-white text-2xl font-bold">{{ data()!.ordersInPeriod }}</p>
           <p class="text-xs mt-1"
-             [class]="data()!.ordersToday > 0 ? 'text-green-400' : 'text-gray-600'">
-            {{ data()!.checkoutToday > 0 ? ((data()!.ordersToday / data()!.checkoutToday) * 100 | number:'1.0-0') : 0 }}%
+             [class]="data()!.ordersInPeriod > 0 ? 'text-green-400' : 'text-gray-600'">
+            {{ data()!.checkout > 0 ? ((data()!.ordersInPeriod / data()!.checkout) * 100 | number:'1.0-0') : 0 }}%
           </p>
         </div>
 
       </div>
-      <p class="text-gray-700 text-xs mt-3 text-center">Los porcentajes muestran la conversion respecto al paso anterior</p>
+      <p class="text-gray-700 text-xs mt-3 text-center">Los porcentajes muestran la conversión respecto al paso anterior</p>
     </div>
 
     <!-- Chart + Avg row -->
