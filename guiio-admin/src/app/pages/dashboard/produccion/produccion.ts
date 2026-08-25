@@ -77,7 +77,13 @@ export class Produccion implements OnInit {
         }
         return true;
       })
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      .sort((a, b) => {
+        const DEPRIO = new Set(['IN_STORE', 'DELIVERED', 'SHIPPED', 'COMPLETED']);
+        const pa = DEPRIO.has(a.status) ? 1 : 0;
+        const pb = DEPRIO.has(b.status) ? 1 : 0;
+        if (pa !== pb) return pa - pb;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
   });
 
   ngOnInit() {
