@@ -144,7 +144,7 @@
 
           <!-- Main row -->
           <div
-            class="px-4 sm:px-5 py-4 flex items-start sm:items-center gap-3 sm:gap-4 cursor-pointer"
+            class="px-4 lg:px-5 py-4 flex items-start lg:items-center gap-3 lg:gap-4 cursor-pointer"
             (click)="expandedId.set(expandedId() === sale.id ? null : sale.id)"
           >
             <!-- Info -->
@@ -187,7 +187,7 @@
                 }
               </div>
               <!-- Total + Estado: solo en móvil -->
-              <div class="flex items-center gap-2 mt-2 sm:hidden">
+              <div class="flex items-center gap-2 mt-2 lg:hidden">
                 <span class="text-white font-semibold text-sm">{{ formatPrice(sale.total) }}</span>
                 <span class="text-xs border px-2 py-0.5 rounded-full" [class]="statusClass(sale.status)">
                   {{ statusLabel(sale.status) }}
@@ -196,14 +196,14 @@
             </div>
 
             <!-- Total + status + chevron: solo desktop -->
-            <div class="hidden sm:flex items-center gap-3 shrink-0">
+            <div class="hidden lg:flex items-center gap-3 shrink-0">
               <span class="text-white font-semibold text-sm">{{ formatPrice(sale.total) }}</span>
               <span class="text-xs border px-2.5 py-1 rounded-full" [class]="statusClass(sale.status)">
                 {{ statusLabel(sale.status) }}
               </span>
             </div>
 
-            <svg class="w-4 h-4 text-gray-600 shrink-0 transition-transform mt-0.5 sm:mt-0" [class.rotate-180]="expandedId() === sale.id"
+            <svg class="w-4 h-4 text-gray-600 shrink-0 transition-transform mt-0.5 lg:mt-0" [class.rotate-180]="expandedId() === sale.id"
                  fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <polyline points="6 9 12 15 18 9"/>
             </svg>
@@ -211,7 +211,7 @@
 
           <!-- Expanded detail -->
           @if (expandedId() === sale.id) {
-            <div class="border-t border-gray-800 px-4 sm:px-5 py-4 space-y-4">
+            <div class="border-t border-gray-800 px-4 lg:px-5 py-4 space-y-4">
 
               <!-- Items -->
               <div class="space-y-2">

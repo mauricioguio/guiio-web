@@ -11,3 +11,9 @@ body { font-family: 'Inter', sans-serif; background: #030712; }
     width: 0 !important;
   }
 }
+
+/* En dispositivos táctiles (celulares/tablets) siempre mostrar cards, nunca tabla */
+@media (hover: none) and (pointer: coarse) {
+  .touch-table-hide { display: none !important; }
+  .touch-cards-show { display: block !important; }
+}

@@ -1,7 +1,7 @@
-<div class="p-4 md:p-6 space-y-4">
+<div class="p-4 lg:p-6 space-y-4">
 
   <!-- Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
     <div>
       <h1 class="text-xl font-bold text-white">Control de producción</h1>
       <p class="text-gray-500 text-sm mt-0.5">{{ filtered().length }} pedido{{ filtered().length !== 1 ? 's' : '' }} activo{{ filtered().length !== 1 ? 's' : '' }}</p>
@@ -21,7 +21,7 @@
   <div>
     <!-- Botón toggle (solo móvil) -->
     <button
-      class="sm:hidden w-full flex items-center justify-between px-3 py-2 mb-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-400 hover:text-white hover:border-gray-500 transition-colors"
+      class="lg:hidden w-full flex items-center justify-between px-3 py-2 mb-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-400 hover:text-white hover:border-gray-500 transition-colors"
       (click)="showFilters.set(!showFilters())"
     >
       <span class="flex items-center gap-2">
@@ -38,8 +38,8 @@
       </svg>
     </button>
 
-    <!-- Contenedor filtros: colapsable en móvil, siempre visible en sm+ -->
-    <div [class.hidden]="!showFilters()" class="sm:!block flex flex-col sm:flex-row gap-2">
+    <!-- Contenedor filtros: colapsable en móvil, siempre visible en lg+ -->
+    <div [class.hidden]="!showFilters()" class="lg:!block flex flex-col lg:flex-row gap-2">
       <div class="relative flex-1">
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
@@ -96,8 +96,8 @@
       <div class="text-center py-16 text-gray-500">No hay pedidos que coincidan con los filtros.</div>
     } @else {
 
-      <!-- Desktop table -->
-      <div class="hidden md:block overflow-x-auto rounded-xl border border-gray-800">
+      <!-- Desktop table: oculto en táctiles y en pantallas < 1024px -->
+      <div class="touch-table-hide hidden lg:block overflow-x-auto rounded-xl border border-gray-800">
         <table class="w-full text-sm">
           <thead class="bg-gray-900 text-gray-400 text-xs uppercase tracking-wide">
             <tr>
@@ -196,8 +196,8 @@
         </table>
       </div>
 
-      <!-- Mobile cards -->
-      <div class="md:hidden space-y-3">
+      <!-- Mobile cards: siempre visibles en táctiles -->
+      <div class="touch-cards-show lg:hidden space-y-3">
         @for (order of filtered(); track order.id) {
           <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
 
