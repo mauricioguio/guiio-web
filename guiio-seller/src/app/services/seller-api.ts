@@ -217,4 +217,19 @@ export class SellerApiService {
       { headers: this.headers },
     );
   }
+
+  getMyInventory() {
+    return this.http.get<{ productId: string; productName: string; size: string; quantity: number }[]>(
+      `${API}/my-inventory`,
+      { headers: this.headers },
+    );
+  }
+
+  getMyReturns() {
+    return this.http.get<any[]>(`${API}/my-returns`, { headers: this.headers });
+  }
+
+  createReturn(data: { notes?: string; items: { productId: string; productName: string; size: string; quantity: number }[] }) {
+    return this.http.post<any>(`${API}/my-returns`, data, { headers: this.headers });
+  }
 }

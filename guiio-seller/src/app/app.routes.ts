@@ -46,5 +46,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/caja/caja').then(m => m.Caja),
     canActivate: [authGuard],
   },
+  {
+    path: 'devoluciones',
+    loadComponent: () => import('./pages/devoluciones/devoluciones').then(m => m.Devoluciones),
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: 'pos' },
 ];

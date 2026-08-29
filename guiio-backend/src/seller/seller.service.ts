@@ -670,6 +670,14 @@ export class SellerService {
     });
   }
 
+  async getSedeReturns(sedeId: string) {
+    return this.prisma.inventoryReturn.findMany({
+      where: { sedeId },
+      include: { items: true, sede: { select: { id: true, name: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async markReturnReceived(id: string) {
     return this.prisma.inventoryReturn.update({
       where: { id },

@@ -28,6 +28,10 @@
        class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
       POS
     </a>
+    <a routerLink="/devoluciones" routerLinkActive="text-white bg-gray-800" (click)="closeMenu()"
+       class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
+      Devoluciones
+    </a>
     <button (click)="logout()"
       class="ml-2 px-3 py-1.5 rounded-lg text-xs text-gray-500 hover:text-red-400 hover:bg-gray-800 transition-colors">
       Salir
@@ -89,6 +93,13 @@
         <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
       </svg>
       POS
+    </a>
+    <a routerLink="/devoluciones" routerLinkActive="text-white bg-gray-800" (click)="closeMenu()"
+       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/>
+      </svg>
+      Devoluciones
     </a>
     <div class="border-t border-gray-800 pt-1 mt-1">
       <button (click)="logout()"
