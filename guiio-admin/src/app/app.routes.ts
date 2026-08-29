@@ -92,6 +92,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/dashboard/produccion/produccion').then(m => m.Produccion),
         canActivate: [adminGuard],
       },
+      {
+        path: 'devoluciones',
+        loadComponent: () => import('./pages/dashboard/devoluciones/devoluciones').then(m => m.Devoluciones),
+        canActivate: [adminGuard],
+      },
     ],
   },
 ];
