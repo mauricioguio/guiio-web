@@ -408,18 +408,20 @@
                   }
                 }
               </div>
-              <div class="flex gap-2 mb-2">
-                <button (click)="paymentMethodAbono.set('EFECTIVO')"
-                  class="flex-1 py-2 rounded-xl text-xs font-semibold border transition-colors"
-                  [class]="paymentMethodAbono() === 'EFECTIVO' ? 'bg-green-600 border-green-600 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'">
-                  Efectivo
-                </button>
-                <button (click)="paymentMethodAbono.set('TRANSFERENCIA')"
-                  class="flex-1 py-2 rounded-xl text-xs font-semibold border transition-colors"
-                  [class]="paymentMethodAbono() === 'TRANSFERENCIA' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'">
-                  Transferencia
-                </button>
-              </div>
+              <select
+                [value]="paymentMethodAbono()"
+                (change)="paymentMethodAbono.set($any($event.target).value)"
+                class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 transition-colors mb-2"
+              >
+                <option value="EFECTIVO">Efectivo</option>
+                <option value="DATAFONO">Datáfono</option>
+                <option value="NEQUI">Nequi</option>
+                <option value="DAVIPLATA">Daviplata</option>
+                <option value="ADDI">ADDI</option>
+                <option value="SISTECREDITO">Sistecredito</option>
+                <option value="TRANSFERENCIA">Transferencia</option>
+                <option value="CONTRAENTREGA">Contraentrega</option>
+              </select>
               <div class="flex gap-2">
                 <input
                   type="text" inputmode="numeric"
