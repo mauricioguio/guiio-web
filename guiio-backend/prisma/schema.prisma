@@ -75,8 +75,29 @@ model Sede {
   inventory     Inventory[]
   sales         Sale[]
   productPrices SedeProductPrice[]
+  returns       InventoryReturn[]
 
   @@unique([name, empresa])
+}
+
+model InventoryReturn {
+  id        String                @id @default(cuid())
+  sedeId    String
+  sede      Sede                  @relation(fields: [sedeId], references: [id])
+  status    String                @default("PENDING")
+  notes     String?
+  createdAt DateTime              @default(now())
+  items     InventoryReturnItem[]
+}
+
+model InventoryReturnItem {
+  id          String          @id @default(cuid())
+  returnId    String
+  return      InventoryReturn @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  productId   String
+  productName String
+  size        String
+  quantity    Int
 }
 
 model SedeProductPrice {

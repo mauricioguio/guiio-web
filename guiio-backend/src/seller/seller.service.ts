@@ -614,4 +614,67 @@ export class SellerService {
       include: { items: true, payments: { orderBy: { createdAt: 'asc' } }, sede: { select: { id: true, name: true } } },
     });
   }
+
+  // ── Inventory returns ─────────────────────────────────────────────────────
+
+  async getAdminInventory(sedeId: string) {
+    const rows = await this.prisma.inventory.findMany({
+      where: { sedeId, quantity: { gt: 0 } },
+      orderBy: [{ productId: 'asc' }, { size: 'asc' }],
+    });
+    // Fetch product names
+    const productIds = [...new Set(rows.map(r => r.productId))];
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, name: true },
+    });
+    const nameMap = new Map(products.map(p => [p.id, p.name]));
+    return rows.map(r => ({
+      productId: r.productId,
+      productName: nameMap.get(r.productId) ?? r.productId,
+      size: r.size,
+      quantity: r.quantity,
+    }));
+  }
+
+  async createInventoryReturn(data: {
+    sedeId: string;
+    notes?: string;
+    items: { productId: string; productName: string; size: string; quantity: number }[];
+  }) {
+    const ret = await this.prisma.inventoryReturn.create({
+      data: {
+        sedeId: data.sedeId,
+        notes: data.notes ?? null,
+        items: { create: data.items },
+      },
+      include: { items: true, sede: { select: { id: true, name: true } } },
+    });
+
+    // Decrement inventory for each returned item
+    for (const item of data.items) {
+      await this.prisma.inventory.updateMany({
+        where: { sedeId: data.sedeId, productId: item.productId, size: item.size },
+        data: { quantity: { decrement: item.quantity } },
+      });
+    }
+
+    return ret;
+  }
+
+  async getInventoryReturns(empresa = 'GUIIO') {
+    return this.prisma.inventoryReturn.findMany({
+      where: { sede: { empresa } },
+      include: { items: true, sede: { select: { id: true, name: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async markReturnReceived(id: string) {
+    return this.prisma.inventoryReturn.update({
+      where: { id },
+      data: { status: 'RECEIVED' },
+      include: { items: true, sede: { select: { id: true, name: true } } },
+    });
+  }
 }

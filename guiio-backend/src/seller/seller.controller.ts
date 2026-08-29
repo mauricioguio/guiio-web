@@ -173,6 +173,32 @@ export class SellerController {
     return this.sellerService.reviewSaleEditRequest(id, approved, reviewNote);
   }
 
+  // ── Inventory returns (admin) ─────────────────────────────────────────────
+
+  @Get('admin/inventory/:sedeId')
+  @UseGuards(JwtAuthGuard)
+  getAdminInventory(@Param('sedeId') sedeId: string) {
+    return this.sellerService.getAdminInventory(sedeId);
+  }
+
+  @Get('admin/returns')
+  @UseGuards(JwtAuthGuard)
+  getInventoryReturns(@Request() req: any) {
+    return this.sellerService.getInventoryReturns(req.user?.empresa ?? 'GUIIO');
+  }
+
+  @Post('admin/returns')
+  @UseGuards(JwtAuthGuard)
+  createInventoryReturn(@Body() body: any) {
+    return this.sellerService.createInventoryReturn(body);
+  }
+
+  @Patch('admin/returns/:id/received')
+  @UseGuards(JwtAuthGuard)
+  markReturnReceived(@Param('id') id: string) {
+    return this.sellerService.markReturnReceived(id);
+  }
+
   @Get('next-order-number')
   @UseGuards(SellerGuard)
   getNextOrderNumber(@Request() req: any) {
