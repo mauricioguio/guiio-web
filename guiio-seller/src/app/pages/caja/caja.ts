@@ -6,7 +6,7 @@ import { AuthService } from '../../services/auth';
 
 const API = 'https://api.guiiouniformes.com/api';
 
-type Period = 'today' | 'week' | 'month';
+type Period = 'all' | 'today' | 'week' | 'month';
 
 interface CashMovement {
   id: string;
@@ -39,6 +39,7 @@ export class Caja implements OnInit {
   protected formError     = '';
 
   protected readonly PERIODS: { value: Period; label: string }[] = [
+    { value: 'all',   label: 'Todo' },
     { value: 'today', label: 'Hoy' },
     { value: 'week',  label: 'Esta semana' },
     { value: 'month', label: 'Este mes' },
@@ -56,10 +57,11 @@ export class Caja implements OnInit {
     return this.auth.currentSede()?.sedeId ?? '';
   }
 
-  private dateRange(): { from: string; to: string } {
+  private dateRange(): { from?: string; to?: string } {
     const now = new Date();
     const to  = now.toISOString().slice(0, 10);
     const p   = this.period();
+    if (p === 'all') return {};
     let from: Date;
     if (p === 'week') {
       from = new Date(now);
@@ -84,7 +86,11 @@ export class Caja implements OnInit {
       next: r => this.balance.set(r.balance),
     });
 
-    this.http.get<CashMovement[]>(`${API}/cash/movements`, { params: { sedeId: sid, from, to } }).subscribe({
+    const params: any = { sedeId: sid };
+    if (from) params.from = from;
+    if (to)   params.to   = to;
+
+    this.http.get<CashMovement[]>(`${API}/cash/movements`, { params }).subscribe({
       next: list => { this.movements.set(list); this.loading.set(false); },
       error: () => this.loading.set(false),
     });

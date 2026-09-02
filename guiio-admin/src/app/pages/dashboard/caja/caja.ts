@@ -15,6 +15,7 @@ interface CashMovement {
   saleId?: string | null;
   createdBy?: string | null;
   createdAt: string;
+  source?: 'sale' | 'cash';
 }
 
 interface PaymentStat {

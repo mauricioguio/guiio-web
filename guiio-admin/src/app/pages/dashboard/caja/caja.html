@@ -208,8 +208,8 @@
       } @else {
         <div class="space-y-1.5 max-h-[420px] overflow-y-auto pr-1">
           @for (m of movements(); track m.id) {
-            <div class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-800 transition-colors">
-              <div class="flex items-center gap-3">
+            <div class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-800/60 transition-colors">
+              <div class="flex items-center gap-3 min-w-0">
                 <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
                      [class]="m.type === 'INCOME' ? 'bg-green-500/20' : 'bg-red-500/20'">
                   @if (m.type === 'INCOME') {
@@ -222,11 +222,14 @@
                     </svg>
                   }
                 </div>
-                <div>
-                  <p class="text-sm text-white leading-tight">{{ m.description }}</p>
-                  <p class="text-xs text-gray-500">
+                <div class="min-w-0">
+                  <p class="text-sm text-white leading-tight truncate">{{ m.description }}</p>
+                  <p class="text-xs text-gray-500 mt-0.5">
                     {{ formatDate(m.createdAt) }}
-                    @if (m.createdBy) { · {{ m.createdBy }} }
+                    @if (m.source === 'cash' && m.createdBy) { · {{ m.createdBy }} }
+                    @if (m.source === 'cash' && m.type === 'EXPENSE') {
+                      <span class="ml-1.5 px-1.5 py-0.5 rounded text-xs bg-red-500/15 text-red-400">Gasto</span>
+                    }
                   </p>
                 </div>
               </div>
