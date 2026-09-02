@@ -25,12 +25,20 @@ export class CashService {
     return (income._sum.amount ?? 0) - (expense._sum.amount ?? 0);
   }
 
+  private colRange(from?: string, to?: string) {
+    const msDay = 86_400_000;
+    const gte = from ? new Date(from + 'T05:00:00Z') : undefined;
+    const lte = to   ? new Date(new Date(to + 'T05:00:00Z').getTime() + msDay - 1000) : undefined;
+    return { gte, lte };
+  }
+
   async getMovements(sedeId: string, from?: string, to?: string) {
     const where: any = { sedeId };
     if (from || to) {
+      const { gte, lte } = this.colRange(from, to);
       where.createdAt = {};
-      if (from) where.createdAt.gte = new Date(from + 'T00:00:00');
-      if (to)   where.createdAt.lte = new Date(to   + 'T23:59:59');
+      if (gte) where.createdAt.gte = gte;
+      if (lte) where.createdAt.lte = lte;
     }
     return this.prisma.cashMovement.findMany({ where, orderBy: { createdAt: 'desc' } });
   }
@@ -38,9 +46,10 @@ export class CashService {
   async getPaymentStats(sedeId: string, from?: string, to?: string) {
     const where: any = { sedeId, paymentMethod: { not: null } };
     if (from || to) {
+      const { gte, lte } = this.colRange(from, to);
       where.createdAt = {};
-      if (from) where.createdAt.gte = new Date(from + 'T00:00:00');
-      if (to)   where.createdAt.lte = new Date(to   + 'T23:59:59');
+      if (gte) where.createdAt.gte = gte;
+      if (lte) where.createdAt.lte = lte;
     }
 
     const rows = await this.prisma.sale.groupBy({
@@ -60,9 +69,10 @@ export class CashService {
   async getDailyRevenue(sedeId: string, from?: string, to?: string) {
     const where: any = { sedeId };
     if (from || to) {
+      const { gte, lte } = this.colRange(from, to);
       where.createdAt = {};
-      if (from) where.createdAt.gte = new Date(from + 'T00:00:00');
-      if (to)   where.createdAt.lte = new Date(to   + 'T23:59:59');
+      if (gte) where.createdAt.gte = gte;
+      if (lte) where.createdAt.lte = lte;
     }
 
     const sales = await this.prisma.sale.findMany({
