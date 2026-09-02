@@ -212,7 +212,10 @@ export class AnalyticsService {
     const grossMarginPct = totalRevenue > 0 ? Math.round(grossProfit / totalRevenue * 100) : 0;
 
     // Gastos fijos del período
-    const months = this.monthsInRange(from, to);
+    const months = this.monthsInRange(
+      fromStr ? new Date(fromStr + 'T12:00:00Z') : from,
+      toStr   ? new Date(toStr   + 'T12:00:00Z') : to,
+    );
     const [templates, extras] = await Promise.all([
       this.prisma.fixedExpenseTemplate.findMany({ where: { active: true }, orderBy: { order: 'asc' } }),
       months.length > 0
