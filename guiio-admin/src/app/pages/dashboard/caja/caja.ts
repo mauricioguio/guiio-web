@@ -5,7 +5,7 @@ import { SedesApiService, Sede } from '../../../services/sedes-api';
 
 const API = 'https://api.guiiouniformes.com/api';
 
-type Period = '7d' | '30d' | 'month' | '90d' | 'custom';
+type Period = 'all' | 'today' | 'week' | 'month' | 'custom';
 
 interface CashMovement {
   id: string;
@@ -42,7 +42,7 @@ export class Caja implements OnInit {
   protected saving    = signal(false);
   protected showForm  = signal(false);
 
-  protected period      = signal<Period>('30d');
+  protected period      = signal<Period>('all');
   protected customFrom  = '';
   protected customTo    = '';
 
@@ -51,10 +51,10 @@ export class Caja implements OnInit {
   protected formError     = '';
 
   protected readonly PERIODS: { value: Period; label: string }[] = [
-    { value: '7d',    label: 'Últimos 7 días' },
-    { value: '30d',   label: 'Últimos 30 días' },
+    { value: 'all',   label: 'Todo' },
+    { value: 'today', label: 'Hoy' },
+    { value: 'week',  label: 'Esta semana' },
     { value: 'month', label: 'Este mes' },
-    { value: '90d',   label: 'Últimos 90 días' },
   ];
 
   protected readonly selectedSede = computed(() =>
@@ -101,14 +101,21 @@ export class Caja implements OnInit {
   private dateRange(): { from: string; to: string } {
     const now = new Date();
     const p   = this.period();
+    const to  = now.toISOString().slice(0, 10);
     if (p === 'custom') return { from: this.customFrom, to: this.customTo };
-    const to = now.toISOString().slice(0, 10);
-    let from: Date;
-    if      (p === '7d')    { from = new Date(now); from.setDate(from.getDate() - 6); }
-    else if (p === '90d')   { from = new Date(now); from.setDate(from.getDate() - 89); }
-    else if (p === 'month') { from = new Date(now.getFullYear(), now.getMonth(), 1); }
-    else                    { from = new Date(now); from.setDate(from.getDate() - 29); }
-    return { from: from.toISOString().slice(0, 10), to };
+    if (p === 'all') {
+      const from = new Date(now);
+      from.setFullYear(from.getFullYear() - 2);
+      return { from: from.toISOString().slice(0, 10), to };
+    }
+    if (p === 'today') return { from: to, to };
+    if (p === 'week') {
+      const from = new Date(now);
+      from.setDate(from.getDate() - from.getDay());
+      return { from: from.toISOString().slice(0, 10), to };
+    }
+    // month
+    return { from: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10), to };
   }
 
   loadAll() {
