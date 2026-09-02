@@ -33,54 +33,14 @@ export class CashService {
   }
 
   async getMovements(sedeId: string, from?: string, to?: string) {
-    const dateFilter: any = {};
+    const where: any = { sedeId };
     if (from || to) {
       const { gte, lte } = this.colRange(from, to);
-      if (gte) dateFilter.gte = gte;
-      if (lte) dateFilter.lte = lte;
+      where.createdAt = {};
+      if (gte) where.createdAt.gte = gte;
+      if (lte) where.createdAt.lte = lte;
     }
-    const hasDate = Object.keys(dateFilter).length > 0;
-
-    const [cashMoves, sales] = await Promise.all([
-      this.prisma.cashMovement.findMany({
-        where: { sedeId, ...(hasDate ? { createdAt: dateFilter } : {}) },
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.sale.findMany({
-        where: {
-          sedeId,
-          status: { not: 'CANCELLED' },
-          paymentMethod: { not: null },
-          ...(hasDate ? { createdAt: dateFilter } : {}),
-        },
-        select: {
-          id: true,
-          orderNumber: true,
-          total: true,
-          paymentMethod: true,
-          customerName: true,
-          createdAt: true,
-        },
-        orderBy: { createdAt: 'desc' },
-      }),
-    ]);
-
-    const saleMovements = sales.map(s => ({
-      id: `sale-${s.id}`,
-      type: 'INCOME' as const,
-      amount: s.total,
-      description: `Venta Nº ${String(s.orderNumber).padStart(4, '0')}${s.customerName ? ' · ' + s.customerName : ''} · ${s.paymentMethod}`,
-      saleId: s.id,
-      createdBy: null,
-      createdAt: s.createdAt.toISOString(),
-      source: 'sale' as const,
-    }));
-
-    const cashMovements = cashMoves.map(m => ({ ...m, source: 'cash' as const }));
-
-    return [...cashMovements, ...saleMovements].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
+    return this.prisma.cashMovement.findMany({ where, orderBy: { createdAt: 'desc' } });
   }
 
   async getPaymentStats(sedeId: string, from?: string, to?: string) {
