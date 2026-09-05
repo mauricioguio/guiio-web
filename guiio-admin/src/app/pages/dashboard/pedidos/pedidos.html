@@ -523,6 +523,21 @@
                   <span class="text-gray-500 text-xs shrink-0">Guardando...</span>
                 }
               </div>
+              <!-- Verificar en Wompi (solo pedidos PENDING con provider wompi) -->
+              @if (order.status === 'PENDING' && order.paymentProvider?.toLowerCase() === 'wompi') {
+                <button (click)="checkWompi(order)"
+                  [disabled]="checkingWompiRef() === order.reference"
+                  class="w-full mt-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border border-violet-500/30 text-violet-400 hover:bg-violet-500/10 transition-colors disabled:opacity-40">
+                  @if (checkingWompiRef() === order.reference) {
+                    <span>Consultando Wompi...</span>
+                  } @else {
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>Verificar pago en Wompi</span>
+                  }
+                </button>
+              }
 
             </div>
           }
@@ -605,11 +620,33 @@
         </svg>
       </div>
       <div class="flex-1 min-w-0">
-        <p class="text-white text-sm font-semibold">Correo de despacho enviado</p>
+        <p class="text-white text-sm font-semibold">Correo de confirmación enviado</p>
         <p class="text-gray-400 text-xs mt-0.5 truncate">{{ ep.reference }}</p>
         <p class="text-green-400 text-xs mt-0.5 truncate">{{ ep.email }}</p>
       </div>
       <button (click)="emailSentPopup.set(null)" class="shrink-0 text-gray-500 hover:text-white p-1 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+}
+
+@if (wompiResultPopup(); as wp) {
+  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4 pointer-events-none">
+    <div class="bg-gray-900 border border-yellow-500/40 rounded-2xl p-4 shadow-2xl flex items-start gap-3 pointer-events-auto">
+      <div class="shrink-0 w-8 h-8 bg-yellow-500/15 rounded-full flex items-center justify-center">
+        <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        </svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-white text-sm font-semibold">Pago no aprobado en Wompi</p>
+        <p class="text-gray-400 text-xs mt-0.5 truncate">{{ wp.reference }}</p>
+        <p class="text-yellow-400 text-xs mt-0.5">Estado: {{ wp.wompiStatus }}</p>
+      </div>
+      <button (click)="wompiResultPopup.set(null)" class="shrink-0 text-gray-500 hover:text-white p-1 transition-colors">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
         </svg>

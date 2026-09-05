@@ -37,6 +37,30 @@ export class OrdersService {
       include: { customer: true, items: {} },
     });
 
+    if (status === 'PAID' && order.customer.email) {
+      // Reclamar atómicamente: solo envía si confirmationEmailSentAt aún es null
+      const claimed = await this.prisma.order.updateMany({
+        where: { id, confirmationEmailSentAt: null },
+        data: { confirmationEmailSentAt: new Date() },
+      });
+      if (claimed.count > 0) {
+        await this.email.sendOrderConfirmation({
+          reference: order.reference,
+          customerName: order.customer.name,
+          customerEmail: order.customer.email,
+          customerPhone: order.customer.phone,
+          customerCedula: order.customer.cedula ?? null,
+          address: order.address,
+          city: order.city,
+          notes: order.notes ?? null,
+          total: order.total,
+          shipping: order.shipping,
+          discount: order.discount,
+          items: order.items,
+        });
+      }
+    }
+
     if (status === 'SHIPPED' && order.customer.email) {
       await this.email.sendShippedNotification({
         reference: order.reference,

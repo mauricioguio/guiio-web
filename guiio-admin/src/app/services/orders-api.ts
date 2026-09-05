@@ -54,6 +54,12 @@ export class OrdersApiService {
     return this.http.delete<void>(`${API_URL}/orders/${id}`);
   }
 
+  checkWompi(reference: string) {
+    return this.http.post<{ wompiStatus: string; confirmed: boolean }>(
+      `${API_URL}/payments/check-wompi/${encodeURIComponent(reference)}`, {}
+    );
+  }
+
   getEditRequests(orderId: string) {
     return this.http.get<EditRequest[]>(`${API_URL}/order-edit-requests/order/${orderId}`);
   }

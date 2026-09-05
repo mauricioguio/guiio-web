@@ -28,4 +28,10 @@ export class PaymentsController {
   confirm(@Param('reference') reference: string) {
     return this.paymentsService.confirmOrderByReference(reference);
   }
+
+  @Post('check-wompi/:reference')
+  @HttpCode(200)
+  checkWompi(@Param('reference') reference: string) {
+    return this.paymentsService.checkAndConfirmByReference(reference);
+  }
 }

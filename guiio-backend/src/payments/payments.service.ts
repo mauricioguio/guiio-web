@@ -106,6 +106,34 @@ export class PaymentsService {
     return { status: json?.data?.status ?? 'ERROR' };
   }
 
+  async checkAndConfirmByReference(reference: string): Promise<{ wompiStatus: string; confirmed: boolean }> {
+    const apiBase = this.publicKey.startsWith('pub_test_')
+      ? 'https://sandbox.wompi.co/v1'
+      : 'https://api.wompi.co/v1';
+
+    const res = await fetch(
+      `${apiBase}/transactions?reference=${encodeURIComponent(reference)}`,
+      { headers: { Authorization: `Bearer ${this.publicKey}` } },
+    );
+    const json = await res.json() as any;
+    const transactions: any[] = json?.data ?? [];
+
+    const approved = transactions.find((t: any) => t.status === 'APPROVED');
+    if (!approved) {
+      const latest = transactions[0];
+      return { wompiStatus: latest?.status ?? 'NOT_FOUND', confirmed: false };
+    }
+
+    // Guardar wompiTxId si aún no está
+    await this.prisma.order.updateMany({
+      where: { reference, wompiTxId: null },
+      data: { wompiTxId: approved.id },
+    });
+
+    await this.confirmOrderByReference(reference);
+    return { wompiStatus: 'APPROVED', confirmed: true };
+  }
+
   async confirmOrderByReference(reference: string) {
     this.logger.log(`confirmOrder llamado para: ${reference}`);
     try {

@@ -78,8 +78,10 @@ export class Pedidos implements OnInit {
   protected confirmEdit = signal<{ sale: SellerSale; draft: SaleDraft; changes: SaleChange[] } | null>(null);
   protected savingId    = signal<string | null>(null);
 
-  protected updatingOrderId = signal<string | null>(null);
-  protected emailSentPopup  = signal<{ email: string; reference: string } | null>(null);
+  protected updatingOrderId    = signal<string | null>(null);
+  protected checkingWompiRef   = signal<string | null>(null);
+  protected wompiResultPopup   = signal<{ reference: string; wompiStatus: string; confirmed: boolean } | null>(null);
+  protected emailSentPopup     = signal<{ email: string; reference: string } | null>(null);
 
   protected shippingPopup = signal<ShippingData | null>(null);
 
@@ -205,12 +207,34 @@ export class Pedidos implements OnInit {
       next: updated => {
         this.orders.update(list => list.map(o => o.id === updated.id ? { ...o, status: updated.status } : o));
         this.updatingOrderId.set(null);
+        if (status === 'PAID' && order.customer.email) {
+          this.emailSentPopup.set({ email: order.customer.email, reference: order.reference });
+          setTimeout(() => this.emailSentPopup.set(null), 6000);
+        }
         if (status === 'SHIPPED' && order.customer.email) {
           this.emailSentPopup.set({ email: order.customer.email, reference: order.reference });
           setTimeout(() => this.emailSentPopup.set(null), 6000);
         }
       },
       error: () => this.updatingOrderId.set(null),
+    });
+  }
+
+  checkWompi(order: Order) {
+    this.checkingWompiRef.set(order.reference);
+    this.onlineApi.checkWompi(order.reference).subscribe({
+      next: result => {
+        this.checkingWompiRef.set(null);
+        if (result.confirmed) {
+          this.orders.update(list => list.map(o => o.reference === order.reference ? { ...o, status: 'PAID' } : o));
+          this.emailSentPopup.set({ email: order.customer.email, reference: order.reference });
+          setTimeout(() => this.emailSentPopup.set(null), 6000);
+        } else {
+          this.wompiResultPopup.set({ reference: order.reference, wompiStatus: result.wompiStatus, confirmed: false });
+          setTimeout(() => this.wompiResultPopup.set(null), 6000);
+        }
+      },
+      error: () => this.checkingWompiRef.set(null),
     });
   }
 
