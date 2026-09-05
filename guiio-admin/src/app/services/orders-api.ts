@@ -60,6 +60,12 @@ export class OrdersApiService {
     );
   }
 
+  checkWompiById(reference: string, wompiTxId: string) {
+    return this.http.post<{ wompiStatus: string; confirmed: boolean }>(
+      `${API_URL}/payments/check-wompi/${encodeURIComponent(reference)}`, { wompiTxId }
+    );
+  }
+
   getEditRequests(orderId: string) {
     return this.http.get<EditRequest[]>(`${API_URL}/order-edit-requests/order/${orderId}`);
   }

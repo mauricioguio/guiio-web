@@ -114,15 +114,21 @@ export class PaymentsService {
     return { ok: true };
   }
 
-  async checkAndConfirmByReference(reference: string): Promise<{ wompiStatus: string; confirmed: boolean }> {
-    // Buscar el wompiTxId guardado en el pedido
+  async checkAndConfirmByReference(reference: string, providedTxId?: string): Promise<{ wompiStatus: string; confirmed: boolean }> {
+    // Buscar el wompiTxId guardado en el pedido (o usar el que pasó el admin manualmente)
     const order = await this.prisma.order.findUnique({
       where: { reference },
       select: { wompiTxId: true },
     });
 
-    if (order?.wompiTxId) {
-      const { status } = await this.verifyTransaction(order.wompiTxId);
+    const txId = providedTxId?.trim() || order?.wompiTxId;
+
+    if (txId) {
+      // Guardar si vino del admin y el pedido no lo tenía
+      if (providedTxId && !order?.wompiTxId) {
+        await this.prisma.order.updateMany({ where: { reference }, data: { wompiTxId: txId } });
+      }
+      const { status } = await this.verifyTransaction(txId);
       if (status === 'APPROVED') {
         await this.confirmOrderByReference(reference);
         return { wompiStatus: 'APPROVED', confirmed: true };

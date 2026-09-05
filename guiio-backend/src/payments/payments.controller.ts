@@ -31,8 +31,8 @@ export class PaymentsController {
 
   @Post('check-wompi/:reference')
   @HttpCode(200)
-  checkWompi(@Param('reference') reference: string) {
-    return this.paymentsService.checkAndConfirmByReference(reference);
+  checkWompi(@Param('reference') reference: string, @Body() body: { wompiTxId?: string }) {
+    return this.paymentsService.checkAndConfirmByReference(reference, body?.wompiTxId);
   }
 
   @Post('store-wompi-id')

@@ -537,6 +537,23 @@
                     <span>Verificar pago en Wompi</span>
                   }
                 </button>
+                <!-- Input manual cuando la verificación automática no encontró la transacción -->
+                @if (wompiManualRef() === order.reference) {
+                  <div class="mt-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl space-y-2">
+                    <p class="text-xs text-yellow-400">No se encontró automáticamente. Pega el ID de transacción de Wompi:</p>
+                    <p class="text-xs text-gray-500">Ejemplo: <span class="text-gray-300 font-mono">1222775-1788566555-98433</span></p>
+                    <div class="flex gap-2">
+                      <input [(ngModel)]="wompiManualId" placeholder="ID de transacción Wompi"
+                        class="flex-1 bg-gray-900 border border-yellow-500/30 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-yellow-400 font-mono" />
+                      <button (click)="confirmWithWompiId(order)"
+                        [disabled]="!wompiManualId.trim() || checkingWompiRef() === order.reference"
+                        class="px-3 py-1.5 rounded-lg bg-yellow-500/20 text-yellow-400 text-xs font-medium hover:bg-yellow-500/30 transition-colors disabled:opacity-40">
+                        Confirmar
+                      </button>
+                      <button (click)="wompiManualRef.set(null)" class="text-gray-600 hover:text-gray-400 px-1.5 text-xs">✕</button>
+                    </div>
+                  </div>
+                }
               }
 
             </div>
