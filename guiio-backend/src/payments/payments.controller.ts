@@ -34,4 +34,10 @@ export class PaymentsController {
   checkWompi(@Param('reference') reference: string) {
     return this.paymentsService.checkAndConfirmByReference(reference);
   }
+
+  @Post('store-wompi-id')
+  @HttpCode(200)
+  storeWompiId(@Body() body: { reference: string; wompiTxId: string }) {
+    return this.paymentsService.storeWompiId(body.reference, body.wompiTxId);
+  }
 }

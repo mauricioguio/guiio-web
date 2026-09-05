@@ -106,32 +106,56 @@ export class PaymentsService {
     return { status: json?.data?.status ?? 'ERROR' };
   }
 
+  async storeWompiId(reference: string, wompiTxId: string) {
+    await this.prisma.order.updateMany({
+      where: { reference, wompiTxId: null },
+      data: { wompiTxId },
+    });
+    return { ok: true };
+  }
+
   async checkAndConfirmByReference(reference: string): Promise<{ wompiStatus: string; confirmed: boolean }> {
+    // Buscar el wompiTxId guardado en el pedido
+    const order = await this.prisma.order.findUnique({
+      where: { reference },
+      select: { wompiTxId: true },
+    });
+
+    if (order?.wompiTxId) {
+      const { status } = await this.verifyTransaction(order.wompiTxId);
+      if (status === 'APPROVED') {
+        await this.confirmOrderByReference(reference);
+        return { wompiStatus: 'APPROVED', confirmed: true };
+      }
+      return { wompiStatus: status, confirmed: false };
+    }
+
+    // Sin wompiTxId: intentar búsqueda por referencia en la API de Wompi
     const apiBase = this.publicKey.startsWith('pub_test_')
       ? 'https://sandbox.wompi.co/v1'
       : 'https://api.wompi.co/v1';
 
-    const res = await fetch(
-      `${apiBase}/transactions?reference=${encodeURIComponent(reference)}`,
-      { headers: { Authorization: `Bearer ${this.publicKey}` } },
-    );
-    const json = await res.json() as any;
-    const transactions: any[] = json?.data ?? [];
+    try {
+      const res = await fetch(
+        `${apiBase}/transactions?reference=${encodeURIComponent(reference)}`,
+        { headers: { Authorization: `Bearer ${this.publicKey}` } },
+      );
+      const json = await res.json() as any;
+      // La API puede retornar data como array o como { records: [] }
+      const list: any[] = Array.isArray(json?.data) ? json.data
+        : Array.isArray(json?.data?.records) ? json.data.records : [];
 
-    const approved = transactions.find((t: any) => t.status === 'APPROVED');
-    if (!approved) {
-      const latest = transactions[0];
+      const approved = list.find((t: any) => t.status === 'APPROVED');
+      if (approved) {
+        await this.prisma.order.updateMany({ where: { reference, wompiTxId: null }, data: { wompiTxId: approved.id } });
+        await this.confirmOrderByReference(reference);
+        return { wompiStatus: 'APPROVED', confirmed: true };
+      }
+      const latest = list[0];
       return { wompiStatus: latest?.status ?? 'NOT_FOUND', confirmed: false };
+    } catch {
+      return { wompiStatus: 'ERROR', confirmed: false };
     }
-
-    // Guardar wompiTxId si aún no está
-    await this.prisma.order.updateMany({
-      where: { reference, wompiTxId: null },
-      data: { wompiTxId: approved.id },
-    });
-
-    await this.confirmOrderByReference(reference);
-    return { wompiStatus: 'APPROVED', confirmed: true };
   }
 
   async confirmOrderByReference(reference: string) {

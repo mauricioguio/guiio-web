@@ -20,6 +20,10 @@ export class PaymentService {
     return this.http.post<{ ok: boolean }>(`${this.apiUrl}/payments/confirm/${reference}`, {});
   }
 
+  storeWompiId(reference: string, wompiTxId: string) {
+    return this.http.post(`${this.apiUrl}/payments/store-wompi-id`, { reference, wompiTxId });
+  }
+
   private buildItems() {
     return this.cart.cartItems().map(item => ({
       id:         item.product.id,

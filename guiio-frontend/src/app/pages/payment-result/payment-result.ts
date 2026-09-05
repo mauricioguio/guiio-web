@@ -69,6 +69,8 @@ export class PaymentResult implements OnInit {
       return;
     }
     if (txStatus === 'PENDING') {
+      const ref = params.get('reference');
+      if (ref && wompiId) this.paymentService.storeWompiId(ref, wompiId).subscribe();
       this.router.navigate(['/pago/pendiente']);
       return;
     }
