@@ -79,10 +79,6 @@ export class Pedidos implements OnInit {
   protected savingId    = signal<string | null>(null);
 
   protected updatingOrderId    = signal<string | null>(null);
-  protected checkingWompiRef   = signal<string | null>(null);
-  protected wompiManualRef     = signal<string | null>(null); // reference del pedido que pide ID manual
-  protected wompiManualId      = '';
-  protected wompiResultPopup   = signal<{ reference: string; wompiStatus: string; confirmed: boolean } | null>(null);
   protected emailSentPopup     = signal<{ email: string; reference: string } | null>(null);
 
   protected shippingPopup = signal<ShippingData | null>(null);
@@ -222,47 +218,6 @@ export class Pedidos implements OnInit {
     });
   }
 
-  checkWompi(order: Order) {
-    this.checkingWompiRef.set(order.reference);
-    this.wompiManualRef.set(null);
-    this.onlineApi.checkWompi(order.reference).subscribe({
-      next: result => {
-        this.checkingWompiRef.set(null);
-        if (result.confirmed) {
-          this.orders.update(list => list.map(o => o.reference === order.reference ? { ...o, status: 'PAID' } : o));
-          this.emailSentPopup.set({ email: order.customer.email, reference: order.reference });
-          setTimeout(() => this.emailSentPopup.set(null), 6000);
-        } else {
-          // No se encontró automáticamente → pedir ID de transacción manual
-          this.wompiManualRef.set(order.reference);
-          this.wompiManualId = '';
-        }
-      },
-      error: () => this.checkingWompiRef.set(null),
-    });
-  }
-
-  confirmWithWompiId(order: Order) {
-    const txId = this.wompiManualId.trim();
-    if (!txId) return;
-    this.checkingWompiRef.set(order.reference);
-    this.onlineApi.checkWompiById(order.reference, txId).subscribe({
-      next: result => {
-        this.checkingWompiRef.set(null);
-        this.wompiManualRef.set(null);
-        this.wompiManualId = '';
-        if (result.confirmed) {
-          this.orders.update(list => list.map(o => o.reference === order.reference ? { ...o, status: 'PAID' } : o));
-          this.emailSentPopup.set({ email: order.customer.email, reference: order.reference });
-          setTimeout(() => this.emailSentPopup.set(null), 6000);
-        } else {
-          this.wompiResultPopup.set({ reference: order.reference, wompiStatus: result.wompiStatus, confirmed: false });
-          setTimeout(() => this.wompiResultPopup.set(null), 6000);
-        }
-      },
-      error: () => this.checkingWompiRef.set(null),
-    });
-  }
 
   openShippingPopup(data: ShippingData) {
     this.shippingPopup.set(data);
